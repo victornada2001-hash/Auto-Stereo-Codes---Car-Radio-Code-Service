@@ -84,7 +84,7 @@ export default function CheckoutRequestForm({ language }: { language: "en" | "es
       <div className="mx-auto max-w-4xl">
         <p className="text-sm font-bold uppercase tracking-widest text-blue-400">{es ? "Solicitud de código" : "Code request"}</p>
         <h2 className="mt-3 text-3xl font-bold md:text-4xl">{es ? "Cuéntanos sobre tu estéreo" : "Tell us about your stereo"}</h2>
-        <p className="mt-4 text-slate-300">{es ? "Completa tus datos. Al continuar irás al pago seguro; tu solicitud y folio se crearán solamente después de que el pago sea confirmado." : "Enter your details. You will continue to secure payment; your request and reference will be created only after payment is confirmed."}</p>
+        <p className="mt-4 text-slate-300">{es ? "Completa tus datos. Al continuar irás a PayPal para realizar el pago seguro de $23.99 USD; tu solicitud y folio se crearán solamente después de que el pago sea confirmado." : "Enter your details. You will continue to PayPal for the secure $23.99 USD payment; your request and reference will be created only after payment is confirmed."}</p>
 
         <form onSubmit={submit} className="mt-8 grid gap-6 sm:grid-cols-2">
           <label className="sm:col-span-2">{es ? "Número de serie del estéreo *" : "Stereo serial number *"}<input name="serial" required maxLength={100} autoComplete="off" className={inputStyle} /></label>
@@ -96,12 +96,12 @@ export default function CheckoutRequestForm({ language }: { language: "en" | "es
           <label>WhatsApp<input name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+1 555 123 4567" className={inputStyle} /></label>
           <label>{es ? "Correo electrónico" : "Email address"}<input name="email" type="email" autoComplete="email" maxLength={254} placeholder="you@example.com" className={inputStyle} /></label>
 
-          <p className="text-sm text-slate-400 sm:col-span-2">{es ? "No generaremos un folio ni guardaremos una solicitud en nuestra base hasta que Stripe confirme el pago." : "We will not generate a reference or save a request in our database until Stripe confirms payment."}</p>
+          <p className="text-sm text-slate-400 sm:col-span-2">{es ? "No generaremos un folio ni guardaremos una solicitud en nuestra base hasta que PayPal confirme el pago." : "We will not generate a reference or save a request in our database until PayPal confirms payment."}</p>
 
           {message && <p role="alert" className="rounded-xl border border-amber-600 bg-amber-950 p-4 text-amber-100 sm:col-span-2">{message}</p>}
 
           <button disabled={busy} type="submit" className="rounded-xl bg-blue-600 px-6 py-4 font-bold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60 sm:col-span-2">
-            {busy ? (es ? "Abriendo pago seguro…" : "Opening secure payment…") : (es ? "Continuar al pago →" : "Continue to payment →")}
+            {busy ? (es ? "Abriendo PayPal…" : "Opening PayPal…") : (es ? "Continuar a PayPal →" : "Continue to PayPal →")}
           </button>
         </form>
       </div>
