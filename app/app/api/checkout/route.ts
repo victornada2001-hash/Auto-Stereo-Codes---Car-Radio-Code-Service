@@ -13,8 +13,19 @@ function clean(value: unknown, maxLength = 255) {
   return String(value ?? "").trim().slice(0, maxLength);
 }
 
+function getPublicSiteUrl(request: Request) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (configured) return configured;
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
+
+  return new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
-  const siteUrl = new URL(request.url).origin;
+  const siteUrl = getPublicSiteUrl(request);
 
   if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET || !process.env.PAYPAL_SESSION_SECRET) {
     return NextResponse.json(
