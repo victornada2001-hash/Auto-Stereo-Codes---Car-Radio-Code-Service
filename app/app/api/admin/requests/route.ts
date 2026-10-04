@@ -71,23 +71,24 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { url, headers } = supabaseConfig();
-    const endpoint = new URL(`${url}/rest/v1/code_requests`);
-    endpoint.searchParams.set("id", `eq.${id}`);
-    endpoint.searchParams.set("payment_status", "eq.paid");
-
-    const response = await fetch(endpoint, {
-      method: "PATCH",
-      headers: { ...headers, Prefer: "return=minimal" },
-      body: JSON.stringify({ status }),
+    const response = await fetch(`${url}/rest/v1/rpc/admin_update_code_request_status`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ p_id: id, p_status: status }),
       cache: "no-store",
     });
 
     if (!response.ok) {
-      console.error("Admin status update failed", response.status, await response.text());
+      console.error("Admin status RPC failed", response.status, await response.text());
       return NextResponse.json({ code: "UPDATE_FAILED" }, { status: 502 });
     }
 
-    return NextResponse.json({ ok: true, id, status });
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true, id: rows[0].id, status: rows[0].status });
   } catch (error) {
     console.error("Admin update error", error instanceof Error ? error.message : "unknown");
     return NextResponse.json({ code: "UPDATE_FAILED" }, { status: 500 });
