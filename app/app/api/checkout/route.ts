@@ -1,21 +1,24 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
+import { encryptCheckoutSession } from "@/lib/payment-session";
+import { paypalRequest } from "@/lib/paypal";
+
+export const runtime = "nodejs";
 
 const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/i;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PRICE_USD = process.env.STEREO_CODE_PRICE_USD || "23.99";
 
 function clean(value: unknown, maxLength = 255) {
   return String(value ?? "").trim().slice(0, maxLength);
 }
 
 export async function POST(request: Request) {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  const priceCents = Number(process.env.STEREO_CODE_PRICE_CENTS);
-  const currency = clean(process.env.STEREO_CODE_CURRENCY || "usd", 3).toLowerCase();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
 
-  if (!stripeSecretKey || !Number.isInteger(priceCents) || priceCents <= 0) {
+  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET || !process.env.PAYPAL_SESSION_SECRET) {
     return NextResponse.json(
-      { code: "NOT_CONFIGURED", message: "Payment is not configured." },
+      { code: "NOT_CONFIGURED", message: "PayPal is not configured." },
       { status: 503 },
     );
   }
@@ -56,50 +59,75 @@ export async function POST(request: Request) {
     return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
   }
 
-  const params = new URLSearchParams();
-  params.set("mode", "payment");
-  params.set("payment_method_types[0]", "card");
-  params.set("success_url", `${siteUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`);
-  params.set("cancel_url", `${siteUrl}/#request-form`);
-  params.set("line_items[0][price_data][currency]", currency);
-  params.set("line_items[0][price_data][product_data][name]", "Car Stereo Unlock Code");
-  params.set("line_items[0][price_data][unit_amount]", String(priceCents));
-  params.set("line_items[0][quantity]", "1");
-  params.set("locale", language === "es" ? "es-419" : "en");
+  try {
+    const paypalResponse = await paypalRequest("/v2/checkout/orders", {
+      method: "POST",
+      headers: {
+        "PayPal-Request-Id": randomUUID(),
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            reference_id: "STEREO_CODE",
+            description: "Car Stereo Unlock Code",
+            amount: {
+              currency_code: "USD",
+              value: PRICE_USD,
+            },
+          },
+        ],
+        payment_source: {
+          paypal: {
+            experience_context: {
+              brand_name: "Auto Stereo Codes",
+              locale: language === "es" ? "es-MX" : "en-US",
+              landing_page: "LOGIN",
+              shipping_preference: "NO_SHIPPING",
+              user_action: "PAY_NOW",
+              return_url: `${siteUrl}/api/paypal/capture`,
+              cancel_url: `${siteUrl}/#request-form`,
+            },
+          },
+        },
+      }),
+    });
 
-  if (email) params.set("customer_email", email);
+    const result = await paypalResponse.json();
+    const approvalUrl = Array.isArray(result.links)
+      ? result.links.find((link: { rel?: string; href?: string }) =>
+          link.rel === "payer-action" || link.rel === "approve",
+        )?.href
+      : undefined;
 
-  const metadata: Record<string, string> = {
-    serial,
-    year: String(year),
-    brand,
-    model,
-    phone,
-    email,
-    vin,
-    language,
-  };
+    if (!paypalResponse.ok || !result.id || !approvalUrl) {
+      console.error("PayPal order creation failed", paypalResponse.status, result?.name);
+      return NextResponse.json({ code: "PAYMENT_ERROR" }, { status: 502 });
+    }
 
-  for (const [key, value] of Object.entries(metadata)) {
-    params.set(`metadata[${key}]`, value);
-  }
+    const session = encryptCheckoutSession({
+      orderId: String(result.id),
+      serial,
+      year,
+      brand,
+      model,
+      phone,
+      email,
+      vin,
+      language,
+    });
 
-  const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${stripeSecretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params.toString(),
-    cache: "no-store",
-  });
-
-  const result = await stripeResponse.json();
-
-  if (!stripeResponse.ok || !result.url) {
-    console.error("Stripe checkout creation failed", stripeResponse.status, result?.error?.type);
+    const response = NextResponse.json({ url: approvalUrl }, { status: 201 });
+    response.cookies.set("asc_paypal_checkout", session, {
+      httpOnly: true,
+      secure: siteUrl.startsWith("https://"),
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 30,
+    });
+    return response;
+  } catch (error) {
+    console.error("Unable to create PayPal checkout", error instanceof Error ? error.message : "unknown");
     return NextResponse.json({ code: "PAYMENT_ERROR" }, { status: 502 });
   }
-
-  return NextResponse.json({ url: result.url }, { status: 201 });
 }
