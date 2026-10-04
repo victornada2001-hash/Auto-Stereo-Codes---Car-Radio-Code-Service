@@ -14,7 +14,7 @@ function clean(value: unknown, maxLength = 255) {
 }
 
 export async function POST(request: Request) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const siteUrl = new URL(request.url).origin;
 
   if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET || !process.env.PAYPAL_SESSION_SECRET) {
     return NextResponse.json(
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     const paypalResponse = await paypalRequest("/v2/checkout/orders", {
       method: "POST",
       headers: {
-        "PayPal-Request-Id": randomUUID(),
+        "PayPal-Request-Id": randomUUID().replaceAll("-", "").slice(0, 24),
       },
       body: JSON.stringify({
         intent: "CAPTURE",
