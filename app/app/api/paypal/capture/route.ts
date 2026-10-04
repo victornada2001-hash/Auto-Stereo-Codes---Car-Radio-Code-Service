@@ -54,8 +54,7 @@ function extractCompletedCapture(order: any) {
 }
 
 function redirectAndClear(request: NextRequest, path: string) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
-  const response = NextResponse.redirect(new URL(path, siteUrl));
+  const response = NextResponse.redirect(new URL(path, request.nextUrl.origin));
   response.cookies.set("asc_paypal_checkout", "", {
     httpOnly: true,
     sameSite: "lax",
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest) {
       `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
       {
         method: "POST",
-        headers: { "PayPal-Request-Id": `capture-${orderId}`.slice(0, 36) },
+        headers: { "PayPal-Request-Id": `cap-${orderId}`.slice(0, 25) },
         body: "{}",
       },
     );
