@@ -16,9 +16,11 @@ function makeReference() {
 
 export async function POST(request: Request) {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  const legacyServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const apiKey = secretKey || legacyServiceRoleKey;
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !apiKey) {
     return NextResponse.json(
       { code: "NOT_CONFIGURED", message: "Request storage is not configured." },
       { status: 503 },
@@ -69,14 +71,21 @@ export async function POST(request: Request) {
 
   const reference = makeReference();
 
+  const headers: Record<string, string> = {
+    apikey: apiKey,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal",
+  };
+
+  // Legacy service_role keys are JWTs and may be sent as a Bearer token.
+  // Modern sb_secret_ keys should be sent only in the apikey header.
+  if (!secretKey && legacyServiceRoleKey) {
+    headers.Authorization = `Bearer ${legacyServiceRoleKey}`;
+  }
+
   const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/code_requests`, {
     method: "POST",
-    headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
-    },
+    headers,
     body: JSON.stringify({
       reference,
       serial,
