@@ -10,9 +10,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const BASE_PRICE_USD = Number(process.env.STEREO_CODE_PRICE_USD || "23.99");
 const PRIORITY_SMS_PRICE_USD = Number(process.env.PRIORITY_SMS_PRICE_USD || "1.75");
 
-function clean(value: unknown, maxLength = 255) {
-  return String(value ?? "").trim().slice(0, maxLength);
-}
+function clean(value: unknown, maxLength = 255) { return String(value ?? "").trim().slice(0, maxLength); }
 
 function getPublicSiteUrl(request: Request) {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
@@ -30,19 +28,18 @@ export async function POST(request: Request) {
   }
 
   let body: Record<string, unknown>;
-  try { body = await request.json(); }
-  catch { return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 }); }
+  try { body = await request.json(); } catch { return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 }); }
 
   const serial = clean(body.serial, 100);
   const email = clean(body.email, 254).toLowerCase();
   const phone = clean(body.phone, 32);
+  const detectedBrand = clean(body.detectedBrand, 120);
+  const radioFamily = clean(body.radioFamily, 160);
   const prioritySms = body.prioritySms === true;
   const language = normalizeLanguage(body.language);
   const validPhone = !prioritySms || phone.replace(/\D/g, "").length >= 7;
 
-  if (!serial || !EMAIL_PATTERN.test(email) || !validPhone) {
-    return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
-  }
+  if (!serial || !EMAIL_PATTERN.test(email) || !validPhone) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
 
   const amountUsd = (BASE_PRICE_USD + (prioritySms ? PRIORITY_SMS_PRICE_USD : 0)).toFixed(2);
 
@@ -81,7 +78,7 @@ export async function POST(request: Request) {
 
     const session = encryptCheckoutSession({
       orderId: String(result.id), serial, phone: prioritySms ? phone : "", email,
-      language, prioritySms, amountUsd,
+      language, prioritySms, amountUsd, detectedBrand, radioFamily,
     });
 
     const response = NextResponse.json({ url: approvalUrl }, { status: 201 });
