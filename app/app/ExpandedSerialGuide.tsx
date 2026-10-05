@@ -1,111 +1,65 @@
-type Props = { language: "en" | "es" };
+import type { Language } from "./languages";
+
+type Props = { language: Language };
+
+type Guide = { eyebrow:string; title:string; intro:string; warning:string; safety:string; cta:string; cards:{n:string;title:string;text:string;detail:string;visual:"radio"|"touch"|"nav"|"label"}[] };
+
+const guides: Record<Language, Guide> = {
+  en:{eyebrow:"Serial number help",title:"How to find your stereo serial number",intro:"Use the method that matches your radio. The serial identifies the stereo itself and is different from the vehicle VIN.",warning:"If ERR appears or the radio stops accepting input, do not keep trying random codes. Repeated incorrect attempts can temporarily lock the unit.",safety:"If the stereo must be removed and you are not comfortable with trim panels, wiring or nearby airbags, ask an installer or technician for help.",cta:"I found my serial — request my code →",cards:[
+    {n:"01",title:"Traditional Honda / Acura radio",text:"On many older units, set the ignition to ACC or ON and keep the radio off. Hold preset buttons 1 and 6, then press PWR/VOL while still holding them.",detail:"Compatible radios may show two groups such as U4821 and L9037, or one S/N. Record every character exactly as shown.",visual:"radio"},
+    {n:"02",title:"Touchscreen / newer unit",text:"Some stereos show the serial inside a service or diagnostic menu. The exact button combination varies by model and region.",detail:"Look for items such as Detailed Information, Unit Check, HMI Unit, DA Unit, System Information or Device Information.",visual:"touch"},
+    {n:"03",title:"Earlier navigation unit",text:"On several older Honda / Acura navigation units, the service screen may be opened with Map/Guide + Menu + Cancel.",detail:"Then look for Unit Check or Navi ECU. If your screen is different, use the instructions for your exact unit instead of guessing button combinations.",visual:"nav"},
+    {n:"04",title:"Physical label on the stereo",text:"If the serial is not available on screen, it may be printed on the top, side or rear of the radio chassis.",detail:"The radio may need to be removed. Serial formats vary; enter the value exactly as printed on the label.",visual:"label"},
+  ]},
+  es:{eyebrow:"Ayuda con la serie",title:"Cómo encontrar la serie de tu estéreo",intro:"Usa el método que corresponda a tu radio. La serie identifica al estéreo y no es lo mismo que el VIN del vehículo.",warning:"Si aparece ERR o el radio deja de aceptar entradas, no sigas probando códigos al azar. Varios intentos incorrectos pueden bloquear temporalmente la unidad.",safety:"Si es necesario desmontar el estéreo y no tienes experiencia con molduras, cableado o bolsas de aire cercanas, pide ayuda a un instalador o técnico.",cta:"Ya encontré mi serie — solicitar código →",cards:[
+    {n:"01",title:"Radio Honda / Acura tradicional",text:"En muchos equipos antiguos, coloca el encendido en ACC u ON y deja el radio apagado. Mantén presionados 1 y 6 y, sin soltarlos, presiona PWR/VOL.",detail:"En radios compatibles pueden aparecer dos grupos como U4821 y L9037, o un solo S/N. Anota todos los caracteres exactamente como aparecen.",visual:"radio"},
+    {n:"02",title:"Pantalla táctil / unidad más nueva",text:"Algunos estéreos muestran la serie dentro de un menú de servicio o diagnóstico. La combinación exacta de botones cambia según el modelo y la región.",detail:"Busca opciones como Información detallada, Unit Check, HMI Unit, DA Unit, Información del sistema o Información del dispositivo.",visual:"touch"},
+    {n:"03",title:"Navegación de generaciones anteriores",text:"En varias unidades antiguas Honda / Acura, la pantalla de servicio puede abrirse con Map/Guide + Menu + Cancel.",detail:"Después busca Unit Check o Navi ECU. Si tu pantalla es diferente, usa las instrucciones específicas de tu unidad en vez de probar combinaciones al azar.",visual:"nav"},
+    {n:"04",title:"Etiqueta física del estéreo",text:"Si la serie no aparece en pantalla, puede estar impresa en la parte superior, lateral o trasera del chasis del radio.",detail:"Puede ser necesario desmontar el estéreo. Los formatos cambian; introduce la serie exactamente como aparece en la etiqueta.",visual:"label"},
+  ]},
+  pt:{eyebrow:"Ajuda com o número de série",title:"Como encontrar o número de série do seu rádio",intro:"Use o método correspondente ao seu aparelho. O número de série identifica o rádio e é diferente do VIN do veículo.",warning:"Se aparecer ERR ou o rádio parar de aceitar entradas, não continue tentando códigos aleatórios. Várias tentativas incorretas podem bloquear o aparelho temporariamente.",safety:"Se for necessário remover o rádio e você não tiver experiência com acabamentos, fiação ou airbags próximos, procure um instalador ou técnico.",cta:"Encontrei o número de série — solicitar código →",cards:[
+    {n:"01",title:"Rádio Honda / Acura tradicional",text:"Em muitos aparelhos antigos, coloque a ignição em ACC ou ON e mantenha o rádio desligado. Segure 1 e 6 e pressione PWR/VOL sem soltá-los.",detail:"Alguns rádios mostram dois grupos, como U4821 e L9037, ou um único S/N. Anote tudo exatamente como aparece.",visual:"radio"},
+    {n:"02",title:"Tela sensível ao toque / unidade nova",text:"Alguns rádios exibem o número de série em um menu de serviço ou diagnóstico. A combinação exata varia por modelo e região.",detail:"Procure opções como Detailed Information, Unit Check, HMI Unit, DA Unit, System Information ou Device Information.",visual:"touch"},
+    {n:"03",title:"Navegação de gerações anteriores",text:"Em várias unidades Honda / Acura antigas, a tela de serviço pode abrir com Map/Guide + Menu + Cancel.",detail:"Depois procure Unit Check ou Navi ECU. Se a tela for diferente, use as instruções específicas do aparelho.",visual:"nav"},
+    {n:"04",title:"Etiqueta física do rádio",text:"Se o número de série não aparecer na tela, ele pode estar impresso na parte superior, lateral ou traseira do aparelho.",detail:"Pode ser necessário remover o rádio. Digite o número exatamente como está na etiqueta.",visual:"label"},
+  ]},
+  fr:{eyebrow:"Aide pour le numéro de série",title:"Comment trouver le numéro de série de votre autoradio",intro:"Utilisez la méthode correspondant à votre appareil. Le numéro de série identifie l’autoradio et diffère du VIN du véhicule.",warning:"Si ERR apparaît ou si l’autoradio n’accepte plus de saisie, n’essayez pas de codes au hasard. Plusieurs erreurs peuvent provoquer un verrouillage temporaire.",safety:"Si l’autoradio doit être retiré et que vous n’êtes pas à l’aise avec les garnitures, le câblage ou les airbags proches, demandez l’aide d’un technicien.",cta:"J’ai trouvé mon numéro de série — demander mon code →",cards:[
+    {n:"01",title:"Autoradio Honda / Acura traditionnel",text:"Sur de nombreux anciens modèles, mettez le contact sur ACC ou ON et laissez l’autoradio éteint. Maintenez 1 et 6, puis appuyez sur PWR/VOL.",detail:"Les appareils compatibles peuvent afficher deux groupes comme U4821 et L9037, ou un seul S/N. Notez tout exactement.",visual:"radio"},
+    {n:"02",title:"Écran tactile / modèle récent",text:"Certains autoradios affichent le numéro de série dans un menu de service ou de diagnostic. La combinaison exacte varie selon le modèle.",detail:"Cherchez Detailed Information, Unit Check, HMI Unit, DA Unit, System Information ou Device Information.",visual:"touch"},
+    {n:"03",title:"Ancienne unité de navigation",text:"Sur plusieurs anciennes unités Honda / Acura, l’écran de service peut s’ouvrir avec Map/Guide + Menu + Cancel.",detail:"Cherchez ensuite Unit Check ou Navi ECU. Si votre écran est différent, utilisez les instructions propres à votre appareil.",visual:"nav"},
+    {n:"04",title:"Étiquette physique de l’autoradio",text:"Si le numéro n’apparaît pas à l’écran, il peut être imprimé sur le dessus, le côté ou l’arrière du châssis.",detail:"Il peut être nécessaire de retirer l’autoradio. Saisissez le numéro exactement comme il est imprimé.",visual:"label"},
+  ]},
+  de:{eyebrow:"Hilfe zur Seriennummer",title:"So findest du die Seriennummer deines Autoradios",intro:"Nutze die Methode, die zu deinem Radio passt. Die Seriennummer gehört zum Autoradio und ist nicht die Fahrzeug-VIN.",warning:"Wenn ERR erscheint oder das Radio keine Eingaben mehr annimmt, probiere keine zufälligen Codes weiter. Mehrere Fehlversuche können das Gerät vorübergehend sperren.",safety:"Wenn das Radio ausgebaut werden muss und du mit Verkleidungen, Kabeln oder Airbags nicht vertraut bist, lass dir von einem Techniker helfen.",cta:"Seriennummer gefunden — Code anfordern →",cards:[
+    {n:"01",title:"Klassisches Honda / Acura Radio",text:"Bei vielen älteren Geräten Zündung auf ACC oder ON stellen und Radio ausgeschaltet lassen. Tasten 1 und 6 gedrückt halten und PWR/VOL drücken.",detail:"Kompatible Radios zeigen z. B. U4821 und L9037 oder eine einzelne S/N. Alles genau abschreiben.",visual:"radio"},
+    {n:"02",title:"Touchscreen / neueres Gerät",text:"Einige Radios zeigen die Seriennummer in einem Service- oder Diagnosemenü. Die Tastenkombination variiert je nach Modell.",detail:"Suche nach Detailed Information, Unit Check, HMI Unit, DA Unit, System Information oder Device Information.",visual:"touch"},
+    {n:"03",title:"Ältere Navigationseinheit",text:"Bei mehreren älteren Honda / Acura Geräten lässt sich das Servicemenü mit Map/Guide + Menu + Cancel öffnen.",detail:"Danach Unit Check oder Navi ECU wählen. Bei einer anderen Anzeige die Anleitung des konkreten Geräts verwenden.",visual:"nav"},
+    {n:"04",title:"Aufkleber am Autoradio",text:"Wenn die Seriennummer nicht im Display erscheint, kann sie oben, seitlich oder hinten am Gehäuse stehen.",detail:"Möglicherweise muss das Radio ausgebaut werden. Die Seriennummer exakt wie auf dem Aufkleber eingeben.",visual:"label"},
+  ]},
+  it:{eyebrow:"Aiuto numero di serie",title:"Come trovare il numero di serie dell’autoradio",intro:"Usa il metodo adatto al tuo apparecchio. Il numero di serie identifica l’autoradio ed è diverso dal VIN del veicolo.",warning:"Se compare ERR o l’autoradio smette di accettare input, non continuare con codici casuali. Troppi tentativi errati possono bloccare temporaneamente l’unità.",safety:"Se è necessario rimuovere l’autoradio e non hai esperienza con pannelli, cablaggi o airbag vicini, chiedi aiuto a un tecnico.",cta:"Ho trovato il numero di serie — richiedi il codice →",cards:[
+    {n:"01",title:"Autoradio Honda / Acura tradizionale",text:"Su molti modelli più vecchi, imposta l’accensione su ACC o ON e lascia la radio spenta. Tieni premuti 1 e 6, poi premi PWR/VOL.",detail:"Le unità compatibili possono mostrare due gruppi come U4821 e L9037 oppure un solo S/N. Copia tutto esattamente.",visual:"radio"},
+    {n:"02",title:"Touchscreen / unità più recente",text:"Alcune autoradio mostrano il numero di serie in un menu di servizio o diagnostica. La combinazione esatta varia in base al modello.",detail:"Cerca Detailed Information, Unit Check, HMI Unit, DA Unit, System Information o Device Information.",visual:"touch"},
+    {n:"03",title:"Unità di navigazione precedente",text:"Su varie vecchie unità Honda / Acura, la schermata di servizio può aprirsi con Map/Guide + Menu + Cancel.",detail:"Poi cerca Unit Check o Navi ECU. Se lo schermo è diverso, usa le istruzioni specifiche della tua unità.",visual:"nav"},
+    {n:"04",title:"Etichetta fisica dell’autoradio",text:"Se il numero non compare sullo schermo, può essere stampato sopra, di lato o sul retro del telaio.",detail:"Potrebbe essere necessario rimuovere la radio. Inserisci il numero esattamente come stampato.",visual:"label"},
+  ]},
+};
+
+function Visual({kind}:{kind:"radio"|"touch"|"nav"|"label"}) {
+  if(kind==="radio") return <div className="rounded-2xl bg-slate-950 p-4 text-white"><div className="rounded-xl border border-slate-700 p-4"><div className="mx-auto w-44 rounded bg-blue-600/30 px-3 py-2 text-center font-mono text-blue-200">U4821 L9037</div><div className="mt-4 flex justify-center gap-3"><b className="rounded bg-slate-800 px-4 py-2">1</b><b className="rounded bg-slate-800 px-4 py-2">6</b><b className="rounded-full bg-blue-600 px-3 py-2">PWR</b></div></div></div>;
+  if(kind==="touch") return <div className="rounded-2xl bg-slate-950 p-4 text-white"><div className="rounded-xl border border-slate-700 bg-slate-900 p-4"><div className="text-xs text-slate-400">SYSTEM / DIAGNOSTIC</div><div className="mt-3 space-y-2"><div className="rounded bg-emerald-500/20 px-3 py-2">Unit Check ✓</div><div className="rounded bg-blue-500/20 px-3 py-2 font-mono">Serial: 975GU294</div></div></div></div>;
+  if(kind==="nav") return <div className="rounded-2xl bg-slate-950 p-4 text-white"><div className="grid grid-cols-3 gap-2 rounded-xl border border-slate-700 p-4 text-center text-xs"><b className="rounded bg-slate-800 p-3">MAP</b><b className="rounded bg-slate-800 p-3">MENU</b><b className="rounded bg-slate-800 p-3">CANCEL</b><div className="col-span-3 rounded bg-blue-500/20 p-3">Navi ECU → Serial</div></div></div>;
+  return <div className="rounded-2xl bg-slate-950 p-4"><div className="mx-auto max-w-xs rounded-xl bg-slate-200 p-5 text-slate-900"><div className="text-xs font-bold">SERIAL NO.</div><div className="mt-2 border-2 border-red-500 bg-white p-2 font-mono font-black">SN742061</div><div className="mt-3 h-8 bg-[repeating-linear-gradient(90deg,#111_0,#111_2px,transparent_2px,transparent_5px)]" /></div></div>;
+}
 
 export default function ExpandedSerialGuide({ language }: Props) {
-  const es = language === "es";
-
-  const cards = es
-    ? [
-        {
-          n: "01",
-          title: "Radio tradicional: botones 1 + 6",
-          text: "En muchos radios Honda y Acura sin navegación, coloca el encendido en ACC u ON y deja el radio apagado. Mantén presionados los botones 1 y 6 y, sin soltarlos, presiona PWR/VOL para encender el equipo. En unidades compatibles, la pantalla mostrará la serie.",
-          detail: "La serie puede aparecer en dos grupos (por ejemplo, U4821 y L9037) o como un solo S/N. Anota exactamente todo lo que aparezca en pantalla.",
-        },
-        {
-          n: "02",
-          title: "Pantalla táctil y unidades más nuevas",
-          text: "Algunas unidades permiten consultar la serie desde un menú de diagnóstico. Dependiendo del equipo, se puede abrir manteniendo una combinación como botón superior + encendido + Menú, Encendido + Expulsar + Inicio, o Encendido + Menú + Día/Noche durante unos segundos.",
-          detail: "Si aparece el menú de servicio, busca opciones como Información detallada, Unit Check, HMI Unit o DA Unit. En otros equipos la serie puede estar en Inicio → Información → información del sistema o del dispositivo. Los nombres exactos cambian según modelo y región.",
-        },
-        {
-          n: "03",
-          title: "Navegación Honda / Acura de generaciones anteriores",
-          text: "En varias unidades de navegación de aproximadamente 2003 a 2012, el menú de diagnóstico puede abrirse con Map/Guide + Menu + Cancel. Después, busca Unit Check y Navi ECU para localizar la serie.",
-          detail: "Algunos radios usan combinaciones distintas con SEEK/SKIP, CH/DISC y PWR/VOL. Si tu pantalla no coincide con estas instrucciones, no fuerces botones al azar: usa la etiqueta física o la guía específica de tu unidad.",
-        },
-        {
-          n: "04",
-          title: "Etiqueta física en el estéreo",
-          text: "Si la serie no aparece en pantalla, puede estar impresa en una etiqueta en la parte superior, lateral o trasera del chasis. Para verla puede ser necesario extraer el radio del tablero.",
-          detail: "Las series varían mucho de formato y longitud. Ejemplos ilustrativos: U4821 L9037, S/N 17482635, 9A7GU204, HFB23041871 o SN742061. Introduce la serie exactamente como aparece en tu unidad.",
-        },
-      ]
-    : [
-        {
-          n: "01",
-          title: "Traditional radio: preset 1 + 6",
-          text: "On many Honda and Acura radios without navigation, set the ignition to ACC or ON and leave the radio off. Hold preset buttons 1 and 6, then press PWR/VOL while still holding them. On compatible units, the serial number will appear on the display.",
-          detail: "The serial may appear as two groups (for example U4821 and L9037) or as a single S/N. Write down everything exactly as it appears.",
-        },
-        {
-          n: "02",
-          title: "Touchscreen and newer units",
-          text: "Some units can show the serial through a diagnostic menu. Depending on the radio, the service screen may open with combinations such as top radio button + Power + Menu, Power + Eject + Home, or Power + Menu + Day/Night for a few seconds.",
-          detail: "If a service menu appears, look for items such as Detailed Information, Unit Check, HMI Unit or DA Unit. Other units may show device information under Home → Information → system/device information. Exact labels vary by model and region.",
-        },
-        {
-          n: "03",
-          title: "Earlier Honda / Acura navigation units",
-          text: "On several navigation units from roughly 2003–2012, the diagnostic screen can be opened with Map/Guide + Menu + Cancel. Then look for Unit Check and Navi ECU to locate the serial.",
-          detail: "Some radios use different combinations involving SEEK/SKIP, CH/DISC and PWR/VOL. If your screen does not match these steps, do not keep trying random combinations; use the physical label or the instructions for your exact unit.",
-        },
-        {
-          n: "04",
-          title: "Physical label on the stereo",
-          text: "If the serial is not available on screen, it may be printed on a label on the top, side or rear of the radio chassis. The radio may need to be removed from the dashboard to see it.",
-          detail: "Serial formats and lengths vary widely. Illustrative formats: U4821 L9037, S/N 17482635, 9A7GU204, HFB23041871 or SN742061. Enter the serial exactly as printed on your unit.",
-        },
-      ];
-
-  return (
-    <section className="border-y border-slate-200 bg-slate-50 py-24">
-      <div className="mx-auto max-w-7xl px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="text-sm font-black uppercase tracking-[0.22em] text-blue-600">
-            {es ? "Guía ampliada Honda / Acura" : "Expanded Honda / Acura guide"}
-          </div>
-          <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 md:text-5xl">
-            {es ? "Más formas de encontrar el número de serie" : "More ways to find the stereo serial number"}
-          </h2>
-          <p className="mt-5 text-lg leading-8 text-slate-600">
-            {es
-              ? "El método correcto depende del radio instalado, no solamente del año del vehículo. Usa la opción que coincida con tu equipo y anota la serie exactamente como aparece."
-              : "The correct method depends on the radio installed, not only the vehicle year. Use the option that matches your unit and record the serial exactly as shown."}
-          </p>
-        </div>
-
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
-          {cards.map((card) => (
-            <article key={card.n} className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-black text-white">{card.n}</div>
-                <h3 className="text-xl font-black text-slate-950">{card.title}</h3>
-              </div>
-              <p className="mt-5 leading-7 text-slate-700">{card.text}</p>
-              <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-600">{card.detail}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-8 grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-950">
-            ⚠️ {es
-              ? "Si aparece ERR o el radio deja de aceptar entradas, no sigas probando códigos al azar. Los intentos incorrectos pueden provocar un bloqueo temporal. Consulta el manual del vehículo o las instrucciones específicas del radio antes de volver a intentarlo."
-              : "If ERR appears or the radio stops accepting input, do not keep trying random codes. Repeated incorrect attempts can cause a temporary lockout. Check the vehicle manual or radio-specific instructions before trying again."}
-          </div>
-          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm font-semibold leading-6 text-blue-950">
-            🔧 {es
-              ? "Si necesitas desmontar el estéreo y no tienes experiencia con molduras, conectores o bolsas de aire cercanas, pide ayuda a un instalador o técnico para evitar daños."
-              : "If the stereo must be removed and you are not experienced with trim panels, connectors or nearby airbags, ask an installer or technician for help to avoid damage."}
-          </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <a href="#request-form" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 font-bold text-white transition hover:bg-blue-500">
-            {es ? "Ya tengo mi serie — solicitar código →" : "I have my serial — request my code →"}
-          </a>
-        </div>
+  const g = guides[language];
+  return <section id="serial-help" className="scroll-mt-24 border-y border-slate-200 bg-slate-50 py-24">
+    <div className="mx-auto max-w-7xl px-6 lg:px-10">
+      <div className="mx-auto max-w-3xl text-center"><div className="text-sm font-black uppercase tracking-[0.22em] text-blue-600">{g.eyebrow}</div><h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 md:text-5xl">{g.title}</h2><p className="mt-5 text-lg leading-8 text-slate-600">{g.intro}</p></div>
+      <div className="mt-14 grid gap-6 md:grid-cols-2">
+        {g.cards.map(card=><article key={card.n} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"><Visual kind={card.visual}/><div className="p-7"><div className="flex items-center gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-black text-white">{card.n}</div><h3 className="text-xl font-black text-slate-950">{card.title}</h3></div><p className="mt-5 leading-7 text-slate-700">{card.text}</p><p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-600">{card.detail}</p></div></article>)}
       </div>
-    </section>
-  );
+      <div className="mt-8 grid gap-5 lg:grid-cols-2"><div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-950">⚠️ {g.warning}</div><div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm font-semibold leading-6 text-blue-950">🔧 {g.safety}</div></div>
+      <div className="mt-8 text-center"><a href="#request-form" className="inline-flex rounded-xl bg-blue-600 px-7 py-4 font-bold text-white transition hover:bg-blue-500">{g.cta}</a></div>
+    </div>
+  </section>;
 }
