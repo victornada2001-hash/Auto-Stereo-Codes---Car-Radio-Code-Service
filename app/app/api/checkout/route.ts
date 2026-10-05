@@ -93,7 +93,7 @@ export async function POST(request: Request) {
             experience_context: {
               brand_name: "Auto Stereo Codes",
               locale: language === "es" ? "es-MX" : "en-US",
-              landing_page: "LOGIN",
+              landing_page: "GUEST_CHECKOUT",
               shipping_preference: "NO_SHIPPING",
               user_action: "PAY_NOW",
               return_url: `${siteUrl}/api/paypal/capture`,
