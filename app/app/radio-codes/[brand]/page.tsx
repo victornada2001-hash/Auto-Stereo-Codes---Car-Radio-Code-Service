@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import BrandMark from "../../BrandMark";
 import BrandSerialStarter from "../BrandSerialStarter";
 import { getRadioGuide, radioGuides } from "../../radioGuideData";
-
-const iconSlugs: Record<string,string> = {
-  acura:"acura", "alfa-romeo":"alfaromeo", alpine:"alpine", audi:"audi", bmw:"bmw", bosch:"bosch", chrysler:"chrysler",
-  citroen:"citroen", dacia:"dacia", dodge:"dodge", fiat:"fiat", ford:"ford", honda:"honda", iveco:"iveco", jaguar:"jaguar",
-  jeep:"jeep", lancia:"lancia", "land-rover":"landrover", mercedes:"mercedesbenz", nissan:"nissan", peugeot:"peugeot",
-  porsche:"porsche", renault:"renault", seat:"seat", skoda:"skoda", sony:"sony", suzuki:"suzuki", toyota:"toyota",
-  vauxhall:"vauxhall", volkswagen:"volkswagen"
-};
-
-function brandIcon(slug:string){
-  const icon=iconSlugs[slug];
-  return icon ? `https://cdn.simpleicons.org/${icon}/111827` : null;
-}
 
 export function generateStaticParams() {
   return radioGuides.map((guide) => ({ brand: guide.slug }));
@@ -35,7 +23,6 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
   const { brand } = await params;
   const guide = getRadioGuide(brand);
   if (!guide) notFound();
-  const icon=brandIcon(guide.slug);
 
   return (
     <main className="min-h-screen bg-[#fff9f2] text-slate-950">
@@ -54,14 +41,12 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
 
       <section className="relative overflow-hidden border-b border-orange-100 bg-gradient-to-br from-white via-orange-50 to-[#fff1df] px-6 py-14 md:py-20">
         <div className="pointer-events-none absolute -right-20 top-0 h-96 w-96 rounded-full bg-orange-200/35 blur-3xl"/>
-        {icon && <img src={icon} alt={`Logo ${guide.name}`} className="pointer-events-none absolute right-[4%] top-1/2 hidden h-72 w-72 -translate-y-1/2 object-contain opacity-[0.07] lg:block"/>}
+        <div className="pointer-events-none absolute right-[5%] top-1/2 hidden -translate-y-1/2 opacity-[0.08] lg:block"><BrandMark slug={guide.slug} name={guide.name} hero/></div>
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div>
             <div className="text-sm font-semibold text-slate-500"><Link href="/" className="hover:text-orange-600">Inicio</Link><span className="mx-2">›</span><Link href="/radio-codes" className="hover:text-orange-600">Todas las marcas</Link><span className="mx-2">›</span>{guide.name}</div>
             <div className="mt-7 flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-orange-100 bg-white shadow-lg shadow-orange-100/70">
-                {icon ? <img src={icon} alt={guide.name} className="h-12 w-12 object-contain"/> : <span className="text-xl font-black">{guide.monogram}</span>}
-              </div>
+              <BrandMark slug={guide.slug} name={guide.name} hero/>
               <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Guía de número de serie</p><div className="mt-1 text-sm font-bold text-slate-500">{guide.families.slice(0,3).join(" · ")}</div></div>
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight md:text-6xl">Cómo encontrar la serie de tu radio <span className="text-orange-500">{guide.name}</span></h1>
@@ -76,7 +61,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
         <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
           <aside className="h-fit rounded-3xl border border-orange-100 bg-white p-6 shadow-sm lg:sticky lg:top-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50">{icon?<img src={icon} alt="" className="h-8 w-8 object-contain"/>:<span className="font-black">{guide.monogram}</span>}</div>
+              <BrandMark slug={guide.slug} name={guide.name} compact/>
               <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Antes de empezar</p><h2 className="mt-1 text-xl font-black">Identifica qué radio tienes</h2></div>
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-600">{guide.note}</p>
