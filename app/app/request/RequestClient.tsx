@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { languageOptions, type Language } from "../languages";
+import { brandPhotoForName } from "../brandVisuals";
 
 const BASE_PRICE=23.99;
 const SMS_ADDON=1.75;
@@ -21,6 +22,7 @@ export default function RequestClient(){
   const [message,setMessage]=useState("");
   const t=language==="es"?copy.es:copy.en;
   const total=(BASE_PRICE+(prioritySms?SMS_ADDON:0)).toFixed(2);
+  const requestPhoto=brandPhotoForName(brand);
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -69,6 +71,7 @@ export default function RequestClient(){
       </div>
 
       <aside className="space-y-5">
+        <div className="relative min-h-64 overflow-hidden rounded-[2rem] border border-orange-100 bg-slate-900 shadow-lg"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${requestPhoto})`}}/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"/><div className="absolute bottom-0 left-0 right-0 p-6 text-white"><div className="text-xs font-black uppercase tracking-[.18em] text-orange-300">AUTO STEREO CODES</div><div className="mt-2 text-2xl font-black">{brand||"Tu radio, identificado antes del pago"}</div>{family&&<div className="mt-1 text-sm font-semibold text-white/80">{family}</div>}</div></div>
         <div className="rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm"><div className="text-3xl">🔒</div><h2 className="mt-4 text-2xl font-black">{t.safe}</h2><p className="mt-3 leading-7 text-slate-600">{t.safeText}</p></div>
         <div className="rounded-[2rem] border border-orange-100 bg-white p-6 shadow-sm"><h2 className="text-xl font-black">{t.next}</h2><div className="mt-4 space-y-3 text-sm leading-6 text-slate-600"><p>{t.n1}</p><p>{t.n2}</p><p>{t.n3}</p></div></div>
         <div className="rounded-[2rem] bg-orange-500 p-6 text-white"><div className="font-black">{t.help}</div><a href="/radio-codes" className="mt-3 inline-flex rounded-xl bg-white px-4 py-3 font-black text-slate-950">{t.guides} →</a></div>
