@@ -12,6 +12,18 @@ function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function slugForBrand(brand: string) {
+  const map: Record<string,string> = {
+    "Alfa Romeo":"alfa-romeo",
+    "Land Rover":"land-rover",
+    "Mercedes-Benz":"mercedes",
+    "Vauxhall / Opel":"vauxhall",
+    "Citroën":"citroen",
+    "Škoda":"skoda",
+  };
+  return map[brand] || brand.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function patternFromExample(example: string): RegExp | null {
   const raw = example.trim().toUpperCase();
   if (!raw) return null;
@@ -119,9 +131,10 @@ function validateSerial(slug: string, value: string, examples: string[]): Valida
   return patterns.some((pattern) => pattern.test(serial)) ? "valid" : "invalid";
 }
 
-export default function BrandSerialStarter({ brand, slug, examples }: { brand: string; slug: string; examples: string[] }) {
+export default function BrandSerialStarter({ brand, slug, examples }: { brand: string; slug?: string; examples: string[] }) {
   const [serial, setSerial] = useState("");
-  const validation = useMemo(() => validateSerial(slug, serial, examples), [slug, serial, examples]);
+  const resolvedSlug = slug || slugForBrand(brand);
+  const validation = useMemo(() => validateSerial(resolvedSlug, serial, examples), [resolvedSlug, serial, examples]);
   const canContinue = validation === "valid";
 
   useEffect(()=>{
