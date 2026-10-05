@@ -29,12 +29,13 @@ export default function PremiumHomeV4(){
     </header>
 
     <section className="relative overflow-hidden border-b border-orange-100 bg-white">
-      <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${HERO_IMAGE})`}}/>
-      <div className="absolute inset-0 bg-gradient-to-r from-white/97 via-white/88 to-orange-50/74"/>
-      <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-orange-100/30 to-transparent"/>
+      <div className="absolute inset-0 bg-cover opacity-55" style={{backgroundImage:`url(${HERO_IMAGE})`,backgroundPosition:"center 56%"}}/>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#fffaf5]/96 via-[#fffaf5]/72 to-white/36"/>
+      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-orange-50/35"/>
+      <div className="absolute inset-y-0 right-0 w-[46%] bg-gradient-to-l from-orange-100/16 to-transparent"/>
       <div className="relative mx-auto grid min-h-[680px] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[.95fr_1.05fr] lg:px-8">
         <div><div className="inline-flex rounded-full border border-orange-200 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-orange-700 shadow-sm backdrop-blur">{base.badge}</div><h1 className="mt-6 max-w-2xl text-5xl font-black leading-[.98] tracking-tight md:text-7xl">{base.h1a}<br/><span className="text-orange-500">{base.h1b}</span></h1><p className="mt-7 max-w-xl text-lg leading-8 text-slate-700">{base.hero}</p><div className="mt-8 flex flex-wrap gap-3"><a href="/radio-codes" className="rounded-xl bg-orange-500 px-6 py-4 font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600">{base.all} →</a><a href="/radio-codes" className="rounded-xl border border-slate-300 bg-white/90 px-6 py-4 font-black text-slate-800 backdrop-blur hover:border-orange-300">{base.guide}</a></div></div>
-        <UniversalSerialFinderV2 language={language}/>
+        <div className="rounded-[2.4rem] bg-white/55 p-2 shadow-2xl shadow-slate-900/10 backdrop-blur-[2px]"><UniversalSerialFinderV2 language={language}/></div>
       </div>
       <div className="absolute bottom-3 left-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Foto de vehículo: Unsplash</div>
     </section>
