@@ -67,9 +67,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const existingReference = await findExistingReference(orderId);
-    if (existingReference) {
-      return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(existingReference)}&lang=${session.language}`);
-    }
+    if (existingReference) return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(existingReference)}&lang=${session.language}`);
 
     let orderData: any;
     const captureResponse = await paypalRequest(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
@@ -110,6 +108,7 @@ export async function GET(request: NextRequest) {
         vin: null,
         language: session.language,
         status: "new",
+        priority_sms: session.prioritySms,
         payment_status: "paid",
         payment_provider: "paypal",
         paypal_order_id: orderId,
@@ -123,9 +122,7 @@ export async function GET(request: NextRequest) {
 
     if (!insertResponse.ok) {
       const duplicateReference = await findExistingReference(orderId);
-      if (duplicateReference) {
-        return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(duplicateReference)}&lang=${session.language}`);
-      }
+      if (duplicateReference) return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(duplicateReference)}&lang=${session.language}`);
       console.error("Supabase PayPal insert failed", insertResponse.status, await insertResponse.text());
       return redirectAndClear(request, `/payment-success?error=save&lang=${session.language}`);
     }
