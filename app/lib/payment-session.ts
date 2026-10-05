@@ -1,15 +1,14 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
+import type { Language } from "@/app/languages";
 
 export type CheckoutSessionPayload = {
   orderId: string;
   serial: string;
-  year: number;
-  brand: string;
-  model: string;
   phone: string;
   email: string;
-  vin: string;
-  language: "en" | "es";
+  language: Language;
+  prioritySms: boolean;
+  amountUsd: string;
 };
 
 function getKey() {
