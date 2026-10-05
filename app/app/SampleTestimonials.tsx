@@ -1,4 +1,6 @@
-type Props = { language: "en" | "es" };
+import type { Language } from "./languages";
+
+type Props = { language: Language };
 
 export default function SampleTestimonials({ language }: Props) {
   const es = language === "es";
