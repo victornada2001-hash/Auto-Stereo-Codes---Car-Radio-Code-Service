@@ -1,5 +1,5 @@
-import PremiumHomeV3 from "./PremiumHomeV3";
+import PremiumHomeV4 from "./PremiumHomeV4";
 
 export default function Home() {
-  return <PremiumHomeV3 />;
+  return <PremiumHomeV4 />;
 }
