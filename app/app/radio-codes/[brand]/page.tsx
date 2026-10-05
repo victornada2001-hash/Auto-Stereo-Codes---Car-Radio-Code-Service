@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import BrandMark from "../../BrandMark";
 import BrandSerialStarter from "../BrandSerialStarter";
+import { brandPhotoForSlug } from "../../brandVisuals";
 import { getRadioGuide, radioGuides } from "../../radioGuideData";
 
 export function generateStaticParams() {
@@ -23,6 +24,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
   const { brand } = await params;
   const guide = getRadioGuide(brand);
   if (!guide) notFound();
+  const photo=brandPhotoForSlug(guide.slug);
 
   return (
     <main className="min-h-screen bg-[#fff9f2] text-slate-950">
@@ -39,34 +41,36 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-orange-100 bg-gradient-to-br from-white via-orange-50 to-[#fff1df] px-6 py-14 md:py-20">
-        <div className="pointer-events-none absolute -right-20 top-0 h-96 w-96 rounded-full bg-orange-200/35 blur-3xl"/>
-        <div className="pointer-events-none absolute right-[5%] top-1/2 hidden -translate-y-1/2 opacity-[0.08] lg:block"><BrandMark slug={guide.slug} name={guide.name} hero/></div>
+      <section className="relative overflow-hidden border-b border-orange-100 px-6 py-14 md:py-20">
+        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/98 via-[#fff8ef]/93 to-orange-50/73"/>
+        <div className="absolute inset-y-0 right-0 w-[46%] bg-gradient-to-l from-orange-100/22 to-transparent"/>
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div>
-            <div className="text-sm font-semibold text-slate-500"><Link href="/" className="hover:text-orange-600">Inicio</Link><span className="mx-2">›</span><Link href="/radio-codes" className="hover:text-orange-600">Todas las marcas</Link><span className="mx-2">›</span>{guide.name}</div>
+            <div className="text-sm font-semibold text-slate-600"><Link href="/" className="hover:text-orange-600">Inicio</Link><span className="mx-2">›</span><Link href="/radio-codes" className="hover:text-orange-600">Todas las marcas</Link><span className="mx-2">›</span>{guide.name}</div>
             <div className="mt-7 flex items-center gap-4">
-              <BrandMark slug={guide.slug} name={guide.name} hero/>
-              <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Guía de número de serie</p><div className="mt-1 text-sm font-bold text-slate-500">{guide.families.slice(0,3).join(" · ")}</div></div>
+              <div className="rounded-3xl bg-white/92 p-2 shadow-xl backdrop-blur"><BrandMark slug={guide.slug} name={guide.name} hero/></div>
+              <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Guía de número de serie</p><div className="mt-1 text-sm font-bold text-slate-600">{guide.families.slice(0,3).join(" · ")}</div></div>
             </div>
             <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight md:text-6xl">Cómo encontrar la serie de tu radio <span className="text-orange-500">{guide.name}</span></h1>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">{guide.summary}</p>
-            <div className="mt-6 flex flex-wrap gap-2">{guide.models.map((model) => <span key={model} className="rounded-full border border-orange-100 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm">{model}</span>)}</div>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-700">{guide.summary}</p>
+            <div className="mt-6 flex flex-wrap gap-2">{guide.models.map((model) => <span key={model} className="rounded-full border border-orange-100 bg-white/90 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm backdrop-blur">{model}</span>)}</div>
           </div>
-          <BrandSerialStarter brand={guide.name} examples={guide.serialExamples} />
+          <div className="rounded-[2rem] bg-white/78 p-2 shadow-2xl shadow-orange-200/40 backdrop-blur-sm"><BrandSerialStarter brand={guide.name} examples={guide.serialExamples} /></div>
         </div>
+        <div className="absolute bottom-3 right-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Imagen de referencia: Unsplash</div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
-          <aside className="h-fit rounded-3xl border border-orange-100 bg-white p-6 shadow-sm lg:sticky lg:top-6">
-            <div className="flex items-center gap-4">
-              <BrandMark slug={guide.slug} name={guide.name} compact/>
+          <aside className="h-fit overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm lg:sticky lg:top-6">
+            <div className="relative h-44 overflow-hidden"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent"/><div className="absolute bottom-4 left-4 rounded-2xl bg-white/92 p-2 shadow-lg backdrop-blur"><BrandMark slug={guide.slug} name={guide.name} compact/></div></div>
+            <div className="p-6">
               <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Antes de empezar</p><h2 className="mt-1 text-xl font-black">Identifica qué radio tienes</h2></div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">{guide.note}</p>
+              <div className="mt-6 border-t border-orange-100 pt-5"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Familias comunes</div><div className="mt-3 flex flex-wrap gap-2">{guide.families.map((family) => <span key={family} className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-800">{family}</span>)}</div></div>
+              <div className="mt-6 border-t border-orange-100 pt-5"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Ejemplos de serie</div><div className="mt-3 space-y-2">{guide.serialExamples.map((example) => <div key={example} className="rounded-xl bg-slate-950 px-3 py-2 font-mono text-sm font-bold text-orange-200">{example}</div>)}</div></div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">{guide.note}</p>
-            <div className="mt-6 border-t border-orange-100 pt-5"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Familias comunes</div><div className="mt-3 flex flex-wrap gap-2">{guide.families.map((family) => <span key={family} className="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-800">{family}</span>)}</div></div>
-            <div className="mt-6 border-t border-orange-100 pt-5"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Ejemplos de serie</div><div className="mt-3 space-y-2">{guide.serialExamples.map((example) => <div key={example} className="rounded-xl bg-slate-950 px-3 py-2 font-mono text-sm font-bold text-orange-200">{example}</div>)}</div></div>
           </aside>
 
           <div>
@@ -74,7 +78,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
             <div className="space-y-5">
               {guide.methods.map((method,index)=><article key={`${method.title}-${index}`} className="overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm">
                 <div className="grid md:grid-cols-[180px_1fr]">
-                  <div className="flex min-h-44 flex-col justify-between bg-orange-500 p-6 text-white"><div className="text-5xl font-black text-white/95">{String(index+1).padStart(2,"0")}</div><div><div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-100">{method.kicker}</div><div className="mt-2 text-xs leading-5 text-orange-50">{method.appliesTo}</div></div></div>
+                  <div className="relative flex min-h-44 flex-col justify-between overflow-hidden p-6 text-white"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 to-orange-600/80"/><div className="relative text-5xl font-black text-white/95">{String(index+1).padStart(2,"0")}</div><div className="relative"><div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-100">{method.kicker}</div><div className="mt-2 text-xs leading-5 text-orange-50">{method.appliesTo}</div></div></div>
                   <div className="p-6 md:p-8"><h3 className="text-2xl font-black">{method.title}</h3><ol className="mt-5 space-y-3">{method.steps.map((step,stepIndex)=><li key={step} className="flex gap-3 text-sm leading-6"><span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-50 text-xs font-black text-orange-700">{stepIndex+1}</span><span className="text-slate-600">{step}</span></li>)}</ol>{method.examples&&method.examples.length>0&&<div className="mt-6 rounded-2xl bg-[#fff9f2] p-4"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Cómo puede verse la serie</div><div className="mt-3 flex flex-wrap gap-2">{method.examples.map(example=><code key={example} className="rounded-lg border border-orange-100 bg-white px-3 py-2 text-sm font-bold text-slate-800">{example}</code>)}</div></div>}{method.warning&&<div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900"><strong>Importante:</strong> {method.warning}</div>}</div>
                 </div>
               </article>)}
@@ -83,7 +87,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
         </div>
       </section>
 
-      <section className="border-t border-orange-100 bg-white px-6 py-14"><div className="mx-auto flex max-w-6xl flex-col gap-6 rounded-3xl bg-orange-500 p-7 text-white md:flex-row md:items-center md:justify-between md:p-9"><div><p className="text-sm font-black uppercase tracking-[.2em] text-orange-100">¿Ya confirmaste la serie?</p><h2 className="mt-2 text-3xl font-black">Completa tu solicitud en una pantalla separada</h2><p className="mt-2 max-w-2xl text-orange-50">El formulario de pago ya no está al final de la página. Se abre en una pantalla limpia e independiente.</p></div><Link href="/request" className="shrink-0 rounded-xl bg-white px-6 py-4 text-center font-black text-slate-950 shadow-lg">Solicitar código →</Link></div></section>
+      <section className="border-t border-orange-100 bg-white px-6 py-14"><div className="relative mx-auto flex max-w-6xl flex-col gap-6 overflow-hidden rounded-3xl p-7 text-white md:flex-row md:items-center md:justify-between md:p-9"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/92 to-slate-950/72"/><div className="relative"><p className="text-sm font-black uppercase tracking-[.2em] text-orange-100">¿Ya confirmaste la serie?</p><h2 className="mt-2 text-3xl font-black">Completa tu solicitud en una pantalla separada</h2><p className="mt-2 max-w-2xl text-orange-50">El formulario de pago se abre en una pantalla limpia e independiente.</p></div><Link href="/request" className="relative shrink-0 rounded-xl bg-white px-6 py-4 text-center font-black text-slate-950 shadow-lg">Solicitar código →</Link></div></section>
     </main>
   );
 }
