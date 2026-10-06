@@ -31,6 +31,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 }); }
 
   const serial = clean(body.serial, 100);
+  const vin = clean(body.vin, 32).toUpperCase();
   const email = clean(body.email, 254).toLowerCase();
   const phone = clean(body.phone, 32);
   const detectedBrand = clean(body.detectedBrand, 120);
@@ -38,8 +39,12 @@ export async function POST(request: Request) {
   const prioritySms = body.prioritySms === true;
   const language = normalizeLanguage(body.language);
   const validPhone = !prioritySms || phone.replace(/\D/g, "").length >= 7;
+  const normalizedBrand = detectedBrand.toLowerCase();
+  const vinRequired = normalizedBrand === "honda" || normalizedBrand === "acura";
 
-  if (!serial || !EMAIL_PATTERN.test(email) || !validPhone) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
+  if (!serial || !EMAIL_PATTERN.test(email) || !validPhone || (vinRequired && !vin)) {
+    return NextResponse.json({ code: vinRequired && !vin ? "VIN_REQUIRED" : "INVALID_INPUT" }, { status: 400 });
+  }
 
   const amountUsd = (BASE_PRICE_USD + (prioritySms ? PRIORITY_SMS_PRICE_USD : 0)).toFixed(2);
 
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
           shipping_preference: "NO_SHIPPING",
           user_action: "PAY_NOW",
           return_url: `${siteUrl}/api/paypal/capture`,
-          cancel_url: `${siteUrl}/#request-form`,
+          cancel_url: `${siteUrl}/request`,
         }}},
       }),
     });
@@ -77,7 +82,7 @@ export async function POST(request: Request) {
     }
 
     const session = encryptCheckoutSession({
-      orderId: String(result.id), serial, phone: prioritySms ? phone : "", email,
+      orderId: String(result.id), serial, vin, phone: prioritySms ? phone : "", email,
       language, prioritySms, amountUsd, detectedBrand, radioFamily,
     });
 

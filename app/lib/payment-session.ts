@@ -4,6 +4,7 @@ import type { Language } from "@/app/languages";
 export type CheckoutSessionPayload = {
   orderId: string;
   serial: string;
+  vin: string;
   phone: string;
   email: string;
   language: Language;
