@@ -1,6 +1,6 @@
 export const HOME_CAR_PHOTO = "https://images.unsplash.com/photo-1494976351278-20cf4a33d65b?auto=format&fit=crop&w=2400&q=82";
 
-export const RADIO_INTERIOR_PHOTO = "https://images.unsplash.com/photo-1773065558261-792b9d779fb1?auto=format&fit=crop&fm=jpg&q=78&w=2200";
+export const RADIO_INTERIOR_PHOTO = "https://images.pexels.com/photos/11845200/pexels-photo-11845200.jpeg?auto=compress&cs=tinysrgb&w=2200";
 
 const brandPhotos: Record<string,string> = {
   honda: "https://unsplash.com/photos/zE2VGbJSYns/download?force=true",
@@ -39,14 +39,14 @@ const brandPhotos: Record<string,string> = {
   iveco: "https://images.pexels.com/photos/15602197/pexels-photo-15602197.jpeg?auto=compress&cs=tinysrgb&w=2200",
   vauxhall: "https://unsplash.com/photos/1Fux_xS0je0/download?force=true",
 
-  alpine: RADIO_INTERIOR_PHOTO,
-  becker: RADIO_INTERIOR_PHOTO,
-  blaupunkt: RADIO_INTERIOR_PHOTO,
-  bosch: RADIO_INTERIOR_PHOTO,
-  clarion: RADIO_INTERIOR_PHOTO,
-  daiichi: RADIO_INTERIOR_PHOTO,
-  grundig: RADIO_INTERIOR_PHOTO,
-  sony: RADIO_INTERIOR_PHOTO,
+  alpine: "https://images.pexels.com/photos/11845200/pexels-photo-11845200.jpeg?auto=compress&cs=tinysrgb&w=2200",
+  becker: "https://images.pexels.com/photos/4480537/pexels-photo-4480537.jpeg?auto=compress&cs=tinysrgb&w=2200",
+  blaupunkt: "https://images.pexels.com/photos/8266749/pexels-photo-8266749.jpeg?auto=compress&cs=tinysrgb&w=2200",
+  bosch: "https://images.pexels.com/photos/5347842/pexels-photo-5347842.jpeg?auto=compress&cs=tinysrgb&w=2200",
+  clarion: "https://unsplash.com/photos/zx0xUq--9IA/download?force=true",
+  daiichi: "https://unsplash.com/photos/W6eWgrW-lbM/download?force=true",
+  grundig: "https://unsplash.com/photos/eVXz9f8lXAM/download?force=true",
+  sony: "https://unsplash.com/photos/I01mOmdHDyQ/download?force=true",
 };
 
 const radioManufacturerSlugs = new Set([
