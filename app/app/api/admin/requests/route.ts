@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     const { url, headers } = supabaseConfig();
     const endpoint = new URL(`${url}/rest/v1/code_requests`);
-    endpoint.searchParams.set("select","id,reference,serial,year,brand,model,phone,email,vin,language,status,created_at,priority_sms,payment_status,payment_provider,amount_total,currency,paid_at,paypal_order_id,paypal_capture_id,stereo_code,code_updated_at");
+    endpoint.searchParams.set("select","id,reference,serial,year,brand,model,phone,email,vin,postal_code,language,status,created_at,priority_sms,payment_status,payment_provider,amount_total,currency,paid_at,paypal_order_id,paypal_capture_id,stereo_code,code_updated_at");
     endpoint.searchParams.set("payment_status", "eq.paid");
     endpoint.searchParams.set("order", "created_at.desc");
     endpoint.searchParams.set("limit", "250");
