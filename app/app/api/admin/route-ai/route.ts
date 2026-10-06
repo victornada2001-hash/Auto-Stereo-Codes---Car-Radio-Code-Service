@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
 
   const fallback = ruleDecision(body?.brand, body?.radioFamily);
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_ROUTER_MODEL;
+  const model = process.env.OPENAI_ROUTER_MODEL || "gpt-6-luna";
 
-  if (!apiKey || !model) return NextResponse.json({ decision: fallback, aiConfigured: false });
+  if (!apiKey) return NextResponse.json({ decision: fallback, aiConfigured: false, model });
 
   const input = {
     brand: String(body?.brand ?? "").slice(0, 100),
@@ -116,16 +116,16 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       console.error("OpenAI router failed", response.status, await response.text());
-      return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true });
+      return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true, model });
     }
 
     const payload = await response.json();
     const parsed = parseDecision(extractText(payload));
-    if (!parsed) return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true });
+    if (!parsed) return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true, model });
 
-    return NextResponse.json({ decision: { ...parsed, source: "ai" }, aiConfigured: true });
+    return NextResponse.json({ decision: { ...parsed, source: "ai" }, aiConfigured: true, model });
   } catch (error) {
     console.error("OpenAI router error", error instanceof Error ? error.message : "unknown");
-    return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true });
+    return NextResponse.json({ decision: fallback, aiConfigured: true, aiFallback: true, model });
   }
 }
