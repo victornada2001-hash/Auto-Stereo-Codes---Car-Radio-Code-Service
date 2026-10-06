@@ -17,6 +17,7 @@ type LookupInput = {
   brand: string;
   serial: string;
   vin: string;
+  postalCode: string;
   year?: number | null;
   model?: string;
   email?: string;
@@ -35,8 +36,8 @@ function normalize(value: unknown, maxLength = 255) {
 }
 
 function officialSourceFor(brand: string) {
-  if (brand === "honda") return "https://radio-navicode.honda.com/";
-  if (brand === "acura") return "https://radio-navicode.acura.com/";
+  if (brand === "honda") return "https://mygarage.honda.com/s/radio-nav-code?brand=Honda";
+  if (brand === "acura") return "https://mygarage.honda.com/s/radio-nav-code?brand=Acura";
   if (brand === "renault" || brand === "dacia") return "https://www.renault.co.uk/faq.html";
   return "";
 }
@@ -104,13 +105,18 @@ async function callApprovedConnector(input: LookupInput, config: ConnectorConfig
 
 async function lookupHondaAcura(input: LookupInput): Promise<LookupResult> {
   const sourceUrl = officialSourceFor(input.brand);
-  if (!input.vin) {
+  const missing:string[]=[];
+  if(!input.vin) missing.push("vin");
+  if(!input.postalCode) missing.push("postalCode");
+  if(!input.phone) missing.push("phone");
+  if(!input.email) missing.push("email");
+  if(missing.length){
     return {
-      status: "needs_input",
-      source: "Honda/Acura official radio code service",
+      status:"needs_input",
+      source:"Honda/Acura official radio code service",
       sourceUrl,
-      missing: ["vin"],
-      reason: "Honda/Acura requiere el VIN junto con la serie del radio para una consulta oficial. Pide o agrega el VIN antes de buscar el código.",
+      missing,
+      reason:"Honda/Acura requiere VIN, ZIP/código postal, teléfono, email y serie del radio para la recuperación oficial. Completa los datos faltantes antes de buscar el código.",
     };
   }
 
@@ -135,15 +141,13 @@ export async function POST(request: NextRequest) {
   if (!isAdminRequest(request)) return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
 
   let body: any;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
-  }
+  try { body = await request.json(); }
+  catch { return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 }); }
 
   const brand = normalize(body?.brand, 100).toLowerCase();
   const serial = normalize(body?.serial, 120);
   const vin = normalize(body?.vin, 32).toUpperCase();
+  const postalCode = normalize(body?.postalCode, 20).toUpperCase();
   const year = Number.isFinite(Number(body?.year)) ? Number(body.year) : null;
   const model = normalize(body?.model, 120);
   const email = normalize(body?.email, 254);
@@ -151,8 +155,7 @@ export async function POST(request: NextRequest) {
 
   if (!brand || !serial) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
 
-  const input: LookupInput = { brand, serial, vin, year, model, email, phone };
-
+  const input: LookupInput = { brand, serial, vin, postalCode, year, model, email, phone };
   if (brand === "honda" || brand === "acura") return NextResponse.json(await lookupHondaAcura(input));
   if (brand === "renault" || brand === "dacia") return NextResponse.json(await lookupRenaultDacia(input));
 
