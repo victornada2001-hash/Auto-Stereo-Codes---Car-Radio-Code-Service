@@ -58,7 +58,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
           </div>
           <div className="rounded-[2rem] bg-white/78 p-2 shadow-2xl shadow-orange-200/40 backdrop-blur-sm"><BrandSerialStarter brand={guide.name} examples={guide.serialExamples} /></div>
         </div>
-        <div className="absolute bottom-3 right-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Imagen de referencia: Unsplash</div>
+        <div className="absolute bottom-3 right-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Imagen de referencia con licencia de uso</div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
