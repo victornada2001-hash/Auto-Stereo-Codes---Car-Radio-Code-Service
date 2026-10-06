@@ -56,6 +56,15 @@ export default function AdminPanel(){
   const [notice,setNotice]=useState("");
   const [busy,setBusy]=useState(false);
 
+  async function checkAiStatus(){
+    try{
+      const r=await fetch("/api/admin/route-ai",{method:"GET",cache:"no-store"});
+      if(!r.ok) return;
+      const j=await r.json();
+      setAiConfigured(Boolean(j.aiConfigured));
+    }catch{}
+  }
+
   async function analyzeRoute(row:Row,silent=false){
     if(!silent){setAnalyzing(row.id);setError("");setNotice("");}
     try{
@@ -63,10 +72,14 @@ export default function AdminPanel(){
       if(!r.ok) throw new Error("AI_ROUTE_FAILED");
       const j=await r.json();
       const d=j?.decision as AiDecision|undefined;
+      setAiConfigured(Boolean(j.aiConfigured));
       if(d?.queue&&d?.reason){
         setAiById(x=>({...x,[row.id]:d}));
-        setAiConfigured(Boolean(j.aiConfigured));
-        if(!silent)setNotice(d.source==="ai"?"La IA analizó la solicitud.":"Clasificación aplicada con reglas seguras; la IA aún no está configurada.");
+        if(!silent){
+          if(d.source==="ai") setNotice("La IA analizó la solicitud.");
+          else if(j.aiConfigured) setNotice("La IA está configurada, pero esta solicitud usó las reglas de respaldo.");
+          else setNotice("Clasificación aplicada con reglas seguras; la IA aún no está configurada.");
+        }
       }
     }catch{
       setAiById(x=>({...x,[row.id]:fallbackRouting(row)}));
@@ -102,6 +115,7 @@ export default function AdminPanel(){
     setRows(nextRows);
     setDraftCodes(Object.fromEntries(nextRows.map(row=>[row.id,row.stereo_code||""])));
     setAuth(true);setError("");
+    void checkAiStatus();
     for(const row of nextRows.slice(0,25)){void analyzeRoute(row,true);}
   }
 
@@ -142,7 +156,7 @@ export default function AdminPanel(){
   if(!auth)return <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white"><form onSubmit={login} className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-8"><div className="text-sm font-black tracking-[.2em] text-blue-400">AUTO STEREO CODES</div><h1 className="mt-4 text-3xl font-black">Panel de administrador</h1><p className="mt-2 text-slate-400">Acceso privado a solicitudes pagadas.</p><input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Contraseña" className="mt-7 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"/>{error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-sm text-amber-100">{error}</p>}<button disabled={busy} className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500">{busy?"Entrando…":"Entrar"}</button><a href="/" className="mt-5 block text-center text-sm text-slate-400">← Volver</a></form></main>;
 
   return <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8"><div className="mx-auto max-w-7xl">
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><div className="text-sm font-black tracking-[.2em] text-blue-400">AUTO STEREO CODES</div><h1 className="mt-2 text-4xl font-black">Solicitudes pagadas</h1><p className="mt-2 text-sm text-slate-400">La IA decide la ruta; las fuentes conectadas buscan el código. Nada se envía sin tu revisión.</p><div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-black ${aiConfigured?"bg-emerald-500/15 text-emerald-300":"bg-amber-500/15 text-amber-300"}`}>{aiConfigured?"🤖 IA configurada":"🛡️ Reglas activas · IA pendiente de clave/modelo"}</div></div><div className="flex gap-2"><button onClick={load} className="rounded-xl border border-slate-700 px-4 py-2">Actualizar</button><button onClick={logout} className="rounded-xl bg-slate-800 px-4 py-2">Cerrar sesión</button></div></div>
+    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><div className="text-sm font-black tracking-[.2em] text-blue-400">AUTO STEREO CODES</div><h1 className="mt-2 text-4xl font-black">Solicitudes pagadas</h1><p className="mt-2 text-sm text-slate-400">La IA decide la ruta; las fuentes conectadas buscan el código. Nada se envía sin tu revisión.</p><div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-black ${aiConfigured===true?"bg-emerald-500/15 text-emerald-300":aiConfigured===false?"bg-amber-500/15 text-amber-300":"bg-slate-500/15 text-slate-300"}`}>{aiConfigured===true?"🤖 IA configurada":aiConfigured===false?"🛡️ Reglas activas · IA pendiente de clave/modelo":"⏳ Comprobando IA…"}</div></div><div className="flex gap-2"><button onClick={load} className="rounded-xl border border-slate-700 px-4 py-2">Actualizar</button><button onClick={logout} className="rounded-xl bg-slate-800 px-4 py-2">Cerrar sesión</button></div></div>
     <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[["Total",counts.total],["Automáticas",counts.automatic],["Revisión especial",counts.special],["Listas para revisar",counts.ready]].map(([a,b])=><div key={String(a)} className="rounded-2xl border border-white/10 bg-slate-900 p-5"><div className="text-sm text-slate-400">{a}</div><div className="mt-1 text-3xl font-black">{b}</div></div>)}</div>
     <div className="mt-6 flex flex-wrap gap-2">{([['all','Todas'],['automatic','Automáticas'],['special','Revisión especial']] as [Queue,string][]).map(([value,label])=><button key={value} onClick={()=>setQueue(value)} className={`rounded-full px-4 py-2 text-sm font-black ${queue===value?"bg-blue-600 text-white":"border border-slate-700 bg-slate-900 text-slate-300"}`}>{label}</button>)}</div>
     <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar folio, serial, VIN, marca, teléfono, email o código…" className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-blue-500"/>
