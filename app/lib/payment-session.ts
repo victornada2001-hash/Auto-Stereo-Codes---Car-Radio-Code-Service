@@ -5,6 +5,7 @@ export type CheckoutSessionPayload = {
   orderId: string;
   serial: string;
   vin: string;
+  postalCode: string;
   phone: string;
   email: string;
   language: Language;
