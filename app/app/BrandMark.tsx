@@ -43,6 +43,7 @@ const cleanWordmarkSlugs = new Set([
   "alpine",
   "becker",
   "blaupunkt",
+  "bmw",
   "bosch",
   "clarion",
   "daiichi",
@@ -77,9 +78,21 @@ export default function BrandMark({slug,name,compact=false,hero=false}:Props){
     setFailed(true);
   }
 
+  const markClass = slug==="bmw"
+    ? "bg-gradient-to-br from-white via-sky-50 to-slate-100 text-slate-950 ring-1 ring-sky-100"
+    : slug==="sony"
+      ? "bg-gradient-to-br from-slate-950 to-slate-800 text-white"
+      : "bg-gradient-to-br from-slate-950 to-slate-800 text-white";
+
+  const markTextClass = slug==="bmw"
+    ? "text-[11px] tracking-[.12em]"
+    : slug==="sony"
+      ? "text-[10px] tracking-[.14em]"
+      : "text-[9px] tracking-wide";
+
   return <div className={`flex ${size} shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-orange-100 bg-white p-2 shadow-sm`}>
     {wordmark ? (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-950 to-slate-800 px-1 text-center text-[9px] font-black uppercase leading-tight tracking-wide text-white">
+      <div className={`flex h-full w-full items-center justify-center rounded-xl px-1 text-center font-black uppercase leading-tight ${markClass} ${markTextClass}`}>
         {name}
       </div>
     ) : src&&!failed ? (
