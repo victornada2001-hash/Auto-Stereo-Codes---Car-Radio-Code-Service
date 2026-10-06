@@ -72,6 +72,12 @@ function parseDecision(text: string): Omit<Decision, "source"> | null {
   }
 }
 
+export async function GET(request: NextRequest) {
+  if (!isAdminRequest(request)) return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
+  const model = process.env.OPENAI_ROUTER_MODEL || "gpt-6-luna";
+  return NextResponse.json({ aiConfigured: Boolean(process.env.OPENAI_API_KEY), model });
+}
+
 export async function POST(request: NextRequest) {
   if (!isAdminRequest(request)) return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
 
