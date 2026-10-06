@@ -5,7 +5,7 @@ import type { Language } from "./languages";
 import ExpandedSerialGuide from "./ExpandedSerialGuide";
 import SampleTestimonials from "./SampleTestimonials";
 
-const BASE_PRICE = 23.99;
+const BASE_PRICE = 14.99;
 const SMS_ADDON = 1.75;
 
 type Copy = {
@@ -24,7 +24,7 @@ const copy: Record<Language,Copy> = {
   pt:{...EN,eyebrow:"Solicitação de código",title:"Conclua sua solicitação",serial:"Número de série do rádio *",serialHelp:"Não sei qual número de série informar",identified:"Família de rádio identificada",delivery:"Onde devemos enviar seu código?",email:"E-mail *",smsTitle:"Opção SMS prioritário",phone:"Celular para SMS *",total:"Total",opening:"Abrindo PayPal…",pay:"Continuar para pagamento seguro →"},
   fr:{...EN,eyebrow:"Demande de code",title:"Finalisez votre demande",serial:"Numéro de série de l’autoradio *",serialHelp:"Je ne sais pas quel numéro saisir",identified:"Famille d’autoradio détectée",delivery:"Où devons-nous envoyer votre code ?",email:"Adresse e-mail *",smsTitle:"Option SMS prioritaire",phone:"Numéro mobile pour SMS *",total:"Total",opening:"Ouverture de PayPal…",pay:"Continuer vers le paiement sécurisé →"},
   de:{...EN,eyebrow:"Code-Anfrage",title:"Anfrage abschließen",serial:"Seriennummer des Autoradios *",serialHelp:"Ich weiß nicht, welche Seriennummer ich eingeben soll",identified:"Erkannte Radiofamilie",delivery:"Wohin sollen wir deinen Code senden?",email:"E-Mail-Adresse *",smsTitle:"Prioritäts-SMS",phone:"Mobilnummer für SMS *",total:"Gesamt",opening:"PayPal wird geöffnet…",pay:"Weiter zur sicheren Zahlung →"},
-  it:{...EN,eyebrow:"Richiesta codice",title:"Completa la richiesta",serial:"Numero di serie dell’autoradio *",serialHelp:"Non so quale numero inserire",identified:"Famiglia autoradio identificata",delivery:"Dove dobbiamo inviare il codice?",email:"Indirizzo email *",smsTitle:"SMS prioritario",phone:"Numero di cellulare per SMS *",total:"Totale",opening:"Apertura PayPal…",pay:"Continua al pagamento sicuro →"},
+  it:{...EN,eyebrow:"Richiesta codice",title:"Completa la richiesta",serial:"Numero di serie dell’autoradio *",serialHelp:"Non so quale numero inserire",identified:"Famiglia autoradio identificata",delivery:"Dove dobbiamo inviare il codice?",email:"Indirizzo email *",smsTitle:"SMS prioritario",phone:"Numero di cellulare per SMS *",total:"Totale",opening:"Apertura di PayPal…",pay:"Continua al pagamento sicuro →"},
 };
 
 export default function CheckoutRequestForm({language}:{language:Language}) {
