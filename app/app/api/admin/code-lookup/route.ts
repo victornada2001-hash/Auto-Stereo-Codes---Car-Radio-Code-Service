@@ -42,6 +42,34 @@ function officialSourceFor(brand: string) {
   return "";
 }
 
+function supabaseConfig() {
+  const url = process.env.SUPABASE_URL;
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  const legacyKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const apiKey = secretKey || legacyKey;
+  if (!url || !apiKey) return null;
+  const headers:Record<string,string>={apikey:apiKey,"Content-Type":"application/json"};
+  if(!secretKey&&legacyKey) headers.Authorization=`Bearer ${legacyKey}`;
+  return {url:url.replace(/\/$/,""),headers};
+}
+
+async function loadStoredDetails(serial:string,email:string){
+  const config=supabaseConfig();
+  if(!config) return null;
+  try{
+    const endpoint=new URL(`${config.url}/rest/v1/code_requests`);
+    endpoint.searchParams.set("select","vin,postal_code,phone,email");
+    endpoint.searchParams.set("serial",`eq.${serial}`);
+    if(email) endpoint.searchParams.set("email",`eq.${email}`);
+    endpoint.searchParams.set("order","created_at.desc");
+    endpoint.searchParams.set("limit","1");
+    const response=await fetch(endpoint,{headers:config.headers,cache:"no-store"});
+    if(!response.ok) return null;
+    const rows=await response.json();
+    return Array.isArray(rows)&&rows[0]?rows[0]:null;
+  }catch{return null;}
+}
+
 async function callApprovedConnector(input: LookupInput, config: ConnectorConfig): Promise<LookupResult> {
   if (!config.endpoint) {
     return {
@@ -146,16 +174,18 @@ export async function POST(request: NextRequest) {
 
   const brand = normalize(body?.brand, 100).toLowerCase();
   const serial = normalize(body?.serial, 120);
-  const vin = normalize(body?.vin, 32).toUpperCase();
-  const postalCode = normalize(body?.postalCode, 20).toUpperCase();
+  const email = normalize(body?.email, 254);
+  const stored=await loadStoredDetails(serial,email);
+  const vin = normalize(body?.vin||stored?.vin, 32).toUpperCase();
+  const postalCode = normalize(body?.postalCode||stored?.postal_code, 20).toUpperCase();
+  const phone = normalize(body?.phone||stored?.phone, 40);
+  const effectiveEmail = email||normalize(stored?.email,254);
   const year = Number.isFinite(Number(body?.year)) ? Number(body.year) : null;
   const model = normalize(body?.model, 120);
-  const email = normalize(body?.email, 254);
-  const phone = normalize(body?.phone, 40);
 
   if (!brand || !serial) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
 
-  const input: LookupInput = { brand, serial, vin, postalCode, year, model, email, phone };
+  const input: LookupInput = { brand, serial, vin, postalCode, year, model, email:effectiveEmail, phone };
   if (brand === "honda" || brand === "acura") return NextResponse.json(await lookupHondaAcura(input));
   if (brand === "renault" || brand === "dacia") return NextResponse.json(await lookupRenaultDacia(input));
 
