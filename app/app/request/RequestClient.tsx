@@ -8,8 +8,8 @@ const BASE_PRICE=23.99;
 const SMS_ADDON=1.75;
 
 const copy={
-  es:{back:"Volver",eyebrow:"SOLICITUD DE CÓDIGO",title:"Completa tu solicitud",intro:"Confirma la serie del estéreo y dinos dónde quieres recibir el código.",serial:"Serie del estéreo",brand:"Vehículo seleccionado",family:"Familia de radio",delivery:"¿A dónde te enviamos tu código?",email:"Correo electrónico",sms:"SMS prioritario",smsText:"Agrega atención prioritaria y opción de entrega por mensaje de texto por +$1.75 USD (aprox. MX$30).",phone:"Número celular",total:"Total",pay:"Continuar al pago seguro",opening:"Abriendo PayPal…",safe:"Pago seguro con PayPal",safeText:"La solicitud se crea únicamente después de que PayPal confirme el cobro.",next:"Qué pasa después",n1:"1. Confirmas tu pago.",n2:"2. Recibimos la serie y tus datos de entrega.",n3:"3. Te enviamos el código al correo o SMS seleccionado.",help:"¿No estás seguro de la serie?",guides:"Abrir guías por marca",invalid:"Revisa tus datos antes de continuar.",error:"No pudimos iniciar el pago. Inténtalo de nuevo."},
-  en:{back:"Back",eyebrow:"CODE REQUEST",title:"Complete your request",intro:"Confirm the stereo serial and tell us where you want to receive the code.",serial:"Stereo serial",brand:"Selected vehicle",family:"Radio family",delivery:"Where should we send your code?",email:"Email address",sms:"Priority SMS",smsText:"Add priority handling and text-message delivery for +$1.75 USD.",phone:"Mobile number",total:"Total",pay:"Continue to secure payment",opening:"Opening PayPal…",safe:"Secure PayPal payment",safeText:"Your request is created only after PayPal confirms the payment.",next:"What happens next",n1:"1. You confirm payment.",n2:"2. We receive the serial and delivery details.",n3:"3. We send the code to your selected email or SMS.",help:"Not sure about the serial?",guides:"Open brand guides",invalid:"Check your information before continuing.",error:"We could not start the payment. Please try again."}
+  es:{back:"Volver",eyebrow:"SOLICITUD DE CÓDIGO",title:"Completa tu solicitud",intro:"Confirma la serie del estéreo y dinos dónde quieres recibir el código.",serial:"Serie del estéreo",brand:"Vehículo seleccionado",family:"Familia de radio",vin:"VIN del vehículo",vinHonda:"Honda/Acura requiere el VIN para consultar el código en la fuente oficial.",vinOptional:"Ayuda a identificar el vehículo y acelerar una consulta oficial cuando esté disponible.",delivery:"¿A dónde te enviamos tu código?",email:"Correo electrónico",sms:"SMS prioritario",smsText:"Agrega atención prioritaria y opción de entrega por mensaje de texto por +$1.75 USD (aprox. MX$30).",phone:"Número celular",total:"Total",pay:"Continuar al pago seguro",opening:"Abriendo PayPal…",safe:"Pago seguro con PayPal",safeText:"La solicitud se crea únicamente después de que PayPal confirme el cobro.",next:"Qué pasa después",n1:"1. Confirmas tu pago.",n2:"2. Recibimos la serie, VIN cuando corresponde y tus datos de entrega.",n3:"3. Intentamos una fuente aprobada y te enviamos el código después de revisarlo.",help:"¿No estás seguro de la serie?",guides:"Abrir guías por marca",invalid:"Revisa tus datos antes de continuar.",vinMissing:"Para Honda/Acura necesitamos el VIN del vehículo antes de continuar.",error:"No pudimos iniciar el pago. Inténtalo de nuevo."},
+  en:{back:"Back",eyebrow:"CODE REQUEST",title:"Complete your request",intro:"Confirm the stereo serial and tell us where you want to receive the code.",serial:"Stereo serial",brand:"Selected vehicle",family:"Radio family",vin:"Vehicle VIN",vinHonda:"Honda/Acura requires the VIN to retrieve the code from the official source.",vinOptional:"Helps identify the vehicle and speed up an official lookup when available.",delivery:"Where should we send your code?",email:"Email address",sms:"Priority SMS",smsText:"Add priority handling and text-message delivery for +$1.75 USD.",phone:"Mobile number",total:"Total",pay:"Continue to secure payment",opening:"Opening PayPal…",safe:"Secure PayPal payment",safeText:"Your request is created only after PayPal confirms the payment.",next:"What happens next",n1:"1. You confirm payment.",n2:"2. We receive the serial, VIN when applicable, and delivery details.",n3:"3. We try an approved source and send the code after review.",help:"Not sure about the serial?",guides:"Open brand guides",invalid:"Check your information before continuing.",vinMissing:"Honda/Acura requires the vehicle VIN before continuing.",error:"We could not start the payment. Please try again."}
 };
 
 export default function RequestClient(){
@@ -23,6 +23,9 @@ export default function RequestClient(){
   const t=language==="es"?copy.es:copy.en;
   const total=(BASE_PRICE+(prioritySms?SMS_ADDON:0)).toFixed(2);
   const requestPhoto=brandPhotoForName(brand);
+  const normalizedBrand=brand.trim().toLowerCase();
+  const showVin=["honda","acura","renault","dacia"].includes(normalizedBrand);
+  const vinRequired=["honda","acura"].includes(normalizedBrand);
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -42,12 +45,14 @@ export default function RequestClient(){
     const data=new FormData(event.currentTarget);
     const email=String(data.get("email")||"").trim();
     const phone=String(data.get("phone")||"").trim();
+    const vin=String(data.get("vin")||"").trim().toUpperCase();
     if(!serial.trim()||!email||prioritySms&&phone.replace(/\D/g,"").length<7){setMessage(t.invalid);return;}
+    if(vinRequired&&!vin){setMessage(t.vinMissing);return;}
     setBusy(true);setMessage("");
     try{
-      const response=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({serial,email,phone,prioritySms,language,detectedBrand:brand,radioFamily:family})});
+      const response=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({serial,vin,email,phone,prioritySms,language,detectedBrand:brand,radioFamily:family})});
       const result=await response.json();
-      if(!response.ok||!result.url){setMessage(t.error);setBusy(false);return;}
+      if(!response.ok||!result.url){setMessage(result.code==="VIN_REQUIRED"?t.vinMissing:t.error);setBusy(false);return;}
       window.location.assign(result.url);
     }catch{setMessage(t.error);setBusy(false);}
   }
@@ -61,6 +66,7 @@ export default function RequestClient(){
         <form onSubmit={submit} className="mt-8 grid gap-6">
           <label className="font-bold text-slate-800">{t.serial} *<input value={serial} onChange={e=>setSerial(e.target.value.toUpperCase())} required maxLength={100} className="mt-2 w-full rounded-2xl border border-slate-200 bg-[#fffaf5] px-4 py-4 font-mono text-base font-bold outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"/></label>
           {(brand||family)&&<div className="grid gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-5 sm:grid-cols-2">{brand&&<div><div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{t.brand}</div><div className="mt-1 text-lg font-black text-emerald-950">{brand}</div></div>}{family&&<div><div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{t.family}</div><div className="mt-1 text-sm font-bold text-emerald-900">{family}</div></div>}</div>}
+          {showVin&&<label className="font-bold text-slate-800">{t.vin}{vinRequired?" *":""}<input name="vin" required={vinRequired} maxLength={32} autoCapitalize="characters" autoComplete="off" placeholder="1HG..." className="mt-2 w-full rounded-2xl border border-slate-200 bg-[#fffaf5] px-4 py-4 font-mono uppercase outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"/><span className="mt-2 block text-sm font-medium text-slate-500">{vinRequired?t.vinHonda:t.vinOptional}</span></label>}
           <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-5"><div className="text-sm font-black uppercase tracking-wider text-orange-700">{t.delivery}</div><label className="mt-4 block font-bold">{t.email} *<input name="email" type="email" required autoComplete="email" placeholder="you@example.com" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"/></label></div>
           <label className={`cursor-pointer rounded-2xl border p-5 transition ${prioritySms?"border-orange-300 bg-orange-50":"border-slate-200 bg-white"}`}><div className="flex items-start gap-3"><input type="checkbox" checked={prioritySms} onChange={e=>setPrioritySms(e.target.checked)} className="mt-1 h-5 w-5 accent-orange-500"/><div><div className="font-black">📱 {t.sms}</div><div className="mt-1 text-sm leading-6 text-slate-600">{t.smsText}</div></div></div></label>
           {prioritySms&&<label className="font-bold">{t.phone} *<input name="phone" type="tel" required autoComplete="tel" placeholder="+52 664 123 4567" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100"/></label>}
