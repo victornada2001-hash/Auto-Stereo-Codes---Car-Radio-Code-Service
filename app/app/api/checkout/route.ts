@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { resolve4, resolve6, resolveMx } from "dns/promises";
 import { NextResponse } from "next/server";
 import { encryptCheckoutSession } from "@/lib/payment-session";
 import { paypalRequest } from "@/lib/paypal";
@@ -7,8 +8,10 @@ import { normalizeLanguage, paypalLocale } from "@/app/languages";
 export const runtime = "nodejs";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 const BASE_PRICE_USD = Number(process.env.STEREO_CODE_PRICE_USD || "23.99");
 const PRIORITY_SMS_PRICE_USD = Number(process.env.PRIORITY_SMS_PRICE_USD || "1.75");
+const BLOCKED_EMAIL_DOMAINS = new Set(["example.com","example.org","example.net","test.com","invalid.com","localhost","mailinator.com"]);
 
 function clean(value: unknown, maxLength = 255) { return String(value ?? "").trim().slice(0, maxLength); }
 
@@ -19,6 +22,33 @@ function getPublicSiteUrl(request: Request) {
   const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
   if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
   return new URL(request.url).origin;
+}
+
+function validInternationalPhone(phone: string) {
+  if (!E164_PATTERN.test(phone)) return false;
+  const digits = phone.replace(/\D/g, "");
+  if (/^(\d)\1+$/.test(digits)) return false;
+  if (/^(0123456789|1234567890|9876543210)+$/.test(digits)) return false;
+  return true;
+}
+
+async function emailDomainCanReceiveMail(email: string) {
+  if (!EMAIL_PATTERN.test(email)) return false;
+  const domain = email.split("@")[1]?.toLowerCase() || "";
+  if (!domain || BLOCKED_EMAIL_DOMAINS.has(domain)) return false;
+  try {
+    const mx = await resolveMx(domain);
+    if (mx.some(record => record.exchange)) return true;
+  } catch {}
+  try {
+    const a = await resolve4(domain);
+    if (a.length) return true;
+  } catch {}
+  try {
+    const aaaa = await resolve6(domain);
+    if (aaaa.length) return true;
+  } catch {}
+  return false;
 }
 
 export async function POST(request: Request) {
@@ -39,14 +69,14 @@ export async function POST(request: Request) {
   const radioFamily = clean(body.radioFamily, 160);
   const prioritySms = body.prioritySms === true;
   const language = normalizeLanguage(body.language);
-  const validPhone = !prioritySms || phone.replace(/\D/g, "").length >= 7;
   const normalizedBrand = detectedBrand.toLowerCase();
   const officialHondaLookup = normalizedBrand === "honda" || normalizedBrand === "acura";
-  const hondaPhoneValid = !officialHondaLookup || phone.replace(/\D/g, "").length >= 7;
+  const phoneRequired = prioritySms || officialHondaLookup;
 
-  if (!serial || !EMAIL_PATTERN.test(email) || !validPhone || !hondaPhoneValid) {
-    return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
-  }
+  if (!serial) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
+  if (!EMAIL_PATTERN.test(email)) return NextResponse.json({ code: "INVALID_EMAIL" }, { status: 400 });
+  if (!(await emailDomainCanReceiveMail(email))) return NextResponse.json({ code: "EMAIL_UNDELIVERABLE" }, { status: 400 });
+  if (phoneRequired && !validInternationalPhone(phone)) return NextResponse.json({ code: "INVALID_PHONE" }, { status: 400 });
   if (officialHondaLookup && !vin) return NextResponse.json({ code: "VIN_REQUIRED" }, { status: 400 });
   if (officialHondaLookup && !postalCode) return NextResponse.json({ code: "POSTAL_CODE_REQUIRED" }, { status: 400 });
 
@@ -86,7 +116,7 @@ export async function POST(request: Request) {
     }
 
     const session = encryptCheckoutSession({
-      orderId: String(result.id), serial, vin, postalCode, phone, email,
+      orderId: String(result.id), serial, vin, postalCode, phone: phoneRequired ? phone : "", email,
       language, prioritySms, amountUsd, detectedBrand, radioFamily,
     });
 
