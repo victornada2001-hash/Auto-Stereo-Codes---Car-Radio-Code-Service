@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         model: session.radioFamily || null,
         phone: session.prioritySms ? session.phone : null,
         email: session.email,
-        vin: null,
+        vin: session.vin || null,
         language: session.language,
         status: "new",
         priority_sms: session.prioritySms,
