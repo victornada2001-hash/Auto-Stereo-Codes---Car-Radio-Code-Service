@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import BrandMark from "../../BrandMark";
 import BrandSerialStarter from "../BrandSerialStarter";
-import { brandPhotoForSlug } from "../../brandVisuals";
+import { brandPhotoForSlug, isRadioManufacturerSlug } from "../../brandVisuals";
 import { getRadioGuide, radioGuides } from "../../radioGuideData";
 
 export function generateStaticParams() {
@@ -25,6 +25,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
   const guide = getRadioGuide(brand);
   if (!guide) notFound();
   const photo=brandPhotoForSlug(guide.slug);
+  const panel=isRadioManufacturerSlug(guide.slug);
 
   return (
     <main className="min-h-screen bg-[#fff9f2] text-slate-950">
@@ -42,8 +43,8 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
       </header>
 
       <section className="relative overflow-hidden border-b border-orange-100 px-6 py-14 md:py-20">
-        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/>
-        <div className="absolute inset-0 bg-gradient-to-r from-white/98 via-[#fff8ef]/93 to-orange-50/73"/>
+        {panel ? <><div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-800"/><div className="absolute inset-0 flex items-center justify-end overflow-hidden pr-[4%]"><div className="select-none text-[12vw] font-black uppercase tracking-tight text-white/[0.055]">{guide.name}</div></div></> : <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/>}
+        <div className={`absolute inset-0 ${panel?"bg-gradient-to-r from-white/98 via-[#fff8ef]/94 to-white/28":"bg-gradient-to-r from-white/98 via-[#fff8ef]/93 to-orange-50/73"}`}/>
         <div className="absolute inset-y-0 right-0 w-[46%] bg-gradient-to-l from-orange-100/22 to-transparent"/>
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div>
@@ -56,15 +57,15 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
             <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-700">{guide.summary}</p>
             <div className="mt-6 flex flex-wrap gap-2">{guide.models.map((model) => <span key={model} className="rounded-full border border-orange-100 bg-white/90 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm backdrop-blur">{model}</span>)}</div>
           </div>
-          <div className="rounded-[2rem] bg-white/78 p-2 shadow-2xl shadow-orange-200/40 backdrop-blur-sm"><BrandSerialStarter brand={guide.name} examples={guide.serialExamples} /></div>
+          <div className="rounded-[2rem] bg-white/78 p-2 shadow-2xl shadow-orange-200/40 backdrop-blur-sm"><BrandSerialStarter brand={guide.name} slug={guide.slug} examples={guide.serialExamples} /></div>
         </div>
-        <div className="absolute bottom-3 right-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Imagen de referencia: Unsplash</div>
+        {!panel&&<div className="absolute bottom-3 right-4 rounded-full bg-white/75 px-3 py-1 text-[10px] font-semibold text-slate-600 backdrop-blur">Imagen de referencia con licencia de uso</div>}
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         <div className="grid gap-6 lg:grid-cols-[.72fr_1.28fr]">
           <aside className="h-fit overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm lg:sticky lg:top-6">
-            <div className="relative h-44 overflow-hidden"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent"/><div className="absolute bottom-4 left-4 rounded-2xl bg-white/92 p-2 shadow-lg backdrop-blur"><BrandMark slug={guide.slug} name={guide.name} compact/></div></div>
+            <div className="relative h-44 overflow-hidden">{panel?<><div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-700"/><div className="absolute inset-0 flex items-center justify-center px-4 text-center text-4xl font-black uppercase tracking-[.08em] text-white/20">{guide.name}</div></>:<><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent"/></>}<div className="absolute bottom-4 left-4 rounded-2xl bg-white/92 p-2 shadow-lg backdrop-blur"><BrandMark slug={guide.slug} name={guide.name} compact/></div></div>
             <div className="p-6">
               <div><p className="text-xs font-black uppercase tracking-[.2em] text-orange-500">Antes de empezar</p><h2 className="mt-1 text-xl font-black">Identifica qué radio tienes</h2></div>
               <p className="mt-4 text-sm leading-6 text-slate-600">{guide.note}</p>
@@ -78,7 +79,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
             <div className="space-y-5">
               {guide.methods.map((method,index)=><article key={`${method.title}-${index}`} className="overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm">
                 <div className="grid md:grid-cols-[180px_1fr]">
-                  <div className="relative flex min-h-44 flex-col justify-between overflow-hidden p-6 text-white"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 to-orange-600/80"/><div className="relative text-5xl font-black text-white/95">{String(index+1).padStart(2,"0")}</div><div className="relative"><div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-100">{method.kicker}</div><div className="mt-2 text-xs leading-5 text-orange-50">{method.appliesTo}</div></div></div>
+                  <div className="relative flex min-h-44 flex-col justify-between overflow-hidden p-6 text-white">{panel?<><div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-700"/><div className="absolute inset-0 flex items-center justify-center text-5xl font-black uppercase text-white/[0.08]">{guide.name}</div></>:<div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/>}<div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 to-orange-600/80"/><div className="relative text-5xl font-black text-white/95">{String(index+1).padStart(2,"0")}</div><div className="relative"><div className="text-[10px] font-black uppercase tracking-[.18em] text-orange-100">{method.kicker}</div><div className="mt-2 text-xs leading-5 text-orange-50">{method.appliesTo}</div></div></div>
                   <div className="p-6 md:p-8"><h3 className="text-2xl font-black">{method.title}</h3><ol className="mt-5 space-y-3">{method.steps.map((step,stepIndex)=><li key={step} className="flex gap-3 text-sm leading-6"><span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-50 text-xs font-black text-orange-700">{stepIndex+1}</span><span className="text-slate-600">{step}</span></li>)}</ol>{method.examples&&method.examples.length>0&&<div className="mt-6 rounded-2xl bg-[#fff9f2] p-4"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Cómo puede verse la serie</div><div className="mt-3 flex flex-wrap gap-2">{method.examples.map(example=><code key={example} className="rounded-lg border border-orange-100 bg-white px-3 py-2 text-sm font-bold text-slate-800">{example}</code>)}</div></div>}{method.warning&&<div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900"><strong>Importante:</strong> {method.warning}</div>}</div>
                 </div>
               </article>)}
@@ -87,7 +88,7 @@ export default async function BrandRadioGuidePage({ params }: { params: Promise<
         </div>
       </section>
 
-      <section className="border-t border-orange-100 bg-white px-6 py-14"><div className="relative mx-auto flex max-w-6xl flex-col gap-6 overflow-hidden rounded-3xl p-7 text-white md:flex-row md:items-center md:justify-between md:p-9"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/><div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/92 to-slate-950/72"/><div className="relative"><p className="text-sm font-black uppercase tracking-[.2em] text-orange-100">¿Ya confirmaste la serie?</p><h2 className="mt-2 text-3xl font-black">Completa tu solicitud en una pantalla separada</h2><p className="mt-2 max-w-2xl text-orange-50">El formulario de pago se abre en una pantalla limpia e independiente.</p></div><Link href="/request" className="relative shrink-0 rounded-xl bg-white px-6 py-4 text-center font-black text-slate-950 shadow-lg">Solicitar código →</Link></div></section>
+      <section className="border-t border-orange-100 bg-white px-6 py-14"><div className="relative mx-auto flex max-w-6xl flex-col gap-6 overflow-hidden rounded-3xl p-7 text-white md:flex-row md:items-center md:justify-between md:p-9">{panel?<><div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-orange-700"/><div className="absolute inset-0 flex items-center justify-end pr-8 text-7xl font-black uppercase text-white/[0.07]">{guide.name}</div></>:<div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${photo})`}}/>}<div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 via-orange-500/92 to-slate-950/72"/><div className="relative"><p className="text-sm font-black uppercase tracking-[.2em] text-orange-100">¿Ya confirmaste la serie?</p><h2 className="mt-2 text-3xl font-black">Completa tu solicitud en una pantalla separada</h2><p className="mt-2 max-w-2xl text-orange-50">El formulario de pago se abre en una pantalla limpia e independiente.</p></div><Link href="/request" className="relative shrink-0 rounded-xl bg-white px-6 py-4 text-center font-black text-slate-950 shadow-lg">Solicitar código →</Link></div></section>
     </main>
   );
 }
