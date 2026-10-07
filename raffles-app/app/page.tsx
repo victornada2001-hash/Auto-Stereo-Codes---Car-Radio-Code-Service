@@ -35,87 +35,109 @@ export default function Home() {
   const paymentLink = featured ? `/rifa/${featured.id}#pago` : "/sorteos";
 
   return (
-    <main className="min-h-screen bg-white text-[#171717]">
+    <main className="min-h-screen bg-white text-[#111827]">
       <JuniorClassicHeader whatsapp={whatsapp} />
 
       <section
-        className="relative min-h-[490px] overflow-hidden bg-[#d8d8d8] md:min-h-[560px]"
+        className="relative min-h-[560px] overflow-hidden bg-[#081b33] text-white md:min-h-[650px]"
         style={heroImage ? {
-          backgroundImage: `linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.08)), url(${heroImage})`,
+          backgroundImage: `url(${heroImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundAttachment: "fixed",
         } : undefined}
       >
-        {!heroImage && <div className="absolute inset-0 bg-[linear-gradient(135deg,#d9d9d9,#f7f7f7_45%,#c9c9c9)]" />}
-        <div className="absolute inset-0 bg-black/5" />
-        <div className="relative mx-auto flex min-h-[490px] max-w-[1366px] flex-col items-center justify-start px-5 pt-16 md:min-h-[560px] md:pt-16">
-          <div className="w-full max-w-[520px] space-y-4">
-            <a href={raffleLink} className="block rounded-xl border-[3px] border-white bg-[#d43e37] px-5 py-3 text-center text-xl font-black uppercase tracking-[.14em] text-white shadow-lg transition hover:brightness-105 md:text-2xl">
-              Boletos disponibles
-            </a>
-            <a href={paymentLink} className="block rounded-xl border-[3px] border-[#d43e37] bg-white/95 px-5 py-3 text-center text-xl font-black uppercase tracking-[.14em] text-[#d43e37] shadow-lg transition hover:bg-white md:text-2xl">
-              Sube tu pago
-            </a>
+        {!heroImage && <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,#173f6c,#081b33_58%,#020913)]" />}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#06172d]/95 via-[#081b33]/72 to-black/20" />
+        <div className="absolute inset-x-0 top-0 h-px bg-[#d4af37]/50" />
+
+        <div className="relative mx-auto flex min-h-[560px] max-w-[1400px] items-center px-5 py-14 md:min-h-[650px] lg:px-8">
+          <div className="w-full max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/55 bg-[#081b33]/75 px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-[#f2c94c] backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-[#f2c94c]" /> {featured ? "Sorteo activo" : "Próximo sorteo"}
+            </div>
+
+            <h1 className="mt-5 text-4xl font-black uppercase leading-[.95] sm:text-6xl lg:text-7xl">
+              {featured?.title || "Sorteos Junior"}
+            </h1>
+            {featured?.prize && <div className="mt-4 text-xl font-black uppercase tracking-wide text-[#f2c94c] sm:text-2xl">Premio: {featured.prize}</div>}
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/78 sm:text-lg">Consulta los boletos disponibles, selecciona tus números y sube tu comprobante directamente desde el sitio.</p>
+
+            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+              <a href={raffleLink} className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
+                Boletos disponibles
+              </a>
+              <a href={paymentLink} className="rounded-xl border-2 border-[#d4af37] bg-white/95 px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-[#081b33] shadow-lg transition hover:-translate-y-1 hover:bg-white">
+                Sube tu pago
+              </a>
+            </div>
+
+            {featured && (
+              <div className="mt-8 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+                <HeroFact label="Boleto" value={`$${Number(featured.ticket_price).toFixed(2)}`} />
+                <HeroFact label="Emisión" value={Number(featured.total_tickets).toLocaleString("es-MX")} />
+                <HeroFact label="Estado" value="Disponible" />
+                <HeroFact label="Contacto" value="664 811 8609" />
+              </div>
+            )}
           </div>
-          {featured && <div className="mt-auto mb-6 rounded-full bg-black/65 px-5 py-2 text-center text-sm font-black uppercase tracking-[.12em] text-white backdrop-blur">{featured.title}</div>}
         </div>
       </section>
 
-      <SectionTitle>Preguntas frecuentes</SectionTitle>
-      <section className="mx-auto max-w-3xl px-5 py-12 text-[15px] leading-7 md:py-14">
-        <FaqBlock
-          q="¿Cómo se elige a los ganadores?"
-          a="Cada sorteo indica previamente el resultado público que se utilizará como referencia. El boleto que coincida con el número ganador publicado será identificado como ganador, de acuerdo con las bases y fecha anunciadas para ese sorteo."
-        />
-        <FaqBlock
-          q="¿Qué sucede si el número ganador corresponde a un boleto no vendido?"
-          a="Si las bases del sorteo contemplan una nueva selección, se publicará la fecha o referencia que se utilizará para determinar al ganador. La actualización quedará visible en Sorteos Junior."
-        />
-        <FaqBlock
-          q="¿Dónde se publican los ganadores?"
-          a="Los resultados quedan disponibles en la sección de Ganadores de Sorteos Junior. Cuando existan redes sociales oficiales configuradas, también podrán utilizarse para comunicar resultados y avisos."
-        />
-        <FaqBlock
-          q="¿Tengo que subir mi comprobante de pago?"
-          a="Sí. Después de apartar tus boletos debes subir el comprobante desde el sitio para que tu solicitud pueda revisarse y actualizarse."
-        />
-        <div className="mt-9 text-center">
-          <a href="/preguntas-frecuentes" className="inline-block border-b-2 border-[#0875b9] font-black uppercase text-[#0875b9]">Ver todas las preguntas frecuentes</a>
+      <section className="border-y border-[#d4af37]/30 bg-[#081b33] text-white">
+        <div className="mx-auto grid max-w-6xl gap-5 px-5 py-5 text-center text-xs font-black uppercase tracking-[.18em] text-white/80 sm:grid-cols-3">
+          <div>Boletos disponibles en línea</div>
+          <div className="text-[#f2c94c]">Comprobantes desde el sitio</div>
+          <div>Resultados publicados</div>
+        </div>
+      </section>
+
+      <SectionTitle eyebrow="Información">Preguntas frecuentes</SectionTitle>
+      <section className="mx-auto max-w-4xl px-5 py-14 text-[15px] leading-7 md:py-16">
+        <div className="grid gap-5 md:grid-cols-2">
+          <FaqBlock q="¿Cómo se elige a los ganadores?" a="Cada sorteo informa previamente qué resultado público se utilizará como referencia. El boleto que coincida con el número ganador publicado será identificado conforme a las bases y la fecha anunciadas para ese sorteo." />
+          <FaqBlock q="¿Qué pasa si el número ganador no fue vendido?" a="Si las bases contemplan una nueva selección, se publicará la nueva fecha o referencia utilizada para determinar al ganador." />
+          <FaqBlock q="¿Dónde se publican los ganadores?" a="Los resultados quedan disponibles en la sección de Ganadores de Sorteos Junior y permanecen visibles como historial." />
+          <FaqBlock q="¿Tengo que subir mi comprobante?" a="Sí. Después de apartar tus boletos debes subir el comprobante desde el sitio para que la solicitud pueda revisarse y actualizarse." />
+        </div>
+        <div className="mt-8 text-center">
+          <a href="/preguntas-frecuentes" className="inline-flex rounded-lg border border-[#d4af37] bg-[#081b33] px-6 py-3 font-black uppercase tracking-wide text-white transition hover:bg-[#0d2747]">Ver todas las preguntas</a>
         </div>
       </section>
 
       <section
-        className="relative min-h-[300px] bg-[#222] bg-cover bg-center bg-fixed text-white"
-        style={heroImage ? { backgroundImage: `linear-gradient(rgba(0,0,0,.58),rgba(0,0,0,.58)), url(${heroImage})` } : undefined}
+        className="relative overflow-hidden bg-[#081b33] text-white"
+        style={heroImage ? { backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
       >
-        <SectionTitle>Acerca de Sorteos Junior</SectionTitle>
-        <div className="mx-auto flex max-w-4xl items-center justify-center px-5 py-16 text-center">
+        <div className="absolute inset-0 bg-[#081b33]/88" />
+        <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-[.8fr_1.2fr] md:items-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-[.22em] md:text-base">Sorteos administrados en línea</p>
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/90 md:text-base">En esta página puedes consultar sorteos disponibles, seleccionar boletos, generar un folio, subir tu comprobante y revisar resultados publicados.</p>
+            <div className="text-xs font-black uppercase tracking-[.22em] text-[#f2c94c]">Sorteos Junior</div>
+            <h2 className="mt-2 text-4xl font-black uppercase md:text-5xl">Información clara en un solo lugar</h2>
           </div>
+          <p className="text-base leading-8 text-white/78">Desde la página puedes consultar el sorteo activo, seleccionar boletos, generar un folio, revisar los métodos de pago, subir tu comprobante y consultar resultados anteriores. La imagen principal cambia automáticamente de acuerdo con el sorteo que tengas activo en el panel.</p>
         </div>
       </section>
 
-      <SectionTitle>Contáctanos</SectionTitle>
-      <section className="px-5 py-12 text-center md:py-14">
-        <div className="text-lg font-black uppercase tracking-[.12em]">WhatsApp: 664 811 8609</div>
-        <div className="mt-6 flex justify-center gap-4">
-          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="grid h-14 w-14 place-items-center rounded-full border-2 border-black text-2xl font-black transition hover:bg-[#25d366]" aria-label="WhatsApp">W</a>
-          {settings.facebook_url && <a href={settings.facebook_url} target="_blank" rel="noreferrer" className="grid h-14 w-14 place-items-center rounded-full border-2 border-black text-2xl font-black" aria-label="Facebook">f</a>}
+      <SectionTitle eyebrow="Atención">Contáctanos</SectionTitle>
+      <section className="px-5 py-14 text-center">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[#d4af37]/35 bg-[#f8fafc] p-8 shadow-sm">
+          <div className="text-sm font-black uppercase tracking-[.18em] text-[#8a6f14]">WhatsApp oficial</div>
+          <div className="mt-2 text-3xl font-black text-[#081b33]">664 811 8609</div>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">Para dudas sobre boletos, folios, comprobantes o sorteos publicados.</p>
+          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="mt-6 inline-flex rounded-xl border-2 border-[#081b33] bg-white px-6 py-3 font-black uppercase text-[#081b33] transition hover:bg-[#081b33] hover:text-white">Abrir WhatsApp</a>
         </div>
       </section>
 
-      <section className="border-t border-black/10 bg-[#f3f3f3] px-5 py-14">
+      <section className="border-t border-[#d4af37]/25 bg-[#f6f8fb] px-5 py-16">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#0875b9]">Disponibles</div><h2 className="mt-1 text-3xl font-black uppercase md:text-4xl">Sorteos activos</h2></div>
-            <a href="/sorteos" className="font-black uppercase text-[#0875b9]">Ver todos →</a>
+            <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#9a7a12]">Disponibles</div><h2 className="mt-1 text-3xl font-black uppercase text-[#081b33] md:text-4xl">Sorteos activos</h2></div>
+            <a href="/sorteos" className="font-black uppercase text-[#081b33] underline decoration-[#d4af37] decoration-4 underline-offset-4">Ver todos →</a>
           </div>
           {error && <div className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 font-bold text-red-700">{error}</div>}
           {!loading && active.length > 0 && <div className="mt-7 grid gap-6 md:grid-cols-2">{active.slice(0, 4).map(raffle => <RaffleCard key={raffle.id} raffle={raffle} />)}</div>}
-          {!loading && active.length === 0 && <div className="mt-7 rounded-xl border-2 border-dashed border-black/20 bg-white p-10 text-center font-bold text-slate-500">No hay sorteos activos en este momento.</div>}
+          {!loading && active.length === 0 && <div className="mt-7 rounded-xl border-2 border-dashed border-[#081b33]/20 bg-white p-10 text-center font-bold text-slate-500">No hay sorteos activos en este momento.</div>}
         </div>
       </section>
 
@@ -124,10 +146,14 @@ export default function Home() {
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <div className="bg-[#0875b9] px-5 py-3 text-center text-3xl font-black uppercase tracking-[.12em] text-white [text-shadow:2px_2px_0_rgba(0,0,0,.8)] md:text-4xl">{children}</div>;
+function HeroFact({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl border border-white/15 bg-[#081b33]/65 px-3 py-3 backdrop-blur"><div className="text-[10px] font-black uppercase tracking-[.16em] text-[#f2c94c]">{label}</div><div className="mt-1 text-sm font-black text-white">{value}</div></div>;
+}
+
+function SectionTitle({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
+  return <div className="border-y border-[#d4af37]/25 bg-white px-5 py-8 text-center"><div className="text-xs font-black uppercase tracking-[.22em] text-[#9a7a12]">{eyebrow}</div><div className="mt-2 text-3xl font-black uppercase tracking-[.08em] text-[#081b33] md:text-4xl">{children}</div><div className="mx-auto mt-4 h-1 w-20 rounded-full bg-[#d4af37]" /></div>;
 }
 
 function FaqBlock({ q, a }: { q: string; a: string }) {
-  return <div className="mb-9"><h3 className="text-center text-xl font-black uppercase tracking-[.14em] text-[#0875b9] md:text-2xl">{q}</h3><p className="mt-3 text-[#222]">{a}</p></div>;
+  return <article className="rounded-2xl border border-[#081b33]/10 bg-white p-6 shadow-[0_12px_30px_rgba(8,27,51,.06)]"><h3 className="text-lg font-black uppercase tracking-[.08em] text-[#081b33]">{q}</h3><div className="mt-3 h-1 w-12 rounded-full bg-[#d4af37]" /><p className="mt-4 text-slate-600">{a}</p></article>;
 }
