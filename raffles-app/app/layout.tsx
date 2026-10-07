@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Rifas Entre Amigos",
-  description: "Plataforma de rifas con selección de boletos, reservas y verificación de pagos.",
+  title: {
+    default: "Sorteos Junior",
+    template: "%s | Sorteos Junior",
+  },
+  description: "Sorteos Junior: participa en sorteos, selecciona tus números, verifica tus boletos y consulta ganadores.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
