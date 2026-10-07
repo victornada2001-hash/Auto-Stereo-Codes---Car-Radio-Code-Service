@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       const phone = normalizePhone(value);
       if (!/^\d{10}$/.test(phone)) return NextResponse.json({ error: "Escribe un WhatsApp válido de 10 dígitos." }, { status: 400 });
 
-      const reservationsResponse = await supabaseRest(`/rest/v1/raffle_reservations_admin?raffle_id=eq.${encodeURIComponent(raffle.id)}&customer_phone=eq.${encodeURIComponent(phone)}&select=id,folio,status,effective_status,created_at,ticket_count&order=created_at.desc&limit=20`);
+      const reservationsResponse = await supabaseRest(`/rest/v1/raffle_reservations_admin?raffle_id=eq.${encodeURIComponent(raffle.id)}&customer_phone=eq.${encodeURIComponent(phone)}&select=id,status,effective_status,created_at,ticket_count&order=created_at.desc&limit=20`);
       if (!reservationsResponse.ok) return NextResponse.json({ error: await parseSupabaseError(reservationsResponse) }, { status: 500 });
       const rows = await reservationsResponse.json();
       if (!rows.length) return NextResponse.json({ error: "No encontramos boletos para ese WhatsApp en el sorteo activo." }, { status: 404 });
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
         mode: "phone",
         raffle,
         results: rows.map((row: Record<string, unknown>) => ({
-          folio: row.folio,
           status: row.effective_status || row.status,
           created_at: row.created_at,
           ticket_count: Number(row.ticket_count || 0),
@@ -52,10 +51,10 @@ export async function POST(request: NextRequest) {
     if (!ticket) return NextResponse.json({
       mode: "ticket",
       raffle,
-      results: [{ ticket_number: ticketNumber, status: "available", folio: null, ticket_count: 0, created_at: null }],
+      results: [{ ticket_number: ticketNumber, status: "available", ticket_count: 0, created_at: null }],
     });
 
-    const reservationResponse = await supabaseRest(`/rest/v1/raffle_reservations_admin?id=eq.${encodeURIComponent(ticket.reservation_id)}&select=folio,status,effective_status,created_at,ticket_count&limit=1`);
+    const reservationResponse = await supabaseRest(`/rest/v1/raffle_reservations_admin?id=eq.${encodeURIComponent(ticket.reservation_id)}&select=status,effective_status,created_at&limit=1`);
     if (!reservationResponse.ok) return NextResponse.json({ error: await parseSupabaseError(reservationResponse) }, { status: 500 });
     const reservation = (await reservationResponse.json())?.[0];
 
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
       raffle,
       results: [{
         ticket_number: ticketNumber,
-        folio: reservation?.folio || null,
         status: reservation?.effective_status || reservation?.status || "reserved",
         created_at: reservation?.created_at || null,
         ticket_count: 1,
