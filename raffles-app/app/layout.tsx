@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ExperienceEffects from "./components/experience-effects";
 
 export const metadata: Metadata = {
   title: {
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ExperienceEffects />
+      </body>
     </html>
   );
 }
