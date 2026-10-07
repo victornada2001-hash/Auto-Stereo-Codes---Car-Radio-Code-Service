@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useParams } from "next/navigation";
 import { JuniorClassicHeader } from "../../components/junior-classic-header";
 import { SiteFooter } from "../../components/site";
 
@@ -19,6 +19,7 @@ const STATUS:Record<string,string> = {
   reserved:"Apartado", receipt_uploaded:"Pago en revisión", paid:"Pagado", unpaid:"No pagado",
   manual_review:"En revisión", cancelled:"Cancelado", ai_reviewed:"En revisión",
 };
+
 function dateTime(value?:string|null) {
   if(!value) return "—";
   return new Intl.DateTimeFormat("es-MX",{dateStyle:"medium",timeStyle:"short"}).format(new Date(value));
@@ -27,16 +28,23 @@ function ticketLabel(value:number,total=99999){return String(value).padStart(Mat
 
 export default function MisBoletosPage(){
   const params=useParams<{folio:string}>();
-  const search=useSearchParams();
   const folio=params.folio;
-  const token=search.get("token")||"";
+  const [token,setToken]=useState("");
+  const [tokenReady,setTokenReady]=useState(false);
   const [detail,setDetail]=useState<Detail|null>(null);
   const [receipt,setReceipt]=useState<File|null>(null);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
 
+  useEffect(()=>{
+    const value=new URLSearchParams(window.location.search).get("token")||"";
+    setToken(value);
+    setTokenReady(true);
+  },[]);
+
   const load=useCallback(async()=>{
+    if(!tokenReady)return;
     if(!folio||!token){setError("Este enlace no contiene el acceso privado a la reserva.");return;}
     try{
       const response=await fetch(`/api/reservations/${encodeURIComponent(folio)}?token=${encodeURIComponent(token)}`,{cache:"no-store"});
@@ -44,25 +52,29 @@ export default function MisBoletosPage(){
       if(!response.ok) throw new Error(data?.error||"No se pudo abrir la reserva.");
       setDetail(data);setError("");
     }catch(e){setError(e instanceof Error?e.message:"No se pudo abrir la reserva.");}
-  },[folio,token]);
+  },[folio,token,tokenReady]);
 
-  useEffect(()=>{void load();},[load]);
+  useEffect(()=>{if(tokenReady)void load();},[load,tokenReady]);
   useEffect(()=>{
     if(!detail||detail.reservation.status==="paid"||detail.reservation.status==="cancelled") return;
     const timer=window.setInterval(()=>void load(),12000);
     return ()=>window.clearInterval(timer);
-  },[detail?.reservation.status,load]);
+  },[detail,load]);
 
   async function uploadReceipt(){
     if(!detail||!receipt)return;
     setBusy(true);setError("");setNotice("");
     try{
       const form=new FormData();
-      form.append("reservationId",detail.reservation.id);form.append("folio",detail.reservation.folio);form.append("file",receipt);
+      form.append("reservationId",detail.reservation.id);
+      form.append("folio",detail.reservation.folio);
+      form.append("file",receipt);
       const response=await fetch("/api/receipts",{method:"POST",body:form});
       const data=await response.json();
       if(!response.ok)throw new Error(data?.error||"No se pudo subir el comprobante.");
-      setNotice("Comprobante recibido. Tu pago quedó en revisión.");setReceipt(null);await load();
+      setNotice("Comprobante recibido. Tu pago quedó en revisión.");
+      setReceipt(null);
+      await load();
     }catch(e){setError(e instanceof Error?e.message:"No se pudo subir el comprobante.");}
     finally{setBusy(false);}
   }
@@ -82,13 +94,11 @@ export default function MisBoletosPage(){
     <section className="mx-auto max-w-6xl px-5 py-8">
       {notice&&<div className="mb-5 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-center font-black text-emerald-800">{notice}</div>}
       {error&&<div className="mb-5 rounded-xl border border-red-300 bg-red-50 p-4 text-center font-black text-red-700">{error}</div>}
-
       <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]">
         <div className="overflow-hidden rounded-2xl border border-[#d4af37]/40 bg-white shadow-lg">
           {raffle?.cover_image_url?<img src={raffle.cover_image_url} alt={raffle.title} className="aspect-[16/10] w-full object-cover"/>:<div className="grid aspect-[16/10] place-items-center bg-[#081b33] text-7xl">🏆</div>}
           <div className="p-6"><div className="text-xs font-black uppercase tracking-[.18em] text-[#b78c12]">Sorteo</div><h2 className="mt-1 text-2xl font-black uppercase text-[#081b33]">{raffle?.title||"Sorteos Junior"}</h2>{raffle?.prize&&<p className="mt-2 font-bold text-slate-600">Premio: {raffle.prize}</p>}<div className="mt-5 grid gap-3 sm:grid-cols-2"><Info label="Nombre" value={reservation.customer_name}/><Info label="Estado / país" value={reservation.customer_state||"—"}/><Info label="Fecha apartado" value={dateTime(reservation.created_at)}/><Info label="Monto" value={`$${Number(reservation.amount).toFixed(2)} MXN`}/></div></div>
         </div>
-
         <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-lg sm:p-7"><div className="flex flex-wrap items-end justify-between gap-3"><div><div className="text-xs font-black uppercase tracking-[.18em] text-[#b78c12]">Detalle</div><h2 className="mt-1 text-3xl font-black uppercase text-[#081b33]">Tus boletos</h2></div><div className="font-black">{activeTickets.length} número(s)</div></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[660px] border-collapse text-sm"><thead><tr className="bg-[#081b33] text-white"><Th>Número</Th><Th>Estatus</Th><Th>Nombre</Th><Th>Estado / país</Th><Th>Fecha apartado</Th></tr></thead><tbody>{tickets.map(ticket=><tr key={ticket.ticket_number} className="border-b border-slate-200"><Td><span className="font-mono font-black">{ticketLabel(ticket.ticket_number)}</span></Td><Td><span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${ticket.released_at?"bg-slate-200 text-slate-600":paid?"bg-emerald-100 text-emerald-800":"bg-amber-100 text-amber-800"}`}>{ticket.released_at?"Liberado":STATUS[reservation.status]||reservation.status}</span></Td><Td>{reservation.customer_name}</Td><Td>{reservation.customer_state||"—"}</Td><Td>{dateTime(reservation.created_at)}</Td></tr>)}</tbody></table></div></div>
       </div>
     </section>
@@ -100,5 +110,5 @@ export default function MisBoletosPage(){
 }
 
 function Info({label,value}:{label:string;value:string}){return <div className="rounded-xl bg-[#f4f7fb] p-4"><div className="text-[10px] font-black uppercase tracking-[.15em] text-slate-500">{label}</div><div className="mt-1 font-black text-[#081b33]">{value}</div></div>}
-function Th({children}:{children:React.ReactNode}){return <th className="px-3 py-3 text-left text-xs font-black uppercase">{children}</th>}
-function Td({children}:{children:React.ReactNode}){return <td className="px-3 py-3 align-top font-semibold">{children}</td>}
+function Th({children}:{children:ReactNode}){return <th className="px-3 py-3 text-left text-xs font-black uppercase">{children}</th>}
+function Td({children}:{children:ReactNode}){return <td className="px-3 py-3 align-top font-semibold">{children}</td>}
