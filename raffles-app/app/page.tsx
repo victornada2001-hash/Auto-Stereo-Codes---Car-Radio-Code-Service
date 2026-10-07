@@ -1,72 +1,140 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-type Raffle = {
-  id:string;
-  title:string;
-  description?:string|null;
-  prize?:string|null;
-  ticket_price:number;
-  total_tickets:number;
-  status:string;
-  edition?:string|null;
-  cover_image_url?:string|null;
-  draw_date?:string|null;
-  discounts?:Array<{min_qty:number;percent:number}>;
-  winner_ticket?:number|null;
-  winner_name?:string|null;
-  winner_draw_reference?:string|null;
-};
-type Settings = { brand_name?:string; whatsapp_number?:string; facebook_url?:string; instagram_url?:string; winner_method?:string };
-
-function formatDate(value?:string|null) {
-  if(!value) return "Fecha por anunciar";
-  return new Intl.DateTimeFormat("es-MX",{dateStyle:"long"}).format(new Date(value));
-}
+import { PublicLoading, RaffleCard, SiteFooter, SiteHeader, type Raffle, type SiteSettings, normalizeWhatsApp } from "./components/site";
 
 export default function Home() {
-  const [raffles,setRaffles]=useState<Raffle[]>([]);
-  const [settings,setSettings]=useState<Settings>({});
-  const [error,setError]=useState("");
+  const [raffles, setRaffles] = useState<Raffle[]>([]);
+  const [settings, setSettings] = useState<SiteSettings>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(()=>{
-    fetch("/api/raffles",{cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data?.error||"No se pudieron cargar los sorteos.");return data;}).then(data=>{setRaffles(data.raffles||[]);setSettings(data.settings||{});}).catch(e=>setError(e instanceof Error?e.message:"Error al cargar."));
-  },[]);
+  useEffect(() => {
+    fetch("/api/raffles", { cache: "no-store" })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || "No se pudieron cargar los sorteos.");
+        return data;
+      })
+      .then(data => {
+        setRaffles(data.raffles || []);
+        setSettings(data.settings || {});
+      })
+      .catch(e => setError(e instanceof Error ? e.message : "Error al cargar."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const active=useMemo(()=>raffles.filter(r=>r.status==="active"),[raffles]);
-  const paused=useMemo(()=>raffles.filter(r=>r.status==="paused"||r.status==="closed"),[raffles]);
-  const completed=useMemo(()=>raffles.filter(r=>r.status==="completed"),[raffles]);
-  const brand=settings.brand_name||"Sorteos entre amigos";
-  const whatsapp=settings.whatsapp_number?.replace(/\D/g,"")||"";
+  const active = useMemo(() => raffles.filter(r => r.status === "active"), [raffles]);
+  const completed = useMemo(() => raffles.filter(r => r.status === "completed").slice(0, 3), [raffles]);
+  const whatsapp = normalizeWhatsApp(settings.whatsapp_number);
 
-  return <main className="min-h-screen bg-[#f4efe4] text-[#111]">
-    <div className="bg-amber-400 px-4 py-2 text-center text-xs font-black uppercase tracking-[.16em] text-black">Sorteos transparentes · Boletos digitales · Historial público</div>
-    <header className="border-b-2 border-black bg-[#111] text-white"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 lg:px-8"><a href="#inicio" className="text-lg font-black uppercase tracking-[.16em] sm:text-xl">{brand}</a><nav className="hidden items-center gap-6 text-sm font-black uppercase md:flex"><a href="#rifas">Rifas</a><a href="#como-funciona">Cómo funciona</a><a href="#historial">Historial</a><a href="/terminos">Términos</a></nav>{whatsapp&&<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-black text-black">WhatsApp</a>}</div></header>
+  return (
+    <main className="min-h-screen bg-[#f4f2ec] text-[#111]">
+      <SiteHeader whatsapp={whatsapp} />
 
-    <section id="inicio" className="overflow-hidden border-b-2 border-black bg-[#171717] text-white"><div className="mx-auto grid max-w-7xl lg:grid-cols-[1.06fr_.94fr]"><div className="px-5 py-16 lg:px-8 lg:py-24"><div className="inline-flex rotate-[-2deg] border-2 border-black bg-amber-400 px-4 py-2 text-xs font-black uppercase tracking-[.2em] text-black shadow-[4px_4px_0_#fff]">Participa en línea</div><h1 className="mt-8 max-w-3xl text-5xl font-black uppercase leading-[.9] sm:text-7xl lg:text-8xl">Elige.<br/><span className="text-amber-400">Aparta.</span><br/>Participa.</h1><p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300">Selecciona tus números o usa la máquina de la suerte. Aparta por 2 horas, realiza tu transferencia y sube tu comprobante desde la misma plataforma.</p><a href="#rifas" className="mt-8 inline-flex rounded-xl border-2 border-white bg-white px-6 py-4 text-lg font-black uppercase text-black shadow-[5px_5px_0_#fbbf24]">Ver rifas activas ↓</a></div><div className="relative min-h-[420px] border-t-2 border-black bg-amber-400 lg:border-l-2 lg:border-t-0"><div className="absolute inset-8 rotate-3 border-2 border-black bg-[#f4efe4] p-8 shadow-[10px_10px_0_#111]"><div className="text-xs font-black uppercase tracking-[.2em]">Boleto digital</div><div className="mt-8 text-7xl font-black">#02741</div><div className="mt-10 border-t-2 border-dashed border-black pt-6"><div className="grid grid-cols-2 gap-4 text-sm"><div><div className="font-black uppercase">Estado</div><div>Pagado ✓</div></div><div><div className="font-black uppercase">Folio</div><div>R-8F2A19C7</div></div><div><div className="font-black uppercase">Sorteo</div><div>Lotería Nacional</div></div><div><div className="font-black uppercase">Verificación</div><div>En línea</div></div></div></div></div></div></div></section>
+      <section className="relative overflow-hidden bg-[#08090b] text-white">
+        <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(circle_at_20%_20%,rgba(246,201,0,.22),transparent_28%),radial-gradient(circle_at_80%_10%,rgba(255,255,255,.08),transparent_22%)]" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-14 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-20">
+          <div>
+            <div className="inline-flex rounded-full border border-[#f6c900]/40 bg-[#f6c900]/10 px-4 py-2 text-xs font-black uppercase tracking-[.2em] text-[#f6c900]">Bienvenido a Sorteos Junior</div>
+            <h1 className="mt-6 max-w-3xl text-5xl font-black uppercase leading-[.9] sm:text-7xl lg:text-8xl">
+              Arriesga poco.<br/><span className="text-[#f6c900]">Sueña en grande.</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70">Elige tus números, aparta tus boletos y revisa su estado desde una plataforma clara y fácil de usar.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href="/sorteos" className="rounded-xl bg-[#f6c900] px-6 py-4 font-black uppercase text-black shadow-[0_8px_30px_rgba(246,201,0,.25)]">Ver sorteos</a>
+              <a href="/verificador" className="rounded-xl border border-white/20 bg-white/5 px-6 py-4 font-black uppercase text-white">Verificar boleto</a>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-5 text-xs font-black uppercase tracking-[.14em] text-white/50">
+              <span>✓ Boletos digitales</span><span>✓ Historial público</span><span>✓ Atención por WhatsApp</span>
+            </div>
+          </div>
 
-    {error&&<div className="mx-auto max-w-7xl px-5 pt-7 lg:px-8"><div className="rounded-xl border-2 border-rose-500 bg-rose-50 p-4 font-black text-rose-700">{error}</div></div>}
+          <div className="relative mx-auto w-full max-w-xl">
+            <div className="absolute -inset-6 rounded-full bg-[#f6c900]/15 blur-3xl" />
+            <div className="relative rotate-1 rounded-[2rem] border border-white/10 bg-[#15171b] p-4 shadow-2xl">
+              <div className="rounded-[1.5rem] bg-[#f6c900] p-5 text-black">
+                <div className="flex items-center justify-between gap-4 border-b-2 border-black/15 pb-4">
+                  <div><div className="text-xs font-black uppercase tracking-[.2em]">Boleto digital</div><div className="mt-1 text-2xl font-black uppercase">Sorteos Junior</div></div>
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-black text-xl font-black text-[#f6c900]">J</div>
+                </div>
+                <div className="py-7 text-center">
+                  <div className="text-xs font-black uppercase tracking-[.2em]">Número</div>
+                  <div className="mt-2 text-7xl font-black tracking-tight">02741</div>
+                  <div className="mt-3 inline-flex rounded-full bg-black px-4 py-2 text-xs font-black uppercase text-white">Pagado ✓</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 border-t-2 border-dashed border-black/25 pt-4 text-xs">
+                  <div><div className="font-black uppercase">Folio</div><div className="mt-1 font-mono">SJ-8F2A19</div></div>
+                  <div><div className="font-black uppercase">Estado</div><div className="mt-1">Verificable en línea</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <section id="rifas" className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="text-xs font-black uppercase tracking-[.22em] text-amber-700">Disponibles ahora</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Rifas activas</h2></div><div className="rounded-full border-2 border-black bg-white px-4 py-2 text-sm font-black">{active.length} activa{active.length===1?"":"s"}</div></div>
-      <div className="mt-8 grid gap-7 md:grid-cols-2">{active.map(raffle=><RaffleCard key={raffle.id} raffle={raffle}/>)}</div>
-      {!active.length&&<div className="mt-8 rounded-3xl border-2 border-dashed border-black/30 bg-white p-12 text-center"><div className="text-5xl">🎟️</div><div className="mt-4 text-2xl font-black uppercase">Próximo sorteo en preparación</div><p className="mt-2 text-slate-500">Cuando una rifa se inicie desde el panel aparecerá aquí automáticamente.</p></div>}
-      {paused.length>0&&<div className="mt-12"><div className="text-xs font-black uppercase tracking-[.2em] text-slate-500">Temporalmente pausadas</div><div className="mt-4 grid gap-4 md:grid-cols-3">{paused.map(r=><div key={r.id} className="rounded-2xl border-2 border-black bg-white p-5"><div className="font-black uppercase">{r.title}</div><div className="mt-2 text-sm text-slate-500">La rifa conserva todos sus registros pero no acepta nuevos apartados mientras esté pausada.</div><a href={`/rifa/${r.id}`} className="mt-4 inline-block font-black underline">Ver detalles</a></div>)}</div></div>}
-    </section>
+      <section className="border-b border-black/10 bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-black/10 px-5 md:grid-cols-4 lg:px-8">
+          <QuickLink href="/sorteos" icon="🎟️" title="Sorteos" text="Elige tus números" />
+          <QuickLink href="/verificador" icon="✓" title="Verificador" text="Consulta tu boleto" />
+          <QuickLink href="/resultados" icon="🏆" title="Ganadores" text="Resultados anteriores" />
+          <QuickLink href="/como-participar" icon="?" title="Ayuda" text="Cómo participar" />
+        </div>
+      </section>
 
-    <section id="como-funciona" className="border-y-2 border-black bg-amber-400"><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="text-xs font-black uppercase tracking-[.2em]">Proceso simple</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Cómo participar</h2><div className="mt-8 grid gap-4 md:grid-cols-4"><Step n="01" title="Elige números" text="Selecciona manualmente desde la lista o escribe números específicos."/><Step n="02" title="Máquina de la suerte" text="Indica cuántos boletos quieres y el sistema genera números disponibles al azar."/><Step n="03" title="Aparta 2 horas" text="Tu folio mantiene los números bloqueados mientras realizas el pago."/><Step n="04" title="Sube comprobante" text="Carga el comprobante en la plataforma o envíalo por WhatsApp para revisión."/></div></div></section>
+      {loading ? <PublicLoading /> : (
+        <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
+          <div className="flex flex-wrap items-end justify-between gap-5">
+            <div><div className="text-xs font-black uppercase tracking-[.2em] text-[#9b7900]">Participa ahora</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Sorteos activos</h2></div>
+            <a href="/sorteos" className="rounded-full border border-black/15 bg-white px-5 py-3 text-sm font-black uppercase">Ver todos →</a>
+          </div>
+          {error && <div className="mt-7 rounded-xl border border-red-300 bg-red-50 p-4 font-bold text-red-700">{error}</div>}
+          {active.length ? <div className="mt-8 grid gap-7 md:grid-cols-2">{active.slice(0, 4).map(raffle => <RaffleCard key={raffle.id} raffle={raffle} />)}</div> : <EmptyState />}
+        </section>
+      )}
 
-    <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><div className="rounded-3xl border-2 border-black bg-[#111] p-7 text-white shadow-[6px_6px_0_#fbbf24]"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-400">Regla publicada</div><h2 className="mt-3 text-4xl font-black uppercase">¿Cómo se elige al ganador?</h2></div><div className="rounded-3xl border-2 border-black bg-white p-7 text-lg font-semibold leading-9">{settings.winner_method||"Cada rifa indicará previamente el sorteo oficial de Lotería Nacional que servirá de referencia y la forma de relacionar el resultado con los números emitidos."}<div className="mt-5 text-sm font-normal text-slate-600">La fecha, emisión y condiciones específicas se publican antes de finalizar cada rifa. Si la mecánica requiere una nueva fecha por no existir boleto pagado aplicable, el cambio queda anunciado y documentado.</div></div></div></section>
+      <section className="bg-[#f6c900] text-black">
+        <div className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
+            <div><div className="text-xs font-black uppercase tracking-[.2em]">Fácil y rápido</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">¿Cómo participo?</h2><p className="mt-4 max-w-md font-semibold leading-7">Todo el proceso se hace desde tu teléfono. Eliges números, registras tus datos y recibes un folio para dar seguimiento.</p></div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Step n="01" title="Elige un sorteo" text="Entra al sorteo que te interesa y revisa premio, precio y fecha." />
+              <Step n="02" title="Selecciona números" text="Escoge números disponibles o deja que la máquina te sugiera algunos." />
+              <Step n="03" title="Aparta tus boletos" text="Registra tu nombre y teléfono para generar tu folio." />
+              <Step n="04" title="Realiza tu pago" text="Sube tu comprobante y consulta el estado de tus boletos." />
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <section id="historial" className="border-y-2 border-black bg-white"><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-700">Evidencia y credibilidad</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Rifas finalizadas</h2><p className="mt-3 max-w-2xl leading-7 text-slate-600">Las rifas no se eliminan del sistema al finalizar. Conservamos su registro para que el historial pueda consultarse.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{completed.map(raffle=><article key={raffle.id} className="overflow-hidden rounded-2xl border-2 border-black bg-[#f4efe4]"><div className="h-44 bg-[#222]">{raffle.cover_image_url?<img src={raffle.cover_image_url} alt={raffle.title} className="h-full w-full object-cover"/>:<div className="flex h-full items-center justify-center text-6xl">🏆</div>}</div><div className="p-5"><div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Finalizada</div><h3 className="mt-1 text-xl font-black uppercase">{raffle.title}</h3><div className="mt-4 rounded-xl border border-black bg-white p-3 text-sm"><div><b>Ganador:</b> {raffle.winner_ticket?`Boleto ${raffle.winner_ticket}`:"Pendiente de publicar"}</div>{raffle.winner_name&&<div><b>Participante:</b> {raffle.winner_name}</div>}{raffle.winner_draw_reference&&<div><b>Referencia:</b> {raffle.winner_draw_reference}</div>}</div><a href={`/rifa/${raffle.id}`} className="mt-4 inline-block font-black underline">Ver registro →</a></div></article>)}</div>{!completed.length&&<div className="mt-7 rounded-2xl border-2 border-dashed border-black/30 p-8 text-center font-bold text-slate-500">El historial aparecerá aquí conforme finalicemos rifas.</div>}</div></section>
+      <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-5"><div><div className="text-xs font-black uppercase tracking-[.2em] text-[#9b7900]">Transparencia</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Últimos resultados</h2></div><a href="/resultados" className="font-black uppercase underline decoration-[#f6c900] decoration-4 underline-offset-4">Ver historial completo</a></div>
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
+          {completed.length ? completed.map(r => <ResultMini key={r.id} raffle={r} />) : <div className="col-span-full rounded-2xl border border-dashed border-black/20 bg-white p-10 text-center font-bold text-slate-500">Los ganadores aparecerán aquí cuando finalicemos los primeros sorteos.</div>}
+        </div>
+      </section>
 
-    <section className="mx-auto max-w-5xl px-5 py-14"><div className="text-center"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-700">Dudas comunes</div><h2 className="mt-2 text-4xl font-black uppercase">Preguntas frecuentes</h2></div><div className="mt-8 space-y-3"><Faq q="¿Qué pasa si no pago dentro de las 2 horas?" a="Tu solicitud pasa al apartado de no pagadas. Los números no se liberan automáticamente: la administración revisa el caso y decide cuándo liberarlos."/><Faq q="¿Puedo elegir mis propios números?" a="Sí. Puedes elegir números desde la lista, escribir uno específico o usar la máquina para obtener números disponibles al azar."/><Faq q="¿Dónde subo el comprobante?" a="Después de apartar tus números aparece la opción de cargar el archivo directamente en la plataforma. También puede existir la alternativa de enviarlo por WhatsApp."/><Faq q="¿Cómo puedo comprobar rifas anteriores?" a="Las rifas finalizadas permanecen registradas en el historial junto con la información pública del ganador y la referencia del sorteo cuando se publique."/></div></section>
+      <section className="border-y border-black/10 bg-white">
+        <div className="mx-auto max-w-4xl px-5 py-14">
+          <div className="text-center"><div className="text-xs font-black uppercase tracking-[.2em] text-[#9b7900]">Preguntas frecuentes</div><h2 className="mt-2 text-4xl font-black uppercase">Antes de participar</h2></div>
+          <div className="mt-8 space-y-3">
+            <Faq q="¿Cómo sé si mi boleto quedó registrado?" a="Con tu folio y teléfono puedes consultar el verificador. Ahí verás el estado de la solicitud y los números asociados." />
+            <Faq q="¿Puedo elegir mis números?" a="Sí. Cada sorteo permite seleccionar números disponibles y también puede incluir una opción automática para elegir al azar." />
+            <Faq q="¿Dónde se publican los ganadores?" a="Los sorteos finalizados permanecen en la sección Ganadores para que puedas consultar el número ganador y la referencia publicada." />
+          </div>
+          {whatsapp && <div className="mt-8 text-center"><a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#25d366] px-6 py-3 font-black text-black">¿Tienes otra duda? Escríbenos</a></div>}
+        </div>
+      </section>
 
-    <footer className="border-t-2 border-black bg-[#111] text-white"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 md:grid-cols-3 lg:px-8"><div><div className="font-black uppercase tracking-[.15em]">{brand}</div><div className="mt-3 text-sm leading-6 text-slate-400">Plataforma independiente para administración y participación en sorteos.</div></div><div><div className="text-xs font-black uppercase tracking-[.18em] text-amber-400">Información</div><div className="mt-3 grid gap-2 text-sm font-bold"><a href="/terminos">Términos y condiciones</a><a href="#historial">Rifas finalizadas</a><a href="#como-funciona">Cómo funciona</a></div></div><div><div className="text-xs font-black uppercase tracking-[.18em] text-amber-400">Contacto</div>{whatsapp?<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="mt-3 inline-block font-black">WhatsApp →</a>:<div className="mt-3 text-sm text-slate-500">Contacto pendiente de configurar.</div>}</div></div></footer>
-  </main>;
+      <SiteFooter settings={settings} />
+    </main>
+  );
 }
 
-function RaffleCard({raffle}:{raffle:Raffle}) { return <article className="group overflow-hidden rounded-3xl border-2 border-black bg-white shadow-[7px_7px_0_#111]"><div className="relative h-72 overflow-hidden bg-[#222]">{raffle.cover_image_url?<img src={raffle.cover_image_url} alt={raffle.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/>:<div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,#4b4b4b,#181818)] text-8xl">🎁</div>}<div className="absolute left-4 top-4 rounded-full border-2 border-black bg-amber-400 px-4 py-2 text-xs font-black uppercase">Activa</div>{raffle.edition&&<div className="absolute bottom-4 right-4 rounded-lg bg-black px-3 py-2 text-xs font-black uppercase text-white">Emisión {raffle.edition}</div>}</div><div className="p-6"><div className="text-xs font-black uppercase tracking-[.18em] text-amber-700">{formatDate(raffle.draw_date)}</div><h3 className="mt-2 text-3xl font-black uppercase leading-tight">{raffle.title}</h3><p className="mt-3 line-clamp-3 leading-7 text-slate-600">{raffle.description||"Participa seleccionando tus números."}</p><div className="mt-5 grid grid-cols-3 gap-2"><SmallFact label="Premio" value={raffle.prize||"Por anunciar"}/><SmallFact label="Boleto" value={`$${Number(raffle.ticket_price).toFixed(2)}`}/><SmallFact label="Emisión" value={raffle.total_tickets.toLocaleString()}/></div><a href={`/rifa/${raffle.id}`} className="mt-6 flex items-center justify-between rounded-xl bg-black px-5 py-4 font-black uppercase text-white"><span>Elegir boletos</span><span className="text-amber-400">→</span></a></div></article>; }
-function SmallFact({label,value}:{label:string;value:string}) { return <div className="rounded-xl bg-[#f4efe4] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-slate-500">{label}</div><div className="mt-1 text-sm font-black leading-4">{value}</div></div>; }
-function Step({n,title,text}:{n:string;title:string;text:string}) { return <div className="border-2 border-black bg-white p-5 shadow-[4px_4px_0_#111]"><div className="text-4xl font-black">{n}</div><div className="mt-5 text-xl font-black uppercase">{title}</div><p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{text}</p></div>; }
-function Faq({q,a}:{q:string;a:string}) { return <details className="group rounded-2xl border-2 border-black bg-white p-5"><summary className="cursor-pointer list-none pr-6 text-lg font-black">{q}<span className="float-right text-amber-600 group-open:rotate-45">+</span></summary><p className="mt-4 max-w-3xl leading-7 text-slate-600">{a}</p></details>; }
+function QuickLink({ href, icon, title, text }: { href: string; icon: string; title: string; text: string }) {
+  return <a href={href} className="group px-3 py-6 text-center transition hover:bg-[#f6c900]/10 md:px-6"><div className="text-2xl font-black">{icon}</div><div className="mt-2 text-sm font-black uppercase">{title}</div><div className="mt-1 hidden text-xs text-slate-500 sm:block">{text}</div></a>;
+}
+function Step({ n, title, text }: { n: string; title: string; text: string }) { return <div className="rounded-2xl border-2 border-black bg-white p-5 shadow-[4px_4px_0_#111]"><div className="text-xs font-black">{n}</div><div className="mt-2 text-xl font-black uppercase">{title}</div><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></div>; }
+function Faq({ q, a }: { q: string; a: string }) { return <details className="group rounded-2xl border border-black/10 bg-[#f4f2ec] p-5"><summary className="cursor-pointer list-none font-black uppercase">{q}<span className="float-right text-[#9b7900] group-open:rotate-45">+</span></summary><p className="mt-3 leading-7 text-slate-600">{a}</p></details>; }
+function EmptyState() { return <div className="mt-8 rounded-[2rem] border border-dashed border-black/20 bg-white p-12 text-center"><div className="text-6xl">🎟️</div><div className="mt-4 text-2xl font-black uppercase">Próximo sorteo en preparación</div><p className="mt-2 text-slate-500">Cuando publiques un sorteo desde el panel aparecerá aquí automáticamente.</p></div>; }
+function ResultMini({ raffle }: { raffle: Raffle }) { return <a href={`/rifa/${raffle.id}`} className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition hover:-translate-y-1"><div className="aspect-[16/9] bg-[#111]">{raffle.cover_image_url ? <img src={raffle.cover_image_url} alt={raffle.title} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center text-5xl">🏆</div>}</div><div className="p-5"><div className="text-xs font-black uppercase tracking-[.16em] text-[#9b7900]">Finalizado</div><div className="mt-1 text-xl font-black uppercase">{raffle.title}</div><div className="mt-3 text-sm text-slate-600">Ganador: <b>{raffle.winner_ticket ? `#${raffle.winner_ticket}` : "por publicar"}</b></div></div></a>; }
