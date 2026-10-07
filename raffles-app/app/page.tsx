@@ -2,162 +2,71 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const quickPickOptions = [1, 5, 10, 20, 50, 100];
-
 type Raffle = {
-  id: string;
-  title: string;
-  description?: string | null;
-  prize?: string | null;
-  ticket_price: number;
-  total_tickets: number;
-  whatsapp_number?: string | null;
-  bank_name?: string | null;
-  beneficiary_name?: string | null;
-  bank_account?: string | null;
-  clabe?: string | null;
+  id:string;
+  title:string;
+  description?:string|null;
+  prize?:string|null;
+  ticket_price:number;
+  total_tickets:number;
+  status:string;
+  edition?:string|null;
+  cover_image_url?:string|null;
+  draw_date?:string|null;
+  discounts?:Array<{min_qty:number;percent:number}>;
+  winner_ticket?:number|null;
+  winner_name?:string|null;
+  winner_draw_reference?:string|null;
 };
+type Settings = { brand_name?:string; whatsapp_number?:string; facebook_url?:string; instagram_url?:string; winner_method?:string };
 
-type Reservation = {
-  reservation_id: string;
-  folio: string;
-  amount: number;
-  expires_at: string;
-};
-
-function formatTicket(n: number, total: number) {
-  return String(n).padStart(String(total).length, "0");
+function formatDate(value?:string|null) {
+  if(!value) return "Fecha por anunciar";
+  return new Intl.DateTimeFormat("es-MX",{dateStyle:"long"}).format(new Date(value));
 }
 
 export default function Home() {
-  const [raffle, setRaffle] = useState<Raffle | null>(null);
-  const [selected, setSelected] = useState<number[]>([]);
-  const [manual, setManual] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [reservation, setReservation] = useState<Reservation | null>(null);
-  const [receipt, setReceipt] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [raffles,setRaffles]=useState<Raffle[]>([]);
+  const [settings,setSettings]=useState<Settings>({});
+  const [error,setError]=useState("");
 
-  useEffect(() => {
-    fetch("/api/raffles/active", { cache: "no-store" })
-      .then(async r => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data?.error || "No pudimos cargar la rifa.");
-        return data;
-      })
-      .then(setRaffle)
-      .catch(e => setMessage(e instanceof Error ? e.message : "Error al cargar la rifa."));
-  }, []);
+  useEffect(()=>{
+    fetch("/api/raffles",{cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data?.error||"No se pudieron cargar los sorteos.");return data;}).then(data=>{setRaffles(data.raffles||[]);setSettings(data.settings||{});}).catch(e=>setError(e instanceof Error?e.message:"Error al cargar."));
+  },[]);
 
-  const ticketPreview = useMemo(() => selected.slice().sort((a,b)=>a-b), [selected]);
-  const totalTickets = raffle?.total_tickets || 10000;
-  const ticketPrice = Number(raffle?.ticket_price || 0);
-  const total = selected.length * ticketPrice;
+  const active=useMemo(()=>raffles.filter(r=>r.status==="active"),[raffles]);
+  const paused=useMemo(()=>raffles.filter(r=>r.status==="paused"||r.status==="closed"),[raffles]);
+  const completed=useMemo(()=>raffles.filter(r=>r.status==="completed"),[raffles]);
+  const brand=settings.brand_name||"Sorteos entre amigos";
+  const whatsapp=settings.whatsapp_number?.replace(/\D/g,"")||"";
 
-  function addTicket(value: number) {
-    if (!Number.isInteger(value) || value < 1 || value > totalTickets || reservation) return;
-    setSelected(current => current.includes(value) ? current : [...current, value]);
-  }
+  return <main className="min-h-screen bg-[#f4efe4] text-[#111]">
+    <div className="bg-amber-400 px-4 py-2 text-center text-xs font-black uppercase tracking-[.16em] text-black">Sorteos transparentes · Boletos digitales · Historial público</div>
+    <header className="border-b-2 border-black bg-[#111] text-white"><div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 lg:px-8"><a href="#inicio" className="text-lg font-black uppercase tracking-[.16em] sm:text-xl">{brand}</a><nav className="hidden items-center gap-6 text-sm font-black uppercase md:flex"><a href="#rifas">Rifas</a><a href="#como-funciona">Cómo funciona</a><a href="#historial">Historial</a><a href="/terminos">Términos</a></nav>{whatsapp&&<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-black text-black">WhatsApp</a>}</div></header>
 
-  function addManual() {
-    const value = Number(manual.replace(/\D/g, ""));
-    addTicket(value);
-    setManual("");
-  }
+    <section id="inicio" className="overflow-hidden border-b-2 border-black bg-[#171717] text-white"><div className="mx-auto grid max-w-7xl lg:grid-cols-[1.06fr_.94fr]"><div className="px-5 py-16 lg:px-8 lg:py-24"><div className="inline-flex rotate-[-2deg] border-2 border-black bg-amber-400 px-4 py-2 text-xs font-black uppercase tracking-[.2em] text-black shadow-[4px_4px_0_#fff]">Participa en línea</div><h1 className="mt-8 max-w-3xl text-5xl font-black uppercase leading-[.9] sm:text-7xl lg:text-8xl">Elige.<br/><span className="text-amber-400">Aparta.</span><br/>Participa.</h1><p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300">Selecciona tus números o usa la máquina de la suerte. Aparta por 2 horas, realiza tu transferencia y sube tu comprobante desde la misma plataforma.</p><a href="#rifas" className="mt-8 inline-flex rounded-xl border-2 border-white bg-white px-6 py-4 text-lg font-black uppercase text-black shadow-[5px_5px_0_#fbbf24]">Ver rifas activas ↓</a></div><div className="relative min-h-[420px] border-t-2 border-black bg-amber-400 lg:border-l-2 lg:border-t-0"><div className="absolute inset-8 rotate-3 border-2 border-black bg-[#f4efe4] p-8 shadow-[10px_10px_0_#111]"><div className="text-xs font-black uppercase tracking-[.2em]">Boleto digital</div><div className="mt-8 text-7xl font-black">#02741</div><div className="mt-10 border-t-2 border-dashed border-black pt-6"><div className="grid grid-cols-2 gap-4 text-sm"><div><div className="font-black uppercase">Estado</div><div>Pagado ✓</div></div><div><div className="font-black uppercase">Folio</div><div>R-8F2A19C7</div></div><div><div className="font-black uppercase">Sorteo</div><div>Lotería Nacional</div></div><div><div className="font-black uppercase">Verificación</div><div>En línea</div></div></div></div></div></div></div></section>
 
-  function randomPick(quantity: number) {
-    if (reservation) return;
-    const used = new Set(selected);
-    const target = Math.min(quantity, totalTickets - used.size);
-    while (used.size < selected.length + target) used.add(Math.floor(Math.random() * totalTickets) + 1);
-    setSelected(Array.from(used));
-  }
+    {error&&<div className="mx-auto max-w-7xl px-5 pt-7 lg:px-8"><div className="rounded-xl border-2 border-rose-500 bg-rose-50 p-4 font-black text-rose-700">{error}</div></div>}
 
-  async function reserve() {
-    if (!raffle || !selected.length || name.trim().length < 2 || phone.trim().length < 8) {
-      setMessage("Escribe tu nombre, teléfono y selecciona al menos un boleto.");
-      return;
-    }
-    setBusy(true); setMessage("");
-    try {
-      const response = await fetch("/api/reservations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ raffleId: raffle.id, name, phone, email, tickets: selected }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "No fue posible apartar los boletos.");
-      setReservation(data);
-      setMessage(`Reserva creada. Tu folio es ${data.folio}.`);
-      setTimeout(() => document.getElementById("pago")?.scrollIntoView({ behavior: "smooth" }), 100);
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Error al apartar.");
-    } finally { setBusy(false); }
-  }
+    <section id="rifas" className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="text-xs font-black uppercase tracking-[.22em] text-amber-700">Disponibles ahora</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Rifas activas</h2></div><div className="rounded-full border-2 border-black bg-white px-4 py-2 text-sm font-black">{active.length} activa{active.length===1?"":"s"}</div></div>
+      <div className="mt-8 grid gap-7 md:grid-cols-2">{active.map(raffle=><RaffleCard key={raffle.id} raffle={raffle}/>)}</div>
+      {!active.length&&<div className="mt-8 rounded-3xl border-2 border-dashed border-black/30 bg-white p-12 text-center"><div className="text-5xl">🎟️</div><div className="mt-4 text-2xl font-black uppercase">Próximo sorteo en preparación</div><p className="mt-2 text-slate-500">Cuando una rifa se inicie desde el panel aparecerá aquí automáticamente.</p></div>}
+      {paused.length>0&&<div className="mt-12"><div className="text-xs font-black uppercase tracking-[.2em] text-slate-500">Temporalmente pausadas</div><div className="mt-4 grid gap-4 md:grid-cols-3">{paused.map(r=><div key={r.id} className="rounded-2xl border-2 border-black bg-white p-5"><div className="font-black uppercase">{r.title}</div><div className="mt-2 text-sm text-slate-500">La rifa conserva todos sus registros pero no acepta nuevos apartados mientras esté pausada.</div><a href={`/rifa/${r.id}`} className="mt-4 inline-block font-black underline">Ver detalles</a></div>)}</div></div>}
+    </section>
 
-  async function uploadReceipt() {
-    if (!reservation || !receipt) return;
-    setBusy(true); setMessage("");
-    try {
-      const form = new FormData();
-      form.append("reservationId", reservation.reservation_id);
-      form.append("folio", reservation.folio);
-      form.append("file", receipt);
-      const response = await fetch("/api/receipts", { method: "POST", body: form });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "No se pudo subir el comprobante.");
-      setMessage("Comprobante recibido. Quedó pendiente de verificación.");
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Error al subir comprobante.");
-    } finally { setBusy(false); }
-  }
+    <section id="como-funciona" className="border-y-2 border-black bg-amber-400"><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="text-xs font-black uppercase tracking-[.2em]">Proceso simple</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Cómo participar</h2><div className="mt-8 grid gap-4 md:grid-cols-4"><Step n="01" title="Elige números" text="Selecciona manualmente desde la lista o escribe números específicos."/><Step n="02" title="Máquina de la suerte" text="Indica cuántos boletos quieres y el sistema genera números disponibles al azar."/><Step n="03" title="Aparta 2 horas" text="Tu folio mantiene los números bloqueados mientras realizas el pago."/><Step n="04" title="Sube comprobante" text="Carga el comprobante en la plataforma o envíalo por WhatsApp para revisión."/></div></div></section>
 
-  const whatsappText = reservation ? encodeURIComponent(`Hola. Mi folio es ${reservation.folio}. Aparté ${selected.length} boleto(s) por $${Number(reservation.amount).toFixed(2)} MXN. Envío mi comprobante.`) : "";
-  const whatsappHref = raffle?.whatsapp_number && reservation ? `https://wa.me/${raffle.whatsapp_number.replace(/\D/g, "")}?text=${whatsappText}` : "#";
+    <section className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><div className="rounded-3xl border-2 border-black bg-[#111] p-7 text-white shadow-[6px_6px_0_#fbbf24]"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-400">Regla publicada</div><h2 className="mt-3 text-4xl font-black uppercase">¿Cómo se elige al ganador?</h2></div><div className="rounded-3xl border-2 border-black bg-white p-7 text-lg font-semibold leading-9">{settings.winner_method||"Cada rifa indicará previamente el sorteo oficial de Lotería Nacional que servirá de referencia y la forma de relacionar el resultado con los números emitidos."}<div className="mt-5 text-sm font-normal text-slate-600">La fecha, emisión y condiciones específicas se publican antes de finalizar cada rifa. Si la mecánica requiere una nueva fecha por no existir boleto pagado aplicable, el cambio queda anunciado y documentado.</div></div></div></section>
 
-  return (
-    <main className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-          <a href="#inicio" className="text-xl font-black tracking-tight"><span className="text-violet-600">RIFAS</span> ENTRE AMIGOS</a>
-          <nav className="hidden gap-6 text-sm font-bold text-slate-600 md:flex"><a href="#rifa">Rifa activa</a><a href="#pago">Pago</a><a href="/admin">Administración</a></nav>
-        </div>
-      </header>
+    <section id="historial" className="border-y-2 border-black bg-white"><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-700">Evidencia y credibilidad</div><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Rifas finalizadas</h2><p className="mt-3 max-w-2xl leading-7 text-slate-600">Las rifas no se eliminan del sistema al finalizar. Conservamos su registro para que el historial pueda consultarse.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{completed.map(raffle=><article key={raffle.id} className="overflow-hidden rounded-2xl border-2 border-black bg-[#f4efe4]"><div className="h-44 bg-[#222]">{raffle.cover_image_url?<img src={raffle.cover_image_url} alt={raffle.title} className="h-full w-full object-cover"/>:<div className="flex h-full items-center justify-center text-6xl">🏆</div>}</div><div className="p-5"><div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Finalizada</div><h3 className="mt-1 text-xl font-black uppercase">{raffle.title}</h3><div className="mt-4 rounded-xl border border-black bg-white p-3 text-sm"><div><b>Ganador:</b> {raffle.winner_ticket?`Boleto ${raffle.winner_ticket}`:"Pendiente de publicar"}</div>{raffle.winner_name&&<div><b>Participante:</b> {raffle.winner_name}</div>}{raffle.winner_draw_reference&&<div><b>Referencia:</b> {raffle.winner_draw_reference}</div>}</div><a href={`/rifa/${raffle.id}`} className="mt-4 inline-block font-black underline">Ver registro →</a></div></article>)}</div>{!completed.length&&<div className="mt-7 rounded-2xl border-2 border-dashed border-black/30 p-8 text-center font-bold text-slate-500">El historial aparecerá aquí conforme finalicemos rifas.</div>}</div></section>
 
-      <section id="inicio" className="bg-slate-950 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1.1fr_.9fr] lg:px-8 lg:py-24">
-          <div><div className="inline-flex rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-2 text-xs font-black uppercase tracking-[.2em] text-violet-300">Rifa activa</div><h1 className="mt-6 text-5xl font-black tracking-tight md:text-7xl">{raffle?.title || "Rifas entre amigos"}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">{raffle?.description || "Elige tus números, apártalos y envía tu comprobante."}</p><a href="#rifa" className="mt-8 inline-flex rounded-2xl bg-violet-600 px-6 py-4 text-lg font-black">Elegir boletos →</a></div>
-          <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-violet-600 to-fuchsia-500 p-8"><div className="text-sm font-black uppercase tracking-[.18em] text-white/75">Premio</div><div className="mt-3 text-4xl font-black">{raffle?.prize || "Premio principal"}</div><div className="mt-10 rounded-3xl bg-white/15 p-6"><div className="text-sm font-bold text-white/70">Precio por boleto</div><div className="mt-1 text-5xl font-black">${ticketPrice.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div><div className="mt-4 text-sm text-white/85">{totalTickets.toLocaleString()} números disponibles en esta rifa.</div></div></div>
-        </div>
-      </section>
+    <section className="mx-auto max-w-5xl px-5 py-14"><div className="text-center"><div className="text-xs font-black uppercase tracking-[.2em] text-amber-700">Dudas comunes</div><h2 className="mt-2 text-4xl font-black uppercase">Preguntas frecuentes</h2></div><div className="mt-8 space-y-3"><Faq q="¿Qué pasa si no pago dentro de las 2 horas?" a="Tu solicitud pasa al apartado de no pagadas. Los números no se liberan automáticamente: la administración revisa el caso y decide cuándo liberarlos."/><Faq q="¿Puedo elegir mis propios números?" a="Sí. Puedes elegir números desde la lista, escribir uno específico o usar la máquina para obtener números disponibles al azar."/><Faq q="¿Dónde subo el comprobante?" a="Después de apartar tus números aparece la opción de cargar el archivo directamente en la plataforma. También puede existir la alternativa de enviarlo por WhatsApp."/><Faq q="¿Cómo puedo comprobar rifas anteriores?" a="Las rifas finalizadas permanecen registradas en el historial junto con la información pública del ganador y la referencia del sorteo cuando se publique."/></div></section>
 
-      <section id="rifa" className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
-        {message && <div className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 p-4 font-bold text-violet-900">{message}</div>}
-        <div className="grid gap-8 lg:grid-cols-[1fr_.72fr]">
-          <div className="space-y-6">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8"><h2 className="text-2xl font-black">Selecciona tu número</h2><p className="mt-2 text-sm text-slate-500">Del 1 al {totalTickets.toLocaleString()}.</p><div className="mt-5 flex gap-3"><input disabled={!!reservation} value={manual} onChange={e=>setManual(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addManual()}}} inputMode="numeric" placeholder={`Ej. ${formatTicket(247,totalTickets)}`} className="min-w-0 flex-1 rounded-2xl border border-slate-200 px-4 py-4 text-lg font-black"/><button disabled={!!reservation} onClick={addManual} className="rounded-2xl bg-slate-950 px-5 py-4 font-black text-white disabled:opacity-40">Agregar</button></div></div>
-            <div className="rounded-[2rem] border border-violet-100 bg-violet-50 p-6 md:p-8"><div className="text-xs font-black uppercase tracking-widest text-violet-600">Máquina de la suerte</div><h2 className="mt-2 text-2xl font-black">Boletos al azar</h2><div className="mt-5 flex flex-wrap gap-3">{quickPickOptions.map(q=><button disabled={!!reservation} key={q} onClick={()=>randomPick(q)} className="rounded-xl border border-violet-200 bg-white px-4 py-3 font-black text-violet-700 disabled:opacity-40">+ {q}</button>)}</div></div>
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm md:p-8"><div className="flex items-center justify-between"><h2 className="text-2xl font-black">Tus boletos</h2>{!reservation&&<button onClick={()=>setSelected([])} className="text-sm font-black text-rose-600">Limpiar</button>}</div>{ticketPreview.length===0?<p className="mt-4 text-slate-500">Todavía no has seleccionado boletos.</p>:<div className="mt-5 flex max-h-56 flex-wrap gap-2 overflow-auto">{ticketPreview.map(n=><button disabled={!!reservation} key={n} onClick={()=>setSelected(s=>s.filter(x=>x!==n))} className="rounded-xl bg-slate-100 px-3 py-2 font-mono text-sm font-black">{formatTicket(n,totalTickets)} {!reservation&&"×"}</button>)}</div>}</div>
-          </div>
-
-          <aside><div className="sticky top-24 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl md:p-8"><div className="text-xs font-black uppercase tracking-widest text-slate-400">Resumen</div><div className="mt-5 flex items-end justify-between"><div><div className="text-sm font-bold text-slate-500">Boletos</div><div className="text-4xl font-black">{selected.length}</div></div><div className="text-right"><div className="text-sm font-bold text-slate-500">Total</div><div className="text-4xl font-black text-violet-600">${total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div></div></div>
-            {!reservation && <><div className="mt-6 grid gap-3"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre completo" className="rounded-xl border border-slate-200 px-4 py-3"/><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Teléfono / WhatsApp" className="rounded-xl border border-slate-200 px-4 py-3"/><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Correo (opcional)" className="rounded-xl border border-slate-200 px-4 py-3"/></div><div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">La reserva vence en 2 horas. Si no se confirma, permanecerá registrada como no pagada para revisión administrativa.</div><button disabled={busy||!selected.length} onClick={reserve} className="mt-6 w-full rounded-2xl bg-violet-600 px-5 py-4 text-lg font-black text-white disabled:opacity-40">{busy?"Apartando…":"Apartar boletos →"}</button></>}
-            {reservation && <div className="mt-6 rounded-2xl bg-emerald-50 p-5"><div className="text-sm font-bold text-emerald-700">Reserva creada</div><div className="mt-1 text-2xl font-black">{reservation.folio}</div><div className="mt-2 text-sm text-emerald-900">Conserva este folio para identificar tu pago.</div></div>}
-          </div></aside>
-        </div>
-      </section>
-
-      {reservation && <section id="pago" className="border-y border-slate-200 bg-white"><div className="mx-auto max-w-7xl px-5 py-14 lg:px-8"><h2 className="mb-7 text-3xl font-black">Completa tu pago</h2><div className="grid gap-7 lg:grid-cols-3">
-        <div className="rounded-[2rem] border border-slate-200 p-6"><div className="text-3xl">🏦</div><h3 className="mt-4 text-xl font-black">Transferencia bancaria</h3><div className="mt-4 space-y-2 text-sm text-slate-700"><p><b>Banco:</b> {raffle?.bank_name || "Por configurar"}</p><p><b>Beneficiario:</b> {raffle?.beneficiary_name || "Por configurar"}</p><p><b>Cuenta:</b> {raffle?.bank_account || "Por configurar"}</p><p><b>CLABE:</b> {raffle?.clabe || "Por configurar"}</p><p><b>Monto exacto:</b> ${Number(reservation.amount).toFixed(2)} MXN</p><p><b>Folio:</b> {reservation.folio}</p></div></div>
-        <div className="rounded-[2rem] border border-violet-200 bg-violet-50 p-6"><div className="text-3xl">📄</div><h3 className="mt-4 text-xl font-black">Subir comprobante</h3><p className="mt-2 text-sm leading-6 text-slate-600">Se guarda de forma privada y queda listo para la revisión automática y manual.</p><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setReceipt(e.target.files?.[0]||null)} className="mt-4 block w-full text-sm"/><button disabled={!receipt||busy} onClick={uploadReceipt} className="mt-4 w-full rounded-xl bg-violet-600 px-4 py-3 font-black text-white disabled:opacity-40">{busy?"Subiendo…":"Enviar comprobante"}</button></div>
-        <div className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6"><div className="text-3xl">💬</div><h3 className="mt-4 text-xl font-black">WhatsApp</h3><p className="mt-2 text-sm leading-6 text-slate-600">También puedes enviar el comprobante junto con tu folio por WhatsApp.</p>{raffle?.whatsapp_number?<a href={whatsappHref} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-emerald-600 px-4 py-3 font-black text-white">Abrir WhatsApp</a>:<div className="mt-4 text-sm font-bold text-amber-800">Número de WhatsApp pendiente de configurar.</div>}</div>
-      </div></div></section>}
-
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="grid gap-5 md:grid-cols-4">{[["1","Elige números"],["2","Reserva por 2 horas"],["3","Transfiere y sube comprobante"],["4","Pago verificado = boletos pagados"]].map(([n,t])=><div key={n} className="rounded-[2rem] border border-slate-200 bg-white p-6"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-600 font-black text-white">{n}</div><div className="mt-4 font-black">{t}</div></div>)}</div></section>
-      <footer className="bg-slate-950 px-5 py-10 text-center text-sm text-slate-400">Plataforma en construcción · Las rifas deben operar conforme a la regulación aplicable.</footer>
-    </main>
-  );
+    <footer className="border-t-2 border-black bg-[#111] text-white"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 md:grid-cols-3 lg:px-8"><div><div className="font-black uppercase tracking-[.15em]">{brand}</div><div className="mt-3 text-sm leading-6 text-slate-400">Plataforma independiente para administración y participación en sorteos.</div></div><div><div className="text-xs font-black uppercase tracking-[.18em] text-amber-400">Información</div><div className="mt-3 grid gap-2 text-sm font-bold"><a href="/terminos">Términos y condiciones</a><a href="#historial">Rifas finalizadas</a><a href="#como-funciona">Cómo funciona</a></div></div><div><div className="text-xs font-black uppercase tracking-[.18em] text-amber-400">Contacto</div>{whatsapp?<a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="mt-3 inline-block font-black">WhatsApp →</a>:<div className="mt-3 text-sm text-slate-500">Contacto pendiente de configurar.</div>}</div></div></footer>
+  </main>;
 }
+
+function RaffleCard({raffle}:{raffle:Raffle}) { return <article className="group overflow-hidden rounded-3xl border-2 border-black bg-white shadow-[7px_7px_0_#111]"><div className="relative h-72 overflow-hidden bg-[#222]">{raffle.cover_image_url?<img src={raffle.cover_image_url} alt={raffle.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/>:<div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,#4b4b4b,#181818)] text-8xl">🎁</div>}<div className="absolute left-4 top-4 rounded-full border-2 border-black bg-amber-400 px-4 py-2 text-xs font-black uppercase">Activa</div>{raffle.edition&&<div className="absolute bottom-4 right-4 rounded-lg bg-black px-3 py-2 text-xs font-black uppercase text-white">Emisión {raffle.edition}</div>}</div><div className="p-6"><div className="text-xs font-black uppercase tracking-[.18em] text-amber-700">{formatDate(raffle.draw_date)}</div><h3 className="mt-2 text-3xl font-black uppercase leading-tight">{raffle.title}</h3><p className="mt-3 line-clamp-3 leading-7 text-slate-600">{raffle.description||"Participa seleccionando tus números."}</p><div className="mt-5 grid grid-cols-3 gap-2"><SmallFact label="Premio" value={raffle.prize||"Por anunciar"}/><SmallFact label="Boleto" value={`$${Number(raffle.ticket_price).toFixed(2)}`}/><SmallFact label="Emisión" value={raffle.total_tickets.toLocaleString()}/></div><a href={`/rifa/${raffle.id}`} className="mt-6 flex items-center justify-between rounded-xl bg-black px-5 py-4 font-black uppercase text-white"><span>Elegir boletos</span><span className="text-amber-400">→</span></a></div></article>; }
+function SmallFact({label,value}:{label:string;value:string}) { return <div className="rounded-xl bg-[#f4efe4] p-3"><div className="text-[9px] font-black uppercase tracking-wide text-slate-500">{label}</div><div className="mt-1 text-sm font-black leading-4">{value}</div></div>; }
+function Step({n,title,text}:{n:string;title:string;text:string}) { return <div className="border-2 border-black bg-white p-5 shadow-[4px_4px_0_#111]"><div className="text-4xl font-black">{n}</div><div className="mt-5 text-xl font-black uppercase">{title}</div><p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{text}</p></div>; }
+function Faq({q,a}:{q:string;a:string}) { return <details className="group rounded-2xl border-2 border-black bg-white p-5"><summary className="cursor-pointer list-none pr-6 text-lg font-black">{q}<span className="float-right text-amber-600 group-open:rotate-45">+</span></summary><p className="mt-4 max-w-3xl leading-7 text-slate-600">{a}</p></details>; }
