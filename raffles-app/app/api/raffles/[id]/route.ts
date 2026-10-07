@@ -1,0 +1,34 @@
+import { NextRequest, NextResponse } from "next/server";
+import { assertSupabaseConfig, parseSupabaseError, supabaseRest } from "@/lib/supabase-server";
+
+function publicImageUrl(path?: string | null) {
+  if (!path) return null;
+  const { supabaseUrl } = assertSupabaseConfig();
+  return `${supabaseUrl}/storage/v1/object/public/raffle-images/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;
+    const [raffleResponse, settingsResponse, accountsResponse] = await Promise.all([
+      supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(id)}&select=id,slug,title,description,prize,ticket_price,total_tickets,status,edition,cover_image_path,draw_date,discounts,winner_ticket,winner_name,winner_draw_reference,winner_evidence_url&limit=1`),
+      supabaseRest("/rest/v1/raffle_site_settings?id=eq.1&select=brand_name,whatsapp_number,facebook_url,instagram_url,winner_method&limit=1"),
+      supabaseRest("/rest/v1/raffle_payment_accounts?active=eq.true&select=id,label,bank_name,beneficiary_name,account_number,clabe,sort_order&order=sort_order.asc,created_at.asc"),
+    ]);
+
+    if (!raffleResponse.ok) return NextResponse.json({ error: await parseSupabaseError(raffleResponse) }, { status: 500 });
+    if (!settingsResponse.ok) return NextResponse.json({ error: await parseSupabaseError(settingsResponse) }, { status: 500 });
+    if (!accountsResponse.ok) return NextResponse.json({ error: await parseSupabaseError(accountsResponse) }, { status: 500 });
+
+    const raffle = (await raffleResponse.json())?.[0];
+    if (!raffle) return NextResponse.json({ error: "Rifa no encontrada." }, { status: 404 });
+
+    return NextResponse.json({
+      raffle: { ...raffle, cover_image_url: publicImageUrl(raffle.cover_image_path) },
+      settings: (await settingsResponse.json())?.[0] || null,
+      payment_accounts: await accountsResponse.json(),
+    });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Error interno" }, { status: 500 });
+  }
+}
