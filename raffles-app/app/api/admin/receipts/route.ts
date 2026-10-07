@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     if (!receipt?.storage_path) return NextResponse.json({ error: "Esta reserva todavía no tiene comprobante." }, { status: 404 });
 
     const encodedPath = encodeURIComponent(String(receipt.storage_path)).replace(/%2F/g, "/");
-    const fileResponse = await supabaseRest(`/storage/v1/object/raffle-receipts/${encodedPath}`);
+    const fileResponse = await supabaseRest(`/storage/v1/object/authenticated/raffle-receipts/${encodedPath}`);
     if (!fileResponse.ok) return NextResponse.json({ error: await parseSupabaseError(fileResponse) }, { status: fileResponse.status || 500 });
 
     const mimeType = String(receipt.mime_type || fileResponse.headers.get("content-type") || "application/octet-stream");
