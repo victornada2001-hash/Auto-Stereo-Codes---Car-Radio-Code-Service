@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ExperienceEffects from "./components/experience-effects";
-import AdminReceiptViewer from "./components/admin-receipt-viewer";
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +16,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <ExperienceEffects />
-        <AdminReceiptViewer />
       </body>
     </html>
   );
