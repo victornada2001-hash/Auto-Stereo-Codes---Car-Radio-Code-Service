@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseSupabaseError, supabaseRest } from "@/lib/supabase-server";
 
+function normalizeMexPhone(value: unknown) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("52")) digits = digits.slice(2);
+  if (digits.length === 13 && digits.startsWith("521")) digits = digits.slice(3);
+  return digits;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const raffleId = String(body?.raffleId || "");
     const name = String(body?.name || "").trim();
-    const phone = String(body?.phone || "").trim();
+    const phone = normalizeMexPhone(body?.phone);
     const email = String(body?.email || "").trim();
     const tickets = Array.isArray(body?.tickets) ? body.tickets.map((n: unknown) => Number(n)).filter(Number.isInteger) : [];
 
-    if (!raffleId || name.length < 2 || phone.length < 8 || !tickets.length) {
+    if (!raffleId || name.length < 2 || !tickets.length) {
       return NextResponse.json({ error: "Completa nombre, teléfono y boletos." }, { status: 400 });
+    }
+    if (!/^\d{10}$/.test(phone)) {
+      return NextResponse.json({ error: "El WhatsApp debe tener 10 dígitos válidos." }, { status: 400 });
     }
 
     const response = await supabaseRest("/rest/v1/rpc/reserve_raffle_tickets", {
