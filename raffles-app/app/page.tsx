@@ -31,8 +31,6 @@ export default function Home() {
   const featured = active[0] || null;
   const whatsapp = normalizeWhatsApp(settings.whatsapp_number) || CONTACT_NUMBER;
   const heroImage = featured?.cover_image_url || "";
-  const raffleLink = "/comprar";
-  const paymentLink = "/subir-pago";
 
   return (
     <main className="min-h-screen bg-white text-[#111827]">
@@ -47,12 +45,13 @@ export default function Home() {
           backgroundAttachment: "fixed",
         } : undefined}
       >
-        {!heroImage && <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,#173f6c,#081b33_58%,#020913)]" />}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#06172d]/95 via-[#081b33]/72 to-black/20" />
+        {!heroImage && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,#173f6c,#081b33_58%,#020913)]" />}
+        <div className="absolute inset-0 bg-[#06172d]/72" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#06172d]/45" />
         <div className="absolute inset-x-0 top-0 h-px bg-[#d4af37]/50" />
 
-        <div className="relative mx-auto flex min-h-[560px] max-w-[1400px] items-center px-5 py-14 md:min-h-[650px] lg:px-8">
-          <div className="w-full max-w-2xl">
+        <div className="relative mx-auto flex min-h-[560px] max-w-[1400px] items-center justify-center px-5 py-14 text-center md:min-h-[650px] lg:px-8">
+          <div className="w-full max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/55 bg-[#081b33]/75 px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-[#f2c94c] backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-[#f2c94c]" /> {featured ? "Sorteo activo" : "Próximo sorteo"}
             </div>
@@ -60,26 +59,16 @@ export default function Home() {
             <h1 className="mt-5 text-4xl font-black uppercase leading-[.95] sm:text-6xl lg:text-7xl">
               {featured?.title || "Sorteos Junior"}
             </h1>
-            {featured?.prize && <div className="mt-4 text-xl font-black uppercase tracking-wide text-[#f2c94c] sm:text-2xl">Premio: {featured.prize}</div>}
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/78 sm:text-lg">Compra tus boletos del sorteo activo o entra directamente a subir el comprobante de un apartado que ya realizaste.</p>
+            {featured?.prize && <div className="mt-4 text-xl font-black uppercase tracking-wide text-[#f2c94c] sm:text-2xl">{featured.prize}</div>}
 
-            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
-              <a href={raffleLink} className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
-                Comprar boletos
+            <div className="mx-auto mt-9 grid max-w-xl gap-3 sm:grid-cols-2">
+              <a href="/comprar" className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
+                Boletos disponibles
               </a>
-              <a href={paymentLink} className="rounded-xl border-2 border-[#d4af37] bg-white/95 px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-[#081b33] shadow-lg transition hover:-translate-y-1 hover:bg-white">
-                Subir comprobante
+              <a href="/subir-pago" className="rounded-xl border-2 border-[#d4af37] bg-white/95 px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-[#081b33] shadow-lg transition hover:-translate-y-1 hover:bg-white">
+                Sube tu pago
               </a>
             </div>
-
-            {featured && (
-              <div className="mt-8 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-                <HeroFact label="Boleto" value={`$${Number(featured.ticket_price).toFixed(2)}`} />
-                <HeroFact label="Emisión" value={Number(featured.total_tickets).toLocaleString("es-MX")} />
-                <HeroFact label="Estado" value="Disponible" />
-                <HeroFact label="Contacto" value="664 811 8609" />
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -115,7 +104,7 @@ export default function Home() {
             <div className="text-xs font-black uppercase tracking-[.22em] text-[#f2c94c]">Sorteos Junior</div>
             <h2 className="mt-2 text-4xl font-black uppercase md:text-5xl">Compra y paga sin vueltas</h2>
           </div>
-          <p className="text-base leading-8 text-white/78">El botón Comprar boletos abre directamente el único sorteo activo para elegir números. Si ya hiciste un apartado, Subir comprobante te lleva a tu reserva usando folio y teléfono. Los sorteos activos siguen disponibles en una sección separada para consulta.</p>
+          <p className="text-base leading-8 text-white/78">Boletos disponibles abre directamente el único sorteo activo para elegir números. Si ya hiciste un apartado, Sube tu pago te lleva a tu reserva usando folio y teléfono.</p>
         </div>
       </section>
 
@@ -144,10 +133,6 @@ export default function Home() {
       <SiteFooter settings={{ ...settings, whatsapp_number: whatsapp }} />
     </main>
   );
-}
-
-function HeroFact({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-xl border border-white/15 bg-[#081b33]/65 px-3 py-3 backdrop-blur"><div className="text-[10px] font-black uppercase tracking-[.16em] text-[#f2c94c]">{label}</div><div className="mt-1 text-sm font-black text-white">{value}</div></div>;
 }
 
 function SectionTitle({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
