@@ -15,16 +15,21 @@ const questions = [
 ];
 
 export default function FrequentlyAskedQuestionsPage() {
-  return <main className="min-h-screen bg-white text-[#171717]">
+  return <main className="min-h-screen bg-[#f6f8fb] text-[#111827]">
     <JuniorClassicHeader whatsapp={phone} />
-    <div className="bg-[#0875b9] px-5 py-5 text-center text-3xl font-black uppercase tracking-[.12em] text-white [text-shadow:2px_2px_0_rgba(0,0,0,.8)] md:text-5xl">Preguntas frecuentes</div>
-    <section className="mx-auto max-w-3xl px-5 py-12 md:py-16">
-      <div className="space-y-10">
-        {questions.map(([q,a]) => <article key={q}><h2 className="text-center text-xl font-black uppercase tracking-[.12em] text-[#0875b9] md:text-2xl">{q}</h2><p className="mt-3 text-[15px] leading-7 text-[#222]">{a}</p></article>)}
+    <section className="border-b border-[#d4af37]/30 bg-[#081b33] px-5 py-12 text-center text-white">
+      <div className="text-xs font-black uppercase tracking-[.22em] text-[#f2c94c]">Información</div>
+      <h1 className="mt-2 text-4xl font-black uppercase tracking-[.08em] md:text-5xl">Preguntas frecuentes</h1>
+      <div className="mx-auto mt-4 h-1 w-20 rounded-full bg-[#d4af37]" />
+    </section>
+    <section className="mx-auto max-w-4xl px-5 py-12 md:py-16">
+      <div className="grid gap-5">
+        {questions.map(([q,a]) => <article key={q} className="rounded-2xl border border-[#081b33]/10 bg-white p-6 shadow-[0_12px_30px_rgba(8,27,51,.06)]"><h2 className="text-xl font-black uppercase tracking-[.08em] text-[#081b33] md:text-2xl">{q}</h2><div className="mt-3 h-1 w-14 rounded-full bg-[#d4af37]"/><p className="mt-4 text-[15px] leading-7 text-slate-600">{a}</p></article>)}
       </div>
-      <div className="mt-14 border-t-2 border-[#0875b9] pt-8 text-center">
-        <div className="font-black uppercase">¿Tienes otra pregunta?</div>
-        <a href={`https://wa.me/${phone}`} target="_blank" rel="noreferrer" className="mt-4 inline-block rounded-md bg-[#25d366] px-6 py-3 font-black text-black">WhatsApp · 664 811 8609</a>
+      <div className="mt-14 rounded-2xl border border-[#d4af37]/40 bg-white p-8 text-center">
+        <div className="text-sm font-black uppercase tracking-[.18em] text-[#9a7a12]">¿Tienes otra pregunta?</div>
+        <div className="mt-2 text-2xl font-black text-[#081b33]">664 811 8609</div>
+        <a href={`https://wa.me/${phone}`} target="_blank" rel="noreferrer" className="mt-5 inline-block rounded-xl border-2 border-[#081b33] px-6 py-3 font-black uppercase text-[#081b33] transition hover:bg-[#081b33] hover:text-white">Abrir WhatsApp</a>
       </div>
     </section>
     <SiteFooter settings={{ whatsapp_number: phone }} />
