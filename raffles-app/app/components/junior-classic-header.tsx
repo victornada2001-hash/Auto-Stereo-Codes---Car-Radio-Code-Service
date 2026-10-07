@@ -6,13 +6,11 @@ export function JuniorClassicHeader({ whatsapp = "6648118609" }: { whatsapp?: st
       <header className="relative z-50 border-b border-[#d4af37]/40 bg-[#081b33] text-white shadow-[0_8px_28px_rgba(8,27,51,.28)]">
         <div className="mx-auto flex max-w-[1400px] items-center gap-4 px-4 lg:px-8">
           <a href="/" className="mr-auto flex items-center gap-3 py-3 md:py-4" aria-label="Sorteos Junior">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-[3px] border-[#d4af37] bg-[#0d2747] shadow-[0_0_0_4px_rgba(212,175,55,.12)] md:h-16 md:w-16">
-              <div className="text-center leading-none">
-                <div className="text-[9px] font-black uppercase tracking-[.18em] text-white/80">Sorteos</div>
-                <div className="text-2xl font-black italic text-[#f2c94c] md:text-3xl">SJ</div>
-                <div className="text-[8px] font-black uppercase tracking-[.18em] text-white/80">Junior</div>
-              </div>
-            </div>
+            <img
+              src="/sorteos-junior-logo.webp"
+              alt="Logo Sorteos Junior"
+              className="h-16 w-16 shrink-0 rounded-full border-[3px] border-[#d4af37] bg-white object-cover shadow-[0_0_0_4px_rgba(212,175,55,.12)] md:h-20 md:w-20"
+            />
             <div>
               <div className="text-lg font-black uppercase tracking-[.12em] md:text-xl">Sorteos Junior</div>
               <div className="mt-1 text-[10px] font-bold uppercase tracking-[.18em] text-[#f2c94c]">Boletos · Pagos · Resultados</div>
