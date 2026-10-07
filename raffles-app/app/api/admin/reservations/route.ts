@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
       if (receiptResponse.ok) receipts = await receiptResponse.json();
     }
 
-    return NextResponse.json(rows.map((row: { id: string }) => ({
+    return NextResponse.json(rows.map((row: { id: string; customer_state?: string | null }) => ({
       ...row,
+      customer_email: row.customer_state || null,
       tickets: tickets.filter(t => t.reservation_id === row.id && !t.released_at).map(t => t.ticket_number),
       ticket_history: tickets.filter(t => t.reservation_id === row.id).map(t => ({ number: t.ticket_number, released_at: t.released_at })),
       receipts: receipts.filter(r => r.reservation_id === row.id),
