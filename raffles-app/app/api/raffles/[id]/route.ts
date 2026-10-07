@@ -11,7 +11,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   try {
     const { id } = await context.params;
     const [raffleResponse, settingsResponse, accountsResponse] = await Promise.all([
-      supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(id)}&select=id,slug,title,description,prize,ticket_price,total_tickets,status,edition,cover_image_path,draw_date,discounts,winner_ticket,winner_name,winner_draw_reference,winner_evidence_url&limit=1`),
+      supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(id)}&select=id,slug,title,description,prize,prize_description,conditions_text,price_details,ticket_price,total_tickets,status,edition,cover_image_path,draw_date,discounts,winner_ticket,winner_name,winner_draw_reference,winner_evidence_url&limit=1`),
       supabaseRest("/rest/v1/raffle_site_settings?id=eq.1&select=brand_name,whatsapp_number,facebook_url,instagram_url,winner_method&limit=1"),
       supabaseRest("/rest/v1/raffle_payment_accounts?active=eq.true&select=id,label,bank_name,beneficiary_name,account_number,clabe,sort_order&order=sort_order.asc,created_at.asc"),
     ]);
