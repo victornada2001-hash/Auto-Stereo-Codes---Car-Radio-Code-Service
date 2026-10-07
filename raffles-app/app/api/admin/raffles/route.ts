@@ -18,7 +18,7 @@ function slugify(value: string) {
   return `${base}-${Date.now().toString(36)}`;
 }
 
-const selectFields = "id,slug,title,description,prize,ticket_price,total_tickets,status,edition,cover_image_path,draw_date,discounts,started_at,paused_at,finalized_at,winner_ticket,winner_name,winner_draw_reference,winner_evidence_url,created_at,updated_at";
+const selectFields = "id,slug,title,description,prize,prize_description,conditions_text,price_details,ticket_price,total_tickets,status,edition,cover_image_path,draw_date,discounts,started_at,paused_at,finalized_at,winner_ticket,winner_name,winner_draw_reference,winner_evidence_url,created_at,updated_at";
 
 export async function GET(request: NextRequest) {
   if (!authorized(request)) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -39,6 +39,9 @@ export async function POST(request: NextRequest) {
     const title = String(body?.title || "").trim();
     const description = String(body?.description || "").trim();
     const prize = String(body?.prize || "").trim();
+    const prizeDescription = String(body?.prize_description || "").trim();
+    const conditionsText = String(body?.conditions_text || "").trim();
+    const priceDetails = String(body?.price_details || "").trim();
     const edition = String(body?.edition || "").trim();
     const ticketPrice = Number(body?.ticket_price);
     const totalTickets = Number(body?.total_tickets);
@@ -53,10 +56,12 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: { Prefer: "return=representation" },
       body: JSON.stringify({
-        slug: slugify(title),
-        title,
+        slug: slugify(title), title,
         description: description || null,
         prize: prize || null,
+        prize_description: prizeDescription || null,
+        conditions_text: conditionsText || null,
+        price_details: priceDetails || null,
         edition: edition || null,
         ticket_price: ticketPrice,
         total_tickets: totalTickets,
@@ -82,6 +87,10 @@ export async function PATCH(request: NextRequest) {
 
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (action === "activate") {
+      await supabaseRest(`/rest/v1/raffles?status=eq.active&id=neq.${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "paused", paused_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
+      });
       patch.status = "active";
       patch.started_at = new Date().toISOString();
       patch.paused_at = null;
@@ -96,7 +105,7 @@ export async function PATCH(request: NextRequest) {
       if (body?.winner_draw_reference !== undefined) patch.winner_draw_reference = String(body.winner_draw_reference || "").trim() || null;
       if (body?.winner_evidence_url !== undefined) patch.winner_evidence_url = String(body.winner_evidence_url || "").trim() || null;
     } else {
-      const allowedText = ["title", "description", "prize", "edition", "winner_name", "winner_draw_reference", "winner_evidence_url"];
+      const allowedText = ["title", "description", "prize", "prize_description", "conditions_text", "price_details", "edition", "winner_name", "winner_draw_reference", "winner_evidence_url"];
       for (const field of allowedText) if (body[field] !== undefined) patch[field] = String(body[field] || "").trim() || null;
       if (body.ticket_price !== undefined) {
         const price = Number(body.ticket_price);
