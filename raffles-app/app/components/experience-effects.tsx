@@ -101,7 +101,71 @@ export default function ExperienceEffects() {
   }, []);
 
   useEffect(() => {
+    if (!window.location.pathname.startsWith("/rifa/")) return;
+
+    const installRegenerateButton = () => {
+      const continueButton = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
+        button => normalizeText(button.textContent) === "continuar con estos boletos",
+      );
+      if (!continueButton) return;
+
+      const dialog = continueButton.closest<HTMLElement>('[role="dialog"]');
+      if (!dialog || dialog.querySelector("[data-sj-regenerate-native]")) return;
+
+      const match = dialog.textContent?.match(/(\d+)\s+boleto(?:\(s\)|s)?\s+encontrados/i);
+      const quantity = Number(match?.[1] || 0);
+      const regenerateButton = document.createElement("button");
+      regenerateButton.type = "button";
+      regenerateButton.dataset.sjRegenerateNative = "1";
+      regenerateButton.textContent = quantity > 0 ? `Generar otros ${quantity} boletos` : "Generar otros boletos";
+      regenerateButton.style.width = "100%";
+      regenerateButton.style.marginTop = "12px";
+      regenerateButton.style.padding = "14px 20px";
+      regenerateButton.style.borderRadius = "12px";
+      regenerateButton.style.border = "2px solid #d4af37";
+      regenerateButton.style.background = "#fff8dc";
+      regenerateButton.style.color = "#081b33";
+      regenerateButton.style.fontWeight = "900";
+      regenerateButton.style.textTransform = "uppercase";
+      regenerateButton.style.cursor = "pointer";
+
+      regenerateButton.addEventListener("click", () => {
+        regenerateButton.disabled = true;
+        regenerateButton.textContent = "Generando…";
+
+        const closeButton = Array.from(dialog.querySelectorAll<HTMLButtonElement>("button")).find(
+          button => normalizeText(button.textContent) === "×",
+        );
+        closeButton?.click();
+
+        window.setTimeout(() => {
+          const pageMachineButton = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
+            button => !button.closest('[role="dialog"]') && normalizeText(button.textContent) === "máquina de la suerte",
+          );
+          pageMachineButton?.click();
+
+          window.setTimeout(() => {
+            const generateButton = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
+              button => button.closest('[role="dialog"]') && normalizeText(button.textContent) === "generar boletos",
+            );
+            generateButton?.click();
+          }, 140);
+        }, 90);
+      });
+
+      continueButton.parentElement?.insertBefore(regenerateButton, continueButton);
+    };
+
+    installRegenerateButton();
+    const observer = new MutationObserver(installRegenerateButton);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const onClick = (event: MouseEvent) => {
+      if (window.location.pathname.startsWith("/rifa/")) return;
+
       const target = event.target as HTMLElement | null;
       const button = target?.closest("button") as HTMLButtonElement | null;
       if (!button || button.disabled || !isLuckMachineButton(button)) return;
