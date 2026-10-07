@@ -10,7 +10,7 @@ function authorized(request: NextRequest) {
 export async function GET(request: NextRequest) {
   if (!authorized(request)) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   try {
-    const reservations = await supabaseRest("/rest/v1/raffle_reservations_admin?select=id,raffle_id,folio,customer_name,customer_phone,customer_email,amount,status,effective_status,expires_at,created_at,paid_at,ticket_count&order=created_at.desc&limit=300");
+    const reservations = await supabaseRest("/rest/v1/raffle_reservations_admin?select=id,raffle_id,folio,customer_name,customer_phone,customer_state,customer_id,amount,status,effective_status,expires_at,created_at,paid_at,ticket_count&order=created_at.desc&limit=300");
     if (!reservations.ok) return NextResponse.json({ error: await parseSupabaseError(reservations) }, { status: 500 });
     const rows = await reservations.json();
 
@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
       if (receiptResponse.ok) receipts = await receiptResponse.json();
     }
 
-    return NextResponse.json(rows.map((row: { id: string }) => ({
+    return NextResponse.json(rows.map((row: { id: string; customer_state?: string | null }) => ({
       ...row,
+      customer_email: row.customer_state || null,
       tickets: tickets.filter(t => t.reservation_id === row.id && !t.released_at).map(t => t.ticket_number),
       ticket_history: tickets.filter(t => t.reservation_id === row.id).map(t => ({ number: t.ticket_number, released_at: t.released_at })),
       receipts: receipts.filter(r => r.reservation_id === row.id),

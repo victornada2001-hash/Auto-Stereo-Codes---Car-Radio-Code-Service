@@ -12,25 +12,43 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const raffleId = String(body?.raffleId || "");
-    const name = String(body?.name || "").trim();
     const phone = normalizeMexPhone(body?.phone);
-    const email = String(body?.email || "").trim();
     const tickets = Array.isArray(body?.tickets) ? body.tickets.map((n: unknown) => Number(n)).filter(Number.isInteger) : [];
+    let firstName = String(body?.firstName || "").trim();
+    let lastName = String(body?.lastName || "").trim();
+    let customerState = String(body?.customerState || "").trim();
 
-    if (!raffleId || name.length < 2 || !tickets.length) {
-      return NextResponse.json({ error: "Completa nombre, teléfono y boletos." }, { status: 400 });
+    if (!raffleId || !tickets.length) {
+      return NextResponse.json({ error: "Selecciona boletos antes de apartar." }, { status: 400 });
     }
     if (!/^\d{10}$/.test(phone)) {
       return NextResponse.json({ error: "El WhatsApp debe tener 10 dígitos válidos." }, { status: 400 });
     }
 
-    const response = await supabaseRest("/rest/v1/rpc/reserve_raffle_tickets", {
+    if (firstName.length < 2 || lastName.length < 2 || customerState.length < 2) {
+      const customerResponse = await supabaseRest(`/rest/v1/raffle_customers?phone=eq.${encodeURIComponent(phone)}&select=first_name,last_name,location&limit=1`);
+      if (customerResponse.ok) {
+        const existing = (await customerResponse.json())?.[0];
+        if (existing) {
+          if (firstName.length < 2) firstName = String(existing.first_name || "").trim();
+          if (lastName.length < 2) lastName = String(existing.last_name || "").trim();
+          if (customerState.length < 2) customerState = String(existing.location || "").trim();
+        }
+      }
+    }
+
+    if (firstName.length < 2 || lastName.length < 2 || customerState.length < 2) {
+      return NextResponse.json({ error: "Completa nombre, apellidos y estado o país." }, { status: 400 });
+    }
+
+    const response = await supabaseRest("/rest/v1/rpc/reserve_raffle_tickets_v2", {
       method: "POST",
       body: JSON.stringify({
         p_raffle_id: raffleId,
-        p_customer_name: name,
+        p_first_name: firstName,
+        p_last_name: lastName,
         p_customer_phone: phone,
-        p_customer_email: email || null,
+        p_customer_state: customerState,
         p_ticket_numbers: tickets,
       }),
     });
