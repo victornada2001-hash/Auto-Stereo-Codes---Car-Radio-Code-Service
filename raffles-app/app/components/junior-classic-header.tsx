@@ -19,25 +19,28 @@ export function JuniorClassicHeader({ whatsapp = "6648118609" }: { whatsapp?: st
 
           <nav className="hidden items-center gap-1 lg:flex">
             <Nav href="/">Inicio</Nav>
+            <Nav href="/sorteos">Sorteos activos</Nav>
             <Nav href="/preguntas-frecuentes">Preguntas</Nav>
             <Nav href="/contacto">Contacto</Nav>
-            <Nav href="/metodos-de-pago">Métodos de Pago</Nav>
+            <Nav href="/metodos-de-pago">Métodos de pago</Nav>
           </nav>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             {phone && (
-              <a className="rounded-lg border border-[#d4af37]/60 px-4 py-2.5 text-xs font-black text-[#f2c94c] transition hover:bg-white/5" href={`https://wa.me/${phone}`} target="_blank" rel="noreferrer">664 811 8609</a>
+              <a className="hidden rounded-lg border border-[#d4af37]/60 px-3 py-2.5 text-xs font-black text-[#f2c94c] transition hover:bg-white/5 xl:inline-flex" href={`https://wa.me/${phone}`} target="_blank" rel="noreferrer">664 811 8609</a>
             )}
-            <a href="/sorteos" className="rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">Comprar boletos</a>
+            <a href="/subir-pago" className="rounded-lg border-2 border-[#d4af37] bg-white px-4 py-2.5 text-xs font-black uppercase tracking-wide text-[#081b33] transition hover:-translate-y-0.5">Subir pago</a>
+            <a href="/comprar" className="rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">Comprar boletos</a>
           </div>
         </div>
 
         <nav className="flex gap-2 overflow-x-auto border-t border-white/10 px-3 py-3 text-xs font-black uppercase lg:hidden">
           <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/">Inicio</a>
+          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/sorteos">Sorteos activos</a>
           <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/preguntas-frecuentes">Preguntas</a>
           <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/contacto">Contacto</a>
-          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/metodos-de-pago">Métodos de pago</a>
-          <a className="shrink-0 rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-3 py-2" href="/sorteos">Comprar boletos</a>
+          <a className="shrink-0 rounded-lg border border-[#d4af37] bg-white px-3 py-2 text-[#081b33]" href="/subir-pago">Subir pago</a>
+          <a className="shrink-0 rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-3 py-2" href="/comprar">Comprar boletos</a>
         </nav>
       </header>
     </>

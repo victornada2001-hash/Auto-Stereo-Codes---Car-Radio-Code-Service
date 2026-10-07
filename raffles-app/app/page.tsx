@@ -31,8 +31,8 @@ export default function Home() {
   const featured = active[0] || null;
   const whatsapp = normalizeWhatsApp(settings.whatsapp_number) || CONTACT_NUMBER;
   const heroImage = featured?.cover_image_url || "";
-  const raffleLink = featured ? `/rifa/${featured.id}` : "/sorteos";
-  const paymentLink = featured ? `/rifa/${featured.id}#pago` : "/sorteos";
+  const raffleLink = "/comprar";
+  const paymentLink = "/subir-pago";
 
   return (
     <main className="min-h-screen bg-white text-[#111827]">
@@ -61,14 +61,14 @@ export default function Home() {
               {featured?.title || "Sorteos Junior"}
             </h1>
             {featured?.prize && <div className="mt-4 text-xl font-black uppercase tracking-wide text-[#f2c94c] sm:text-2xl">Premio: {featured.prize}</div>}
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/78 sm:text-lg">Consulta los boletos disponibles, selecciona tus números y sube tu comprobante directamente desde el sitio.</p>
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/78 sm:text-lg">Compra tus boletos del sorteo activo o entra directamente a subir el comprobante de un apartado que ya realizaste.</p>
 
             <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
               <a href={raffleLink} className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
-                Boletos disponibles
+                Comprar boletos
               </a>
               <a href={paymentLink} className="rounded-xl border-2 border-[#d4af37] bg-white/95 px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-[#081b33] shadow-lg transition hover:-translate-y-1 hover:bg-white">
-                Sube tu pago
+                Subir comprobante
               </a>
             </div>
 
@@ -86,9 +86,9 @@ export default function Home() {
 
       <section className="border-y border-[#d4af37]/30 bg-[#081b33] text-white">
         <div className="mx-auto grid max-w-6xl gap-5 px-5 py-5 text-center text-xs font-black uppercase tracking-[.18em] text-white/80 sm:grid-cols-3">
-          <div>Boletos disponibles en línea</div>
-          <div className="text-[#f2c94c]">Comprobantes desde el sitio</div>
-          <div>Resultados publicados</div>
+          <div>Compra directa al sorteo activo</div>
+          <div className="text-[#f2c94c]">Sube tu comprobante en línea</div>
+          <div>Consulta resultados publicados</div>
         </div>
       </section>
 
@@ -113,9 +113,9 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-16 md:grid-cols-[.8fr_1.2fr] md:items-center">
           <div>
             <div className="text-xs font-black uppercase tracking-[.22em] text-[#f2c94c]">Sorteos Junior</div>
-            <h2 className="mt-2 text-4xl font-black uppercase md:text-5xl">Información clara en un solo lugar</h2>
+            <h2 className="mt-2 text-4xl font-black uppercase md:text-5xl">Compra y paga sin vueltas</h2>
           </div>
-          <p className="text-base leading-8 text-white/78">Desde la página puedes consultar el sorteo activo, seleccionar boletos, generar un folio, revisar los métodos de pago, subir tu comprobante y consultar resultados anteriores. La imagen principal cambia automáticamente de acuerdo con el sorteo que tengas activo en el panel.</p>
+          <p className="text-base leading-8 text-white/78">El botón Comprar boletos abre directamente el único sorteo activo para elegir números. Si ya hiciste un apartado, Subir comprobante te lleva a tu reserva usando folio y teléfono. Los sorteos activos siguen disponibles en una sección separada para consulta.</p>
         </div>
       </section>
 
@@ -132,8 +132,8 @@ export default function Home() {
       <section className="border-t border-[#d4af37]/25 bg-[#f6f8fb] px-5 py-16">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#9a7a12]">Disponibles</div><h2 className="mt-1 text-3xl font-black uppercase text-[#081b33] md:text-4xl">Sorteos activos</h2></div>
-            <a href="/sorteos" className="font-black uppercase text-[#081b33] underline decoration-[#d4af37] decoration-4 underline-offset-4">Ver todos →</a>
+            <div><div className="text-xs font-black uppercase tracking-[.18em] text-[#9a7a12]">Consulta</div><h2 className="mt-1 text-3xl font-black uppercase text-[#081b33] md:text-4xl">Sorteos activos</h2></div>
+            <a href="/sorteos" className="font-black uppercase text-[#081b33] underline decoration-[#d4af37] decoration-4 underline-offset-4">Ver sección →</a>
           </div>
           {error && <div className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 font-bold text-red-700">{error}</div>}
           {!loading && active.length > 0 && <div className="mt-7 grid gap-6 md:grid-cols-2">{active.slice(0, 4).map(raffle => <RaffleCard key={raffle.id} raffle={raffle} />)}</div>}
