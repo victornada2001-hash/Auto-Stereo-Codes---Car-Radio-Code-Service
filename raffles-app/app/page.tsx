@@ -65,7 +65,7 @@ export default function Home() {
               <a href="/comprar" className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
                 Boletos disponibles
               </a>
-              <a href="/subir-pago" className="rounded-xl border-2 border-[#d4af37] bg-white/95 px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-[#081b33] shadow-lg transition hover:-translate-y-1 hover:bg-white">
+              <a href="/subir-pago" className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-6 py-4 text-center text-base font-black uppercase tracking-[.12em] text-white shadow-[0_12px_34px_rgba(229,72,63,.28)] transition hover:-translate-y-1 hover:shadow-[0_16px_42px_rgba(229,72,63,.38)]">
                 Sube tu pago
               </a>
             </div>
