@@ -12,8 +12,20 @@ export async function GET(request: NextRequest) {
   const phone = normalizePhone(request.nextUrl.searchParams.get("phone"));
   if (!/^\d{10}$/.test(phone)) return NextResponse.json({ known: false });
 
-  const response = await supabaseRest(`/rest/v1/raffle_customers?phone=eq.${encodeURIComponent(phone)}&select=id&limit=1`);
+  const response = await supabaseRest(
+    `/rest/v1/raffle_customers?phone=eq.${encodeURIComponent(phone)}&select=id,first_name,last_name,location&limit=1`,
+  );
   if (!response.ok) return NextResponse.json({ known: false });
-  const rows = await response.json();
-  return NextResponse.json({ known: Boolean(rows?.length) });
+
+  const customer = (await response.json())?.[0];
+  if (!customer) return NextResponse.json({ known: false });
+
+  return NextResponse.json({
+    known: true,
+    customer: {
+      first_name: customer.first_name || "",
+      last_name: customer.last_name || "",
+      location: customer.location || "",
+    },
+  });
 }
