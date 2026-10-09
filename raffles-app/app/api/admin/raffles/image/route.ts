@@ -18,12 +18,13 @@ export async function POST(request: NextRequest) {
     const form = await request.formData();
     const raffleId = String(form.get("raffleId") || "");
     const file = form.get("file");
+    const makeCover = String(form.get("makeCover") || "true") !== "false";
     if (!raffleId || !(file instanceof File)) return NextResponse.json({ error: "Falta la imagen o la rifa." }, { status: 400 });
     if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "La imagen excede 10 MB." }, { status: 400 });
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return NextResponse.json({ error: "Usa JPG, PNG o WebP." }, { status: 400 });
 
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const path = `${raffleId}/${Date.now()}.${ext}`;
+    const path = `${raffleId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
     const upload = await supabaseRest(`/storage/v1/object/raffle-images/${path}`, {
       method: "POST",
       headers: { "Content-Type": file.type, "x-upsert": "false" },
@@ -31,14 +32,23 @@ export async function POST(request: NextRequest) {
     });
     if (!upload.ok) return NextResponse.json({ error: await parseSupabaseError(upload) }, { status: 500 });
 
-    const update = await supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(raffleId)}`, {
-      method: "PATCH",
+    const gallery = await supabaseRest("/rest/v1/raffle_images", {
+      method: "POST",
       headers: { Prefer: "return=representation" },
-      body: JSON.stringify({ cover_image_path: path, updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ raffle_id: raffleId, storage_path: path, active: true }),
     });
-    if (!update.ok) return NextResponse.json({ error: await parseSupabaseError(update) }, { status: 500 });
+    if (!gallery.ok) return NextResponse.json({ error: await parseSupabaseError(gallery) }, { status: 500 });
 
-    return NextResponse.json({ ok: true, path, url: publicImageUrl(path) });
+    if (makeCover) {
+      const update = await supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(raffleId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ cover_image_path: path, updated_at: new Date().toISOString() }),
+      });
+      if (!update.ok) return NextResponse.json({ error: await parseSupabaseError(update) }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, path, url: publicImageUrl(path), image: (await gallery.json())?.[0] || null });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Error interno" }, { status: 500 });
   }
