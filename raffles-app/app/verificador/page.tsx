@@ -1,26 +1,30 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { JuniorClassicHeader } from "../components/junior-classic-header";
 import { SiteFooter } from "../components/site";
 
 type VerifyRow = {
-  folio?: string | null;
   status: string;
   ticket_number?: number | null;
-  ticket_count?: number;
+  first_name?: string | null;
+  last_name?: string | null;
+  customer_state?: string | null;
+  sent_at?: string | null;
   created_at?: string | null;
 };
 type VerifyResult = {
   mode: "ticket" | "phone";
-  raffle?: { id:string; title:string; prize?:string|null } | null;
+  raffle?: { id:string; title:string; prize?:string|null; cover_image_url?:string|null } | null;
   results: VerifyRow[];
+  counters?: { confirmed:number; review:number; unpaid:number };
 };
+type ActiveRaffle = { id:string; title:string; prize?:string|null; cover_image_url?:string|null };
 
 const labels: Record<string, string> = {
   available: "Disponible",
-  reserved: "Apartado",
-  receipt_uploaded: "Pago en revisión",
+  reserved: "No pagado",
+  receipt_uploaded: "En revisión",
   paid: "Pagado",
   unpaid: "No pagado",
   manual_review: "En revisión",
@@ -29,24 +33,38 @@ const labels: Record<string, string> = {
 };
 
 function statusClass(status:string) {
-  if(status==="paid") return "bg-emerald-100 text-emerald-800";
+  if(status==="paid") return "bg-emerald-600 text-white";
   if(status==="available") return "bg-sky-100 text-sky-800";
-  if(status==="receipt_uploaded"||status==="manual_review"||status==="ai_reviewed") return "bg-amber-100 text-amber-800";
-  return "bg-red-100 text-red-800";
+  if(status==="receipt_uploaded"||status==="manual_review"||status==="ai_reviewed") return "bg-amber-500 text-white";
+  return "bg-red-500 text-white";
+}
+function dateTime(value?:string|null) {
+  if(!value) return "Sin pago";
+  return new Intl.DateTimeFormat("es-MX",{dateStyle:"medium",timeStyle:"short"}).format(new Date(value));
 }
 
 export default function VerificadorPage() {
-  const [mode,setMode]=useState<"ticket"|"phone">("ticket");
   const [value,setValue]=useState("");
   const [result,setResult]=useState<VerifyResult|null>(null);
+  const [active,setActive]=useState<ActiveRaffle|null>(null);
   const [error,setError]=useState("");
   const [loading,setLoading]=useState(false);
 
+  useEffect(()=>{
+    fetch("/api/raffles",{cache:"no-store"})
+      .then(r=>r.json())
+      .then(data=>setActive((data?.raffles||[]).find((raffle: {status?:string})=>raffle.status==="active")||null))
+      .catch(()=>setActive(null));
+  },[]);
+
   async function verify(event:FormEvent) {
     event.preventDefault();
+    const clean=value.replace(/\D/g,"");
+    if(!clean){setError("Escribe tu boleto o celular.");return;}
+    const mode=clean.length===10?"phone":"ticket";
     setLoading(true);setError("");setResult(null);
     try{
-      const response=await fetch("/api/verificar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode,value})});
+      const response=await fetch("/api/verificar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode,value:clean})});
       const data=await response.json();
       if(!response.ok)throw new Error(data?.error||"No fue posible verificar.");
       setResult(data);
@@ -54,20 +72,43 @@ export default function VerificadorPage() {
     finally{setLoading(false);}
   }
 
-  return <main className="min-h-screen bg-[#f4f7fb] text-[#111827]">
-    <JuniorClassicHeader whatsapp="6648118609"/>
-    <section className="bg-[#081b33] px-5 py-12 text-center text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#f2c94c]">Consulta en línea</div><h1 className="mt-3 text-5xl font-black uppercase">Verificador de boletos</h1><p className="mx-auto mt-4 max-w-2xl text-white/70">Consulta el estatus usando un número de boleto o el WhatsApp utilizado al apartar.</p></section>
+  const raffle=result?.raffle||active;
+  const counters=result?.counters||{confirmed:0,review:0,unpaid:0};
 
-    <section className="mx-auto grid max-w-5xl gap-7 px-5 py-10 lg:grid-cols-[.8fr_1.2fr]">
-      <form onSubmit={verify} className="h-fit rounded-2xl bg-white p-6 shadow-lg">
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-[#eef3f8] p-1"><button type="button" onClick={()=>{setMode("ticket");setValue("");setResult(null);setError("");}} className={`rounded-lg px-3 py-3 text-xs font-black uppercase ${mode==="ticket"?"bg-[#081b33] text-white":"text-[#081b33]"}`}>Número de boleto</button><button type="button" onClick={()=>{setMode("phone");setValue("");setResult(null);setError("");}} className={`rounded-lg px-3 py-3 text-xs font-black uppercase ${mode==="phone"?"bg-[#081b33] text-white":"text-[#081b33]"}`}>WhatsApp</button></div>
-        <label className="mt-5 block text-sm font-black uppercase text-[#081b33]">{mode==="ticket"?"Número de boleto":"WhatsApp de 10 dígitos"}<input value={value} onChange={e=>setValue(e.target.value.replace(/\D/g,""))} required inputMode="numeric" placeholder={mode==="ticket"?"Ej. 12345":"Ej. 6648118609"} className="mt-2 w-full rounded-xl border-2 border-[#081b33]/20 px-4 py-4 text-lg font-black outline-none focus:border-[#d4af37]"/></label>
-        <button disabled={loading} className="mt-5 w-full rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-4 font-black uppercase text-white disabled:opacity-50">{loading?"Consultando…":"Verificar estatus"}</button>
-        {error&&<div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
+  return <main className="min-h-screen bg-white text-[#111827]">
+    <JuniorClassicHeader whatsapp="6648118609"/>
+
+    {raffle?.cover_image_url&&<section className="bg-black"><div className="mx-auto max-w-6xl"><img src={raffle.cover_image_url} alt={raffle.title||"Sorteo activo"} className="mx-auto max-h-[360px] w-full object-cover"/></div></section>}
+
+    <section className="border-y-4 border-[#d4af37] bg-[#081b33] px-5 py-5 text-center text-white">
+      <h1 className="text-3xl font-black uppercase md:text-4xl">Verificador de boletos</h1>
+      <div className="mt-1 text-lg font-black text-[#f2c94c]">{raffle?.title||"Sorteo activo"}</div>
+    </section>
+
+    <section className="mx-auto max-w-6xl px-5 py-10">
+      <div className="text-center">
+        <h2 className="text-2xl font-black text-[#081b33]">Introduce tu BOLETO ó CELULAR y haz clic en “Verificar”</h2>
+        <div className="mt-3 text-xl font-black text-[#e5483f]">Para subir tu pago buscar POR NÚMERO CELULAR</div>
+      </div>
+
+      <form onSubmit={verify} className="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
+        <input value={value} onChange={e=>setValue(e.target.value.replace(/\D/g,""))} inputMode="numeric" placeholder="Escribe Boleto ó Celular" className="min-w-0 flex-1 rounded-lg border-2 border-[#081b33] px-4 py-3 font-black outline-none focus:border-[#d4af37]"/>
+        <button disabled={loading} className="rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-8 py-3 font-black uppercase text-white disabled:opacity-50">{loading?"Verificando…":"Verificar"}</button>
       </form>
 
-      {!result?<div className="grid min-h-[330px] place-items-center rounded-2xl border-2 border-dashed border-[#081b33]/20 bg-white p-8 text-center"><div><div className="text-6xl">🎟️</div><h2 className="mt-4 text-2xl font-black uppercase text-[#081b33]">Consulta tu estatus</h2><p className="mt-2 text-slate-500">El resultado aparecerá aquí.</p></div></div>:<div className="rounded-2xl bg-white p-6 shadow-lg"><div className="text-xs font-black uppercase tracking-[.18em] text-[#b78c12]">{result.raffle?.title||"Sorteo activo"}</div><h2 className="mt-2 text-3xl font-black uppercase text-[#081b33]">Resultado</h2><div className="mt-5 space-y-3">{result.results.map((row,index)=><div key={`${row.folio||row.ticket_number||index}-${index}`} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div>{row.ticket_number?<div className="font-mono text-xl font-black text-[#081b33]">Boleto {row.ticket_number}</div>:<div className="font-black text-[#081b33]">{row.ticket_count||0} boleto(s)</div>}{row.folio&&<div className="mt-1 text-xs font-bold text-slate-500">Folio {row.folio}</div>}</div><span className={`rounded-full px-4 py-2 text-xs font-black uppercase ${statusClass(row.status)}`}>{labels[row.status]||row.status}</span></div></div>)}</div></div>}
+      {error&&<div className="mx-auto mt-5 max-w-xl rounded-xl border border-red-200 bg-red-50 p-4 text-center font-bold text-red-700">{error}</div>}
+
+      <div className="mx-auto mt-7 max-w-sm text-center text-sm font-black text-[#081b33]">
+        <div>Boletos confirmados: <span className="text-emerald-600">{counters.confirmed}</span></div>
+        <div>En revisión: <span className="text-amber-600">{counters.review}</span></div>
+        <div>No pagados: <span className="text-red-600">{counters.unpaid}</span></div>
+      </div>
+
+      {result&&result.mode==="phone"&&<div className="mt-6 text-center"><a href="/subir-pago" className="inline-flex rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff5b00] px-7 py-4 font-black uppercase text-white shadow-lg">Subir comprobante de pago</a></div>}
+
+      {result&&<div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 shadow-lg"><table className="w-full min-w-[900px] border-collapse bg-white text-sm"><thead className="bg-black text-white"><tr><th className="px-3 py-3 text-left">Número</th><th className="px-3 py-3 text-left">Nombre</th><th className="px-3 py-3 text-left">Apellido</th><th className="px-3 py-3 text-left">Estado</th><th className="px-3 py-3 text-left">Fecha envío</th><th className="px-3 py-3 text-left">Fecha apartado</th><th className="px-3 py-3 text-left">Estatus</th></tr></thead><tbody>{result.results.map((row,index)=><tr key={`${row.ticket_number||index}-${index}`} className={row.status==="paid"?"bg-emerald-50":"border-t border-slate-200"}><td className="px-3 py-3 font-mono font-black">{row.ticket_number??"—"}</td><td className="px-3 py-3 font-bold">{row.first_name||"—"}</td><td className="px-3 py-3 font-bold">{row.last_name||"—"}</td><td className="px-3 py-3 font-bold">{row.customer_state||"—"}</td><td className="px-3 py-3">{dateTime(row.sent_at)}</td><td className="px-3 py-3">{dateTime(row.created_at)}</td><td className="px-3 py-3"><span className={`inline-flex rounded-lg px-3 py-2 text-xs font-black uppercase ${statusClass(row.status)}`}>{labels[row.status]||row.status}</span></td></tr>)}</tbody></table></div>}
     </section>
+
     <SiteFooter settings={{whatsapp_number:"6648118609"}}/>
   </main>;
 }
