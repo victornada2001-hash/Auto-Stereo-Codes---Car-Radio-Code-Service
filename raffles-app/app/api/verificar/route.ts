@@ -61,10 +61,12 @@ export async function POST(request: NextRequest) {
       const receipts = receiptsResponse.ok ? await receiptsResponse.json() : [];
       const sentAt = new Map<string, string>();
       for (const receipt of receipts) if (!sentAt.has(String(receipt.reservation_id))) sentAt.set(String(receipt.reservation_id), String(receipt.created_at));
-      const reservationMap = new Map(reservations.map((row: Record<string, unknown>) => [String(row.id), row]));
+      const reservationMap = new Map<string, Record<string, unknown>>(
+        reservations.map((row: Record<string, unknown>) => [String(row.id), row] as [string, Record<string, unknown>]),
+      );
 
       const results = tickets.map((ticket: Record<string, unknown>) => {
-        const reservation = reservationMap.get(String(ticket.reservation_id)) as Record<string, unknown> | undefined;
+        const reservation = reservationMap.get(String(ticket.reservation_id));
         const status = normalizeStatus(reservation?.effective_status || reservation?.status);
         const name = splitName(reservation?.customer_name);
         return {
