@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ fol
     const [ticketsResponse, raffleResponse, accountsResponse, receiptsResponse] = await Promise.all([
       supabaseRest(`/rest/v1/raffle_tickets?reservation_id=eq.${encodeURIComponent(reservation.id)}&select=ticket_number,released_at&order=ticket_number.asc`),
       supabaseRest(`/rest/v1/raffles?id=eq.${encodeURIComponent(reservation.raffle_id)}&select=id,title,prize,cover_image_path,draw_date,status&limit=1`),
-      supabaseRest("/rest/v1/raffle_payment_accounts?active=eq.true&select=id,label,bank_name,beneficiary_name,account_number,clabe,sort_order&order=sort_order.asc,created_at.asc"),
+      supabaseRest("/rest/v1/raffle_payment_accounts?active=eq.true&select=id,label,bank_name,beneficiary_name,account_number,clabe,logo_url,instructions,sort_order&order=sort_order.asc,created_at.asc"),
       supabaseRest(`/rest/v1/raffle_receipts?reservation_id=eq.${encodeURIComponent(reservation.id)}&select=id,original_filename,ai_status,created_at&order=created_at.desc&limit=5`),
     ]);
 
