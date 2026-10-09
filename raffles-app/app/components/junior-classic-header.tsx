@@ -1,4 +1,16 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export function JuniorClassicHeader({ whatsapp: _whatsapp = "6648118609" }: { whatsapp?: string }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const close = () => setOpen(false);
+    window.addEventListener("resize", close);
+    return () => window.removeEventListener("resize", close);
+  }, []);
+
   return (
     <>
       <div className="h-2 bg-[#d4af37]" />
@@ -16,34 +28,45 @@ export function JuniorClassicHeader({ whatsapp: _whatsapp = "6648118609" }: { wh
             </div>
           </a>
 
-          <nav className="hidden items-center gap-1 lg:flex">
-            <Nav href="/">Inicio</Nav>
-            <Nav href="/sorteos">Sorteos activos</Nav>
-            <Nav href="/verificador">Verificador</Nav>
-            <Nav href="/preguntas-frecuentes">Preguntas</Nav>
-            <Nav href="/contacto">Contacto</Nav>
-            <Nav href="/metodos-de-pago">Métodos de pago</Nav>
-          </nav>
-
-          <div className="hidden items-center gap-2 md:flex">
-            <a href="/subir-pago" className="rounded-lg border-2 border-[#d4af37] bg-white px-4 py-2.5 text-xs font-black uppercase tracking-wide text-[#081b33] transition hover:-translate-y-0.5">Sube tu pago</a>
-            <a href="/comprar" className="rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">Comprar boletos</a>
-          </div>
+          <button
+            type="button"
+            onClick={() => setOpen(value => !value)}
+            aria-label="Abrir menú"
+            aria-expanded={open}
+            className="grid h-12 w-12 place-items-center rounded-xl border border-[#d4af37]/70 bg-white/5 transition hover:bg-white/10"
+          >
+            <span className="sr-only">Menú</span>
+            <span className="flex w-6 flex-col gap-1.5">
+              <i className="h-0.5 w-full rounded bg-white" />
+              <i className="h-0.5 w-full rounded bg-white" />
+              <i className="h-0.5 w-full rounded bg-white" />
+            </span>
+          </button>
         </div>
 
-        <nav className="flex gap-2 overflow-x-auto border-t border-white/10 px-3 py-3 text-xs font-black uppercase lg:hidden">
-          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/">Inicio</a>
-          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/sorteos">Sorteos activos</a>
-          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/verificador">Verificador</a>
-          <a className="shrink-0 rounded-lg bg-white/10 px-3 py-2" href="/preguntas-frecuentes">Preguntas</a>
-          <a className="shrink-0 rounded-lg border border-[#d4af37] bg-white px-3 py-2 text-[#081b33]" href="/subir-pago">Sube tu pago</a>
-          <a className="shrink-0 rounded-lg bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-3 py-2" href="/comprar">Comprar boletos</a>
-        </nav>
+        {open && (
+          <div className="absolute right-4 top-[calc(100%-4px)] w-[min(92vw,330px)] overflow-hidden rounded-2xl border border-[#d4af37]/45 bg-[#081b33] p-2 shadow-2xl lg:right-8">
+            <MenuLink href="/" onClick={() => setOpen(false)}>Inicio</MenuLink>
+            <MenuLink href="/sorteos" onClick={() => setOpen(false)}>Sorteos activos</MenuLink>
+            <MenuLink href="/verificador" onClick={() => setOpen(false)}>Verificador</MenuLink>
+            <MenuLink href="/preguntas-frecuentes" onClick={() => setOpen(false)}>Preguntas</MenuLink>
+            <MenuLink href="/contacto" onClick={() => setOpen(false)}>Contacto</MenuLink>
+            <MenuLink href="/metodos-de-pago" onClick={() => setOpen(false)}>Métodos de pago</MenuLink>
+          </div>
+        )}
       </header>
     </>
   );
 }
 
-function Nav({ href, children }: { href: string; children: React.ReactNode }) {
-  return <a href={href} className="rounded-lg px-4 py-3 text-sm font-black uppercase tracking-wide text-white/85 transition hover:bg-white/8 hover:text-[#f2c94c]">{children}</a>;
+function MenuLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      className="flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-black uppercase tracking-wide text-white/90 transition hover:bg-white/10 hover:text-[#f2c94c]"
+    >
+      <span>{children}</span><span className="text-[#d4af37]">→</span>
+    </a>
+  );
 }
