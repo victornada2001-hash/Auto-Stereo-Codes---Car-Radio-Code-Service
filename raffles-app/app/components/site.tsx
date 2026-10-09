@@ -6,6 +6,9 @@ export type Raffle = {
   title: string;
   description?: string | null;
   prize?: string | null;
+  prize_description?: string | null;
+  conditions_text?: string | null;
+  price_details?: string | null;
   ticket_price: number;
   total_tickets: number;
   status: string;
@@ -13,6 +16,7 @@ export type Raffle = {
   cover_image_url?: string | null;
   image_urls?: string[];
   draw_date?: string | null;
+  discounts?: Array<{ min_qty:number; percent:number }>;
   winner_ticket?: number | null;
   winner_name?: string | null;
   winner_draw_reference?: string | null;
