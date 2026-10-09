@@ -50,6 +50,8 @@ export async function PATCH(request: NextRequest) {
         beneficiary_name: String(account.beneficiary_name || "").trim(),
         account_number: String(account.account_number || "").trim() || null,
         clabe: String(account.clabe || "").trim() || null,
+        logo_url: String(account.logo_url || "").trim() || null,
+        instructions: String(account.instructions || "").trim() || null,
         active: account.active !== false,
         sort_order: Number(account.sort_order || 0),
         updated_at: new Date().toISOString(),
