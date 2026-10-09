@@ -27,7 +27,7 @@ type Detail = { raffle:Raffle; settings:Settings };
 type MachineStage = "choose" | "spinning" | "result";
 
 const PAGE_SIZE = 100;
-const PACKAGE_OPTIONS = [1,3,6,10,15,30,60,100,120,240,480];
+const PACKAGE_OPTIONS = [1,2,5,10,15,20,50,75,100,200,300,400,500,800,1000,2000,3000];
 const MEXICO_STATES = [
   "Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua",
   "Ciudad de México","Coahuila","Colima","Durango","Estado de México","Guanajuato","Guerrero",
@@ -96,9 +96,19 @@ export default function RafflePage() {
     setCheckingCustomer(true);
     const timer=window.setTimeout(()=>{
       fetch(`/api/customers/recognize?phone=${encodeURIComponent(clean)}`,{cache:"no-store"})
-        .then(r=>r.json()).then(data=>setKnownCustomer(Boolean(data?.known))).catch(()=>setKnownCustomer(false))
+        .then(r=>r.json())
+        .then(data=>{
+          const known=Boolean(data?.known);
+          setKnownCustomer(known);
+          if(known&&data?.customer){
+            setFirstName(String(data.customer.first_name||""));
+            setLastName(String(data.customer.last_name||""));
+            setCustomerState(String(data.customer.location||""));
+          }
+        })
+        .catch(()=>setKnownCustomer(false))
         .finally(()=>setCheckingCustomer(false));
-    },300);
+    },250);
     return ()=>window.clearTimeout(timer);
   },[phone]);
 
@@ -158,7 +168,7 @@ export default function RafflePage() {
     if(!raffle||!selected.length){setMessage("Selecciona al menos un boleto.");return;}
     const cleanPhone=cleanMexPhone(phone);
     if(!/^\d{10}$/.test(cleanPhone)){setMessage("Escribe un número de WhatsApp válido de 10 dígitos.");return;}
-    if(!knownCustomer&&(firstName.trim().length<2||lastName.trim().length<2||customerState.length<2)){
+    if(firstName.trim().length<2||lastName.trim().length<2||customerState.length<2){
       setMessage("Completa nombre, apellido y estado o país.");return;
     }
     setBusy(true);setMessage("");
@@ -201,7 +211,16 @@ export default function RafflePage() {
         </div>
       </div>
 
+      <div className="mx-auto mt-5 max-w-3xl rounded-2xl border-2 border-[#e5483f] bg-red-50 p-5 text-center text-sm font-black uppercase leading-6 text-[#9b1c1c]">
+        El comprobante debe subirse directamente en esta página antes del sorteo. Los comprobantes enviados únicamente por WhatsApp no serán válidos.
+      </div>
+
       {promoQuantities.length>0&&<div className="mx-auto mt-5 max-w-3xl rounded-2xl bg-[#081b33] p-5 text-white"><div className="text-xs font-black uppercase tracking-[.2em] text-[#f2c94c]">Promociones por cantidad</div><div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">{promoQuantities.map(q=><div key={q} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3"><div className="font-black">{q.toLocaleString("es-MX")} boletos</div><div className="mt-1 text-xl font-black text-[#f2c94c]">${totalFor(q).toFixed(2)} MXN</div></div>)}</div></div>}
+
+      <div className="mx-auto mt-5 max-w-5xl rounded-2xl border border-[#d4af37]/40 bg-[#081b33] p-5 text-white">
+        <div className="text-xs font-black uppercase tracking-[.18em] text-[#f2c94c]">Tu selección</div>
+        {selected.length?<div className="mt-3 flex max-h-32 flex-wrap justify-center gap-2 overflow-auto">{selected.slice().sort((a,b)=>a-b).map(n=><button key={n} onClick={()=>toggleTicket(n)} className="rounded-lg border border-[#d4af37] bg-white px-3 py-2 font-mono text-xs font-black text-[#081b33]" title="Toca para quitar">{ticketLabel(n,raffle.total_tickets)} ×</button>)}</div>:<div className="mt-2 text-sm font-semibold text-white/65">Los números que selecciones aparecerán aquí.</div>}
+      </div>
     </section>
 
     <section className="border-y border-[#d4af37]/30 bg-[#0d2747] px-5 py-7 text-white"><div className="mx-auto max-w-4xl text-center"><h2 className="text-3xl font-black uppercase md:text-4xl">Elige tus boletos</h2><p className="mt-2 text-sm font-semibold text-white/70">Busca un número exacto o usa la Máquina de la Suerte para generar boletos disponibles.</p><div className="mx-auto mt-5 grid max-w-2xl gap-3 sm:grid-cols-[1fr_auto_auto]"><input disabled={!canBuy} value={manual} onChange={e=>setManual(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addManual();}}} inputMode="numeric" placeholder="Buscar número" className="rounded-xl border-2 border-white/20 bg-white px-4 py-3 font-black text-black outline-none focus:border-[#d4af37]"/><button disabled={!canBuy} onClick={addManual} className="rounded-xl border border-[#d4af37] px-5 py-3 font-black uppercase text-[#f2c94c] disabled:opacity-40">Buscar</button><button disabled={!canBuy} onClick={openMachine} className="rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-3 font-black uppercase text-white shadow-lg disabled:opacity-40">Máquina de la Suerte</button></div></div></section>
@@ -224,7 +243,7 @@ export default function RafflePage() {
       {machineStage==="result"&&<div className="mt-6"><div className="rounded-2xl border-2 border-[#d4af37] bg-[#fff8dc] p-5 text-center"><div className="text-sm font-black uppercase text-[#8a6800]">¡Listo!</div><div className="mt-1 text-2xl font-black text-[#081b33]">{machineTickets.length} boleto(s) encontrados</div><div className="mt-4 flex max-h-40 flex-wrap justify-center gap-2 overflow-auto">{machineTickets.slice().sort((a,b)=>a-b).map(n=><span key={n} className="rounded-lg bg-white px-3 py-2 font-mono text-sm font-black text-[#081b33] shadow">{ticketLabel(n,raffle.total_tickets)}</span>)}</div><div className="mt-4 font-black text-[#081b33]">Total: ${totalFor(machineTickets.length).toFixed(2)} MXN</div></div><div className="mt-5 grid gap-3 sm:grid-cols-2"><button disabled={busy} onClick={()=>void generateRandom()} className="rounded-xl border-2 border-[#081b33] bg-white px-4 py-4 font-black uppercase text-[#081b33] disabled:opacity-50">Generar otros {machineTickets.length}</button><button onClick={continueFromMachine} className="rounded-xl bg-[#081b33] px-4 py-4 font-black uppercase text-white">Continuar con estos boletos</button></div></div>}
     </div></div>}
 
-    {showCustomer&&<div className="fixed inset-0 z-[95] grid place-items-center bg-black/75 p-4" role="dialog" aria-modal="true"><div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><button onClick={()=>setShowCustomer(false)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-[#e5483f] font-black text-white">×</button><div className="text-center"><div className="text-xs font-black uppercase tracking-[.18em] text-[#b78c12]">Completa tus datos</div><h2 className="mt-2 text-2xl font-black uppercase text-[#081b33]">Datos para apartar</h2><div className="mt-3 text-lg font-black text-[#e5483f]">{selected.length} boleto(s) · ${estimatedTotal.toFixed(2)} MXN</div></div><div className="mt-6 grid gap-3"><input value={phone} onChange={e=>setPhone(cleanMexPhone(e.target.value))} inputMode="numeric" placeholder="WhatsApp obligatorio (10 dígitos)" className="rounded-lg border-2 border-[#081b33] px-4 py-3 font-bold"/>{checkingCustomer&&<div className="text-xs font-bold text-slate-500">Buscando cliente…</div>}{knownCustomer&&<div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-black text-emerald-800">✓ Cliente reconocido. Puedes actualizar tus datos o usar los guardados.</div>}<input value={firstName} onChange={e=>setFirstName(e.target.value)} placeholder={knownCustomer?"Nombre — usar guardado si lo dejas vacío":"Nombre"} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold"/><input value={lastName} onChange={e=>setLastName(e.target.value)} placeholder={knownCustomer?"Apellido — usar guardado si lo dejas vacío":"Apellido"} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold"/><select value={customerState} onChange={e=>setCustomerState(e.target.value)} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold text-slate-700"><option value="">{knownCustomer?"Estado / país — usar guardado":"Selecciona estado / país"}</option>{LOCATIONS.map(location=><option key={location} value={location}>{location}</option>)}</select></div><button disabled={busy} onClick={()=>void reserve()} className="mt-5 w-full animate-pulse rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-4 text-lg font-black uppercase text-white shadow-lg disabled:animate-none disabled:opacity-50">{busy?"Apartando…":"Apartar boletos"}</button></div></div>}
+    {showCustomer&&<div className="fixed inset-0 z-[95] grid place-items-center bg-black/75 p-4" role="dialog" aria-modal="true"><div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><button onClick={()=>setShowCustomer(false)} className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-[#e5483f] font-black text-white">×</button><div className="text-center"><div className="text-xs font-black uppercase tracking-[.18em] text-[#b78c12]">Completa tus datos</div><h2 className="mt-2 text-2xl font-black uppercase text-[#081b33]">Datos para apartar</h2><div className="mt-3 text-lg font-black text-[#e5483f]">{selected.length} boleto(s) · ${estimatedTotal.toFixed(2)} MXN</div></div><div className="mt-6 grid gap-3"><input value={phone} onChange={e=>setPhone(cleanMexPhone(e.target.value))} inputMode="numeric" placeholder="WhatsApp obligatorio (10 dígitos)" className="rounded-lg border-2 border-[#081b33] px-4 py-3 font-bold"/>{checkingCustomer&&<div className="text-xs font-bold text-slate-500">Buscando cliente…</div>}{knownCustomer&&<div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-black text-emerald-800">✓ Cliente reconocido. Tus datos se llenaron automáticamente.</div>}<input value={firstName} onChange={e=>setFirstName(e.target.value)} placeholder="Nombre" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold"/><input value={lastName} onChange={e=>setLastName(e.target.value)} placeholder="Apellido" className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold"/><select value={customerState} onChange={e=>setCustomerState(e.target.value)} className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-bold text-slate-700"><option value="">Selecciona estado / país</option>{LOCATIONS.map(location=><option key={location} value={location}>{location}</option>)}</select></div><button disabled={busy} onClick={()=>void reserve()} className="mt-5 w-full animate-pulse rounded-xl bg-gradient-to-r from-[#e5483f] to-[#ff8a00] px-5 py-4 text-lg font-black uppercase text-white shadow-lg disabled:animate-none disabled:opacity-50">{busy?"Apartando…":"Apartar boletos"}</button></div></div>}
   </main>;
 }
 
