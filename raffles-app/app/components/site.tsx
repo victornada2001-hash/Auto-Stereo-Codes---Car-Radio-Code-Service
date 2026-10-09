@@ -11,6 +11,7 @@ export type Raffle = {
   status: string;
   edition?: string | null;
   cover_image_url?: string | null;
+  image_urls?: string[];
   draw_date?: string | null;
   winner_ticket?: number | null;
   winner_name?: string | null;
