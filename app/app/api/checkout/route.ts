@@ -16,12 +16,13 @@ const ALLOWED_BRANDS=new Set(["Honda","Acura"]);
 
 function clean(value:unknown,maxLength=255){return String(value??"").trim().slice(0,maxLength);}
 function getPublicSiteUrl(request:Request){
-  const configured=process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/,"");
-  if(configured) return configured;
   const forwardedHost=request.headers.get("x-forwarded-host");
   const forwardedProto=request.headers.get("x-forwarded-proto")||"https";
   if(forwardedHost) return `${forwardedProto}://${forwardedHost}`;
-  return new URL(request.url).origin;
+  const origin=new URL(request.url).origin;
+  if(origin) return origin;
+  const configured=process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/,"");
+  return configured||"";
 }
 function validInternationalPhone(phone:string){
   if(!E164_PATTERN.test(phone)) return false;
@@ -42,6 +43,7 @@ async function emailDomainCanReceiveMail(email:string){
 
 export async function POST(request:Request){
   const siteUrl=getPublicSiteUrl(request);
+  if(!siteUrl) return NextResponse.json({code:"SITE_URL_ERROR"},{status:500});
   if(!process.env.PAYPAL_CLIENT_ID||!process.env.PAYPAL_CLIENT_SECRET||!process.env.PAYPAL_SESSION_SECRET){
     return NextResponse.json({code:"NOT_CONFIGURED"},{status:503});
   }
@@ -72,7 +74,15 @@ export async function POST(request:Request){
       body:JSON.stringify({
         intent:"CAPTURE",
         purchase_units:[{reference_id:"HONDA_ACURA_STEREO_CODE",description:`${detectedBrand} Radio Unlock Code`,amount:{currency_code:"USD",value:amountUsd}}],
-        payment_source:{paypal:{experience_context:{brand_name:"Honda & Acura Radio Codes",locale:paypalLocale(language),landing_page:"GUEST_CHECKOUT",shipping_preference:"NO_SHIPPING",user_action:"PAY_NOW",return_url:`${siteUrl}/api/paypal/capture`,cancel_url:`${siteUrl}/solicitar`}}},
+        payment_source:{paypal:{experience_context:{
+          brand_name:"Honda & Acura Radio Codes",
+          locale:paypalLocale(language),
+          landing_page:"GUEST_CHECKOUT",
+          shipping_preference:"NO_SHIPPING",
+          user_action:"PAY_NOW",
+          return_url:`${siteUrl}/api/paypal/capture`,
+          cancel_url:`${siteUrl}/solicitar?payment=cancelled`
+        }}},
       }),
     });
     const result=await paypalResponse.json();
