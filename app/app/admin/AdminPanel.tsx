@@ -11,6 +11,8 @@ type Row = {
   model:string|null;
   phone:string|null;
   email:string|null;
+  vin:string|null;
+  postal_code:string|null;
   language:string;
   status:string;
   priority_sms:boolean;
@@ -28,6 +30,16 @@ const ALLOWED_BRANDS = new Set(["honda","acura"]);
 
 function isHondaAcura(row:Row){
   return ALLOWED_BRANDS.has(String(row.brand||"").trim().toLowerCase());
+}
+
+function officialLookupUrl(row:Row){
+  return String(row.brand||"").trim().toLowerCase()==="acura"
+    ? "https://mygarage.honda.com/s/radio-nav-code?brand=Acura"
+    : "https://mygarage.honda.com/s/radio-nav-code?brand=Honda";
+}
+
+function officialLookupLabel(row:Row){
+  return String(row.brand||"").trim().toLowerCase()==="acura"?"Buscar en Acura":"Buscar en Honda";
 }
 
 function amountLabel(row:Row){
@@ -103,6 +115,37 @@ export default function AdminPanel(){
     setAuth(false);setRows([]);
   }
 
+  async function copyValue(label:string,value:string|null){
+    if(!value){setNotice(`${label}: sin dato.`);return;}
+    try{
+      await navigator.clipboard.writeText(value);
+      setNotice(`${label} copiado.`);
+      setError("");
+    }catch{
+      setError(`No se pudo copiar ${label.toLowerCase()}.`);
+    }
+  }
+
+  async function copyLookupData(row:Row){
+    const text=[
+      `Marca: ${row.brand||""}`,
+      `Año: ${row.year||""}`,
+      `Modelo: ${row.model||""}`,
+      `Serie: ${row.serial||""}`,
+      `VIN: ${row.vin||""}`,
+      `ZIP/Código postal: ${row.postal_code||""}`,
+      `Teléfono: ${row.phone||""}`,
+      `Email: ${row.email||""}`,
+    ].join("\n");
+    try{
+      await navigator.clipboard.writeText(text);
+      setNotice("Datos para Honda/Acura copiados.");
+      setError("");
+    }catch{
+      setError("No se pudieron copiar los datos.");
+    }
+  }
+
   async function saveCode(row:Row){
     setSaving(row.id);setError("");setNotice("");
     const stereoCode=(codes[row.id]||"").trim();
@@ -136,7 +179,7 @@ export default function AdminPanel(){
       if(tab==="pending"&&(row.status==="completed"||hasCode)) return false;
       if(tab==="ready"&&(row.status==="completed"||!hasCode)) return false;
       if(!search) return true;
-      return [row.reference,row.serial,row.brand||"",row.model||"",row.email||"",row.phone||"",row.stereo_code||"",row.year||""].some(value=>String(value).toLowerCase().includes(search));
+      return [row.reference,row.serial,row.brand||"",row.model||"",row.email||"",row.phone||"",row.vin||"",row.postal_code||"",row.stereo_code||"",row.year||""].some(value=>String(value).toLowerCase().includes(search));
     });
   },[rows,tab,q]);
 
@@ -159,7 +202,7 @@ export default function AdminPanel(){
         <div>
           <div className="text-sm font-black tracking-[.2em] text-red-400">AUTO STEREO CODES · HONDA / ACURA</div>
           <h1 className="mt-2 text-4xl font-black">Solicitudes Honda y Acura</h1>
-          <p className="mt-2 text-sm text-slate-400">El panel oculta cualquier solicitud de otras marcas.</p>
+          <p className="mt-2 text-sm text-slate-400">Cada solicitud incluye acceso directo a la fuente oficial Honda o Acura y los datos listos para copiar.</p>
         </div>
         <div className="flex gap-2">
           <button onClick={()=>void load()} className="rounded-xl border border-slate-700 px-4 py-2 font-bold">Actualizar</button>
@@ -179,7 +222,7 @@ export default function AdminPanel(){
         <TabButton active={tab==="completed"} onClick={()=>setTab("completed")}>Completadas ({counts.completed})</TabButton>
       </div>
 
-      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar folio, serie, Honda/Acura, modelo, año, email, teléfono o código…" className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-red-500"/>
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar folio, serie, VIN, ZIP, Honda/Acura, modelo, email, teléfono o código…" className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-red-500"/>
 
       {error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-amber-100">{error}</p>}
       {notice&&<p className="mt-4 rounded-xl border border-emerald-700 bg-emerald-950 p-3 text-emerald-100">{notice}</p>}
@@ -214,6 +257,30 @@ export default function AdminPanel(){
               </div>
             </div>
 
+            <div className="border-t border-white/10 bg-slate-950/35 p-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[.16em] text-slate-400">Consulta oficial</div>
+                  <p className="mt-1 text-sm text-slate-500">Abre la página oficial correspondiente y usa los datos de esta solicitud.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <a href={officialLookupUrl(row)} target="_blank" rel="noreferrer" className="rounded-xl bg-white px-4 py-2 text-sm font-black text-slate-950">{officialLookupLabel(row)} ↗</a>
+                  <button onClick={()=>void copyLookupData(row)} className="rounded-xl border border-slate-600 px-4 py-2 text-sm font-black">Copiar todos los datos</button>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <DataBox label="VIN" value={row.vin} onCopy={()=>void copyValue("VIN",row.vin)}/>
+                <DataBox label="Serie del radio" value={row.serial} onCopy={()=>void copyValue("Serie",row.serial)}/>
+                <DataBox label="ZIP / Código postal" value={row.postal_code} onCopy={()=>void copyValue("ZIP/Código postal",row.postal_code)}/>
+                <DataBox label="Teléfono" value={row.phone} onCopy={()=>void copyValue("Teléfono",row.phone)}/>
+                <DataBox label="Email" value={row.email} onCopy={()=>void copyValue("Email",row.email)}/>
+                <DataBox label="Año" value={row.year?String(row.year):null} onCopy={()=>void copyValue("Año",row.year?String(row.year):null)}/>
+                <DataBox label="Modelo" value={row.model} onCopy={()=>void copyValue("Modelo",row.model)}/>
+                <DataBox label="Marca" value={row.brand} onCopy={()=>void copyValue("Marca",row.brand)}/>
+              </div>
+            </div>
+
             <div className="border-t border-white/10 bg-slate-950/55 p-5">
               <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
                 <label className="block">
@@ -245,4 +312,12 @@ function Metric({label,value}:{label:string;value:number}){
 
 function TabButton({active,onClick,children}:{active:boolean;onClick:()=>void;children:React.ReactNode}){
   return <button onClick={onClick} className={`rounded-full px-4 py-2 text-sm font-black ${active?"bg-red-600 text-white":"border border-slate-700 bg-slate-900 text-slate-300"}`}>{children}</button>;
+}
+
+function DataBox({label,value,onCopy}:{label:string;value:string|null;onCopy:()=>void}){
+  return <button type="button" onClick={onCopy} className="rounded-xl border border-white/10 bg-slate-900 p-3 text-left transition hover:border-slate-500">
+    <div className="text-[11px] font-black uppercase tracking-[.14em] text-slate-500">{label}</div>
+    <div className="mt-1 break-all font-mono text-sm font-bold text-slate-200">{value||"—"}</div>
+    <div className="mt-2 text-[11px] font-bold text-slate-600">Toca para copiar</div>
+  </button>;
 }
