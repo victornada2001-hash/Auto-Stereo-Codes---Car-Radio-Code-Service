@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Auto Stereo Codes | Car Radio Unlock Codes",
-    template: "%s | Auto Stereo Codes",
+    default: "Honda & Acura Radio Codes | AutoStereoCodes",
+    template: "%s | AutoStereoCodes",
   },
-  description: "Identifica la serie de tu estéreo, consulta guías por marca y solicita el código de desbloqueo de tu radio de automóvil.",
+  description: "Solicita códigos de desbloqueo para radios Honda y Acura. Servicio especializado exclusivamente en Honda y Acura.",
   metadataBase: new URL("https://autostereocodes.com"),
 };
 
