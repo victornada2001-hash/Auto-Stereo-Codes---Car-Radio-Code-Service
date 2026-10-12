@@ -32,7 +32,7 @@ const IMAGES=[
 
 type Copy={
   navGuide:string; request:string; heroTitle:string; heroBody:string; heroGuide:string;
-  steps:[string,string,string][]; guideLabel:string; guideTitle:string; guideIntro:string;
+  steps:[string,string][]; guideLabel:string; guideTitle:string; guideIntro:string;
   cards:{eyebrow:string;title:string;paragraphs:string[]}[];
   serialKinds:string; haveSerial:string; specialistTitle:string; specialistBody:string;
   prev:string; next:string; viewImage:string;
