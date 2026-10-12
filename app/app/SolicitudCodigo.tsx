@@ -1,23 +1,34 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { Language } from "./languages";
+import { LanguagePicker, useSiteLanguage } from "./use-site-language";
 
-const PRICE_USD = 17.99;
-const YEARS = Array.from({ length: 35 }, (_, i) => String(new Date().getFullYear() - i));
-const HONDA_MODELS = ["Accord","Civic","CR-V","HR-V","Pilot","Odyssey","Passport","Ridgeline","Fit","Insight","Clarity","CR-Z","Element","Crosstour","S2000","Prelude","del Sol","Prologue"];
-const ACURA_MODELS = ["Integra","TL","TLX","TSX","MDX","RDX","RL","RLX","ILX","RSX","CL","ZDX","NSX","Legend","Vigor","ADX"];
+const PRICE_USD=17.99;
+const YEARS=Array.from({length:35},(_,i)=>String(new Date().getFullYear()-i));
+const HONDA_MODELS=["Accord","Civic","CR-V","HR-V","Pilot","Odyssey","Passport","Ridgeline","Fit","Insight","Clarity","CR-Z","Element","Crosstour","S2000","Prelude","del Sol","Prologue"];
+const ACURA_MODELS=["Integra","TL","TLX","TSX","MDX","RDX","RL","RLX","ILX","RSX","CL","ZDX","NSX","Legend","Vigor","ADX"];
+
+type FormCopy={back:string;label:string;title:string;intro:string;brand:string;year:string;selectYear:string;model:string;selectModel:string;serial:string;vin:string;optional:string;vinPlaceholder:string;contactTitle:string;contactBody:string;phone:string;email:string;product:string;oneTime:string;pay:string;preparing:string;paypalNote:string;needData:string;needContact:string;opening:string;paypalOpen:string;blocked:string;connection:string;errors:Record<string,string>};
+const COPY:Record<Language,FormCopy>={
+  es:{back:"Volver al inicio",label:"Solicitud de código",title:"Solicita tu código Honda o Acura",intro:"Llena los datos del radio. El VIN es opcional.",brand:"Marca",year:"Año",selectYear:"Selecciona año",model:"Modelo",selectModel:"Selecciona modelo",serial:"Serie del estéreo",vin:"VIN del vehículo",optional:"opcional",vinPlaceholder:"17 caracteres, si lo tienes disponible",contactTitle:"Contacto: solo necesitas uno",contactBody:"Puedes dejar WhatsApp/teléfono o correo electrónico. No es necesario llenar ambos.",phone:"WhatsApp / teléfono",email:"Correo electrónico",product:"Código de radio Honda / Acura",oneTime:"Pago único por solicitud",pay:"Continuar al pago",preparing:"Preparando PayPal…",paypalNote:"PayPal se abre en otra pestaña para que AutoStereoCodes permanezca abierto durante el pago.",needData:"Completa marca, año, modelo y serie del estéreo.",needContact:"Deja al menos un medio de contacto: WhatsApp/teléfono o correo electrónico.",opening:"Preparando el pago. PayPal se abrirá en otra pestaña y esta página permanecerá abierta.",paypalOpen:"PayPal está abierto en otra pestaña. Esta solicitud permanece aquí por si decides regresar o cancelar.",blocked:"Tu navegador bloqueó la nueva pestaña. Abriendo PayPal aquí…",connection:"No pudimos conectar con el sistema de pago. Inténtalo de nuevo.",errors:{INVALID_EMAIL:"Escribe un correo válido o déjalo vacío y usa WhatsApp.",EMAIL_UNDELIVERABLE:"No pudimos validar ese correo. Revisa que esté escrito correctamente o usa WhatsApp.",INVALID_CONTACT:"Deja al menos un WhatsApp/teléfono o un correo electrónico.",INVALID_INPUT:"Revisa los datos e inténtalo de nuevo.",UNSUPPORTED_BRAND:"Este servicio solo acepta Honda y Acura.",NOT_CONFIGURED:"El sistema de pago todavía no está disponible. Inténtalo más tarde."}},
+  en:{back:"Back to home",label:"Code request",title:"Request your Honda or Acura code",intro:"Enter the radio details. VIN is optional.",brand:"Brand",year:"Year",selectYear:"Select year",model:"Model",selectModel:"Select model",serial:"Stereo serial number",vin:"Vehicle VIN",optional:"optional",vinPlaceholder:"17 characters, if available",contactTitle:"Contact: only one is required",contactBody:"You can provide WhatsApp/phone or email. You do not need to enter both.",phone:"WhatsApp / phone",email:"Email",product:"Honda / Acura radio code",oneTime:"One-time payment per request",pay:"Continue to payment",preparing:"Preparing PayPal…",paypalNote:"PayPal opens in another tab so AutoStereoCodes stays open during payment.",needData:"Complete brand, year, model and stereo serial number.",needContact:"Provide at least one contact method: WhatsApp/phone or email.",opening:"Preparing payment. PayPal will open in another tab and this page will remain open.",paypalOpen:"PayPal is open in another tab. This request stays here if you return or cancel.",blocked:"Your browser blocked the new tab. Opening PayPal here…",connection:"We could not connect to the payment system. Please try again.",errors:{INVALID_EMAIL:"Enter a valid email or leave it blank and use WhatsApp.",EMAIL_UNDELIVERABLE:"We could not validate that email. Check it or use WhatsApp.",INVALID_CONTACT:"Provide at least a WhatsApp/phone number or email.",INVALID_INPUT:"Check the information and try again.",UNSUPPORTED_BRAND:"This service only supports Honda and Acura.",NOT_CONFIGURED:"Payments are not available yet. Please try again later."}},
+  pt:{back:"Voltar ao início",label:"Solicitação de código",title:"Solicite seu código Honda ou Acura",intro:"Preencha os dados do rádio. O VIN é opcional.",brand:"Marca",year:"Ano",selectYear:"Selecione o ano",model:"Modelo",selectModel:"Selecione o modelo",serial:"Número de série do rádio",vin:"VIN do veículo",optional:"opcional",vinPlaceholder:"17 caracteres, se disponível",contactTitle:"Contato: você só precisa de um",contactBody:"Informe WhatsApp/telefone ou e-mail. Não é necessário preencher os dois.",phone:"WhatsApp / telefone",email:"E-mail",product:"Código de rádio Honda / Acura",oneTime:"Pagamento único por solicitação",pay:"Continuar para pagamento",preparing:"Preparando PayPal…",paypalNote:"O PayPal abre em outra aba para manter o AutoStereoCodes aberto.",needData:"Preencha marca, ano, modelo e número de série.",needContact:"Informe pelo menos WhatsApp/telefone ou e-mail.",opening:"Preparando o pagamento. O PayPal abrirá em outra aba.",paypalOpen:"O PayPal está aberto em outra aba. Esta solicitação permanece aqui.",blocked:"Seu navegador bloqueou a nova aba. Abrindo o PayPal aqui…",connection:"Não foi possível conectar ao sistema de pagamento. Tente novamente.",errors:{INVALID_EMAIL:"Digite um e-mail válido ou use WhatsApp.",EMAIL_UNDELIVERABLE:"Não foi possível validar esse e-mail. Revise ou use WhatsApp.",INVALID_CONTACT:"Informe WhatsApp/telefone ou e-mail.",INVALID_INPUT:"Revise os dados e tente novamente.",UNSUPPORTED_BRAND:"Este serviço aceita apenas Honda e Acura.",NOT_CONFIGURED:"O pagamento ainda não está disponível. Tente mais tarde."}},
+  fr:{back:"Retour à l’accueil",label:"Demande de code",title:"Demandez votre code Honda ou Acura",intro:"Saisissez les informations de la radio. Le VIN est facultatif.",brand:"Marque",year:"Année",selectYear:"Choisir l’année",model:"Modèle",selectModel:"Choisir le modèle",serial:"Numéro de série de l’autoradio",vin:"VIN du véhicule",optional:"facultatif",vinPlaceholder:"17 caractères, si disponible",contactTitle:"Contact : un seul suffit",contactBody:"Indiquez WhatsApp/téléphone ou e-mail. Les deux ne sont pas nécessaires.",phone:"WhatsApp / téléphone",email:"E-mail",product:"Code radio Honda / Acura",oneTime:"Paiement unique par demande",pay:"Continuer vers le paiement",preparing:"Préparation de PayPal…",paypalNote:"PayPal s’ouvre dans un autre onglet pour garder AutoStereoCodes ouvert.",needData:"Complétez la marque, l’année, le modèle et le numéro de série.",needContact:"Indiquez au moins WhatsApp/téléphone ou e-mail.",opening:"Préparation du paiement. PayPal va s’ouvrir dans un autre onglet.",paypalOpen:"PayPal est ouvert dans un autre onglet. Cette demande reste ici.",blocked:"Le navigateur a bloqué le nouvel onglet. Ouverture de PayPal ici…",connection:"Impossible de se connecter au système de paiement. Réessayez.",errors:{INVALID_EMAIL:"Saisissez un e-mail valide ou utilisez WhatsApp.",EMAIL_UNDELIVERABLE:"Impossible de valider cet e-mail. Vérifiez-le ou utilisez WhatsApp.",INVALID_CONTACT:"Indiquez WhatsApp/téléphone ou e-mail.",INVALID_INPUT:"Vérifiez les informations et réessayez.",UNSUPPORTED_BRAND:"Ce service accepte uniquement Honda et Acura.",NOT_CONFIGURED:"Le paiement n’est pas encore disponible. Réessayez plus tard."}},
+  de:{back:"Zur Startseite",label:"Code-Anfrage",title:"Honda- oder Acura-Code anfordern",intro:"Radiodaten eingeben. Die VIN ist optional.",brand:"Marke",year:"Jahr",selectYear:"Jahr auswählen",model:"Modell",selectModel:"Modell auswählen",serial:"Radio-Seriennummer",vin:"Fahrzeug-VIN",optional:"optional",vinPlaceholder:"17 Zeichen, falls vorhanden",contactTitle:"Kontakt: eine Angabe reicht",contactBody:"WhatsApp/Telefon oder E-Mail genügt. Beides ist nicht erforderlich.",phone:"WhatsApp / Telefon",email:"E-Mail",product:"Honda / Acura Radio-Code",oneTime:"Einmalige Zahlung pro Anfrage",pay:"Weiter zur Zahlung",preparing:"PayPal wird vorbereitet…",paypalNote:"PayPal öffnet in einem neuen Tab, damit AutoStereoCodes geöffnet bleibt.",needData:"Marke, Jahr, Modell und Seriennummer ausfüllen.",needContact:"Mindestens WhatsApp/Telefon oder E-Mail angeben.",opening:"Zahlung wird vorbereitet. PayPal öffnet in einem neuen Tab.",paypalOpen:"PayPal ist in einem anderen Tab geöffnet. Diese Anfrage bleibt hier.",blocked:"Der Browser hat den neuen Tab blockiert. PayPal wird hier geöffnet…",connection:"Verbindung zum Zahlungssystem fehlgeschlagen. Bitte erneut versuchen.",errors:{INVALID_EMAIL:"Gültige E-Mail eingeben oder WhatsApp verwenden.",EMAIL_UNDELIVERABLE:"E-Mail konnte nicht geprüft werden. Bitte korrigieren oder WhatsApp verwenden.",INVALID_CONTACT:"WhatsApp/Telefon oder E-Mail angeben.",INVALID_INPUT:"Daten prüfen und erneut versuchen.",UNSUPPORTED_BRAND:"Dieser Service unterstützt nur Honda und Acura.",NOT_CONFIGURED:"Zahlungen sind noch nicht verfügbar. Bitte später erneut versuchen."}},
+  it:{back:"Torna alla home",label:"Richiesta codice",title:"Richiedi il codice Honda o Acura",intro:"Inserisci i dati della radio. Il VIN è facoltativo.",brand:"Marca",year:"Anno",selectYear:"Seleziona anno",model:"Modello",selectModel:"Seleziona modello",serial:"Numero di serie dello stereo",vin:"VIN del veicolo",optional:"facoltativo",vinPlaceholder:"17 caratteri, se disponibile",contactTitle:"Contatto: ne basta uno",contactBody:"Puoi lasciare WhatsApp/telefono oppure e-mail. Non servono entrambi.",phone:"WhatsApp / telefono",email:"E-mail",product:"Codice radio Honda / Acura",oneTime:"Pagamento unico per richiesta",pay:"Continua al pagamento",preparing:"Preparazione PayPal…",paypalNote:"PayPal si apre in un’altra scheda così AutoStereoCodes resta aperto.",needData:"Compila marca, anno, modello e numero di serie.",needContact:"Lascia almeno WhatsApp/telefono oppure e-mail.",opening:"Preparazione del pagamento. PayPal si aprirà in un’altra scheda.",paypalOpen:"PayPal è aperto in un’altra scheda. Questa richiesta rimane qui.",blocked:"Il browser ha bloccato la nuova scheda. Apertura di PayPal qui…",connection:"Impossibile collegarsi al sistema di pagamento. Riprova.",errors:{INVALID_EMAIL:"Inserisci un’e-mail valida oppure usa WhatsApp.",EMAIL_UNDELIVERABLE:"Non è stato possibile verificare l’e-mail. Controllala oppure usa WhatsApp.",INVALID_CONTACT:"Inserisci WhatsApp/telefono oppure e-mail.",INVALID_INPUT:"Controlla i dati e riprova.",UNSUPPORTED_BRAND:"Questo servizio accetta solo Honda e Acura.",NOT_CONFIGURED:"Il pagamento non è ancora disponibile. Riprova più tardi."}},
+};
 
 export default function SolicitudCodigo(){
+  const {language,setLanguage,href}=useSiteLanguage();
+  const copy=COPY[language];
   const [brand,setBrand]=useState<"Honda"|"Acura">("Honda");
   const [model,setModel]=useState("");
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
   const models=brand==="Honda"?HONDA_MODELS:ACURA_MODELS;
 
-  function chooseBrand(next:"Honda"|"Acura"){
-    setBrand(next);
-    setModel("");
-  }
+  function chooseBrand(next:"Honda"|"Acura"){setBrand(next);setModel("");}
 
   async function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
@@ -28,127 +39,34 @@ export default function SolicitudCodigo(){
     const vin=String(data.get("vin")||"").trim().toUpperCase();
     const email=String(data.get("email")||"").trim();
     const phone=String(data.get("phone")||"").trim();
+    if(!year||!selectedModel||!serial){setMessage(copy.needData);return;}
+    if(!email&&!phone){setMessage(copy.needContact);return;}
 
-    if(!year||!selectedModel||!serial){
-      setMessage("Completa marca, año, modelo y serie del estéreo.");
-      return;
-    }
-    if(!email&&!phone){
-      setMessage("Deja al menos un medio de contacto: WhatsApp/teléfono o correo electrónico.");
-      return;
-    }
-
-    // Abrimos la pestaña de pago durante el clic del usuario para evitar que
-    // el navegador la bloquee. AutoStereoCodes permanece abierto en esta pestaña.
     const paymentWindow=window.open("about:blank","autostereocodes_paypal_checkout");
-    if(paymentWindow){
-      paymentWindow.document.title="Abriendo PayPal…";
-      paymentWindow.document.body.innerHTML='<div style="font-family:system-ui;padding:40px;text-align:center"><h2>Abriendo PayPal…</h2><p>No cierres esta ventana.</p></div>';
-    }
-
-    setBusy(true);
-    setMessage("Preparando el pago. PayPal se abrirá en otra pestaña y esta página permanecerá abierta.");
+    if(paymentWindow){paymentWindow.document.title="PayPal";paymentWindow.document.body.innerHTML='<div style="font-family:system-ui;padding:40px;text-align:center"><h2>PayPal…</h2></div>';}
+    setBusy(true);setMessage(copy.opening);
     try{
-      const response=await fetch("/api/checkout",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({serial,vin,email,phone,prioritySms:false,language:"es",detectedBrand:brand,radioFamily:`${year} ${selectedModel}`}),
-      });
+      const response=await fetch("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({serial,vin,email,phone,prioritySms:false,language,detectedBrand:brand,radioFamily:`${year} ${selectedModel}`})});
       const result=await response.json();
-      if(!response.ok||!result.url){
-        if(paymentWindow&&!paymentWindow.closed) paymentWindow.close();
-        const messages:Record<string,string>={
-          INVALID_EMAIL:"Escribe un correo válido o déjalo vacío y usa WhatsApp.",
-          EMAIL_UNDELIVERABLE:"No pudimos validar ese correo. Revisa que esté escrito correctamente o usa WhatsApp.",
-          INVALID_CONTACT:"Deja al menos un WhatsApp/teléfono o un correo electrónico.",
-          INVALID_INPUT:"Revisa los datos e inténtalo de nuevo.",
-          UNSUPPORTED_BRAND:"Este servicio solo acepta Honda y Acura.",
-          NOT_CONFIGURED:"El sistema de pago todavía no está disponible. Inténtalo más tarde.",
-        };
-        setMessage(messages[result?.code]||"No pudimos iniciar el pago. Revisa tus datos e inténtalo de nuevo.");
-        setBusy(false); return;
-      }
-
-      if(paymentWindow&&!paymentWindow.closed){
-        paymentWindow.location.href=result.url;
-        paymentWindow.focus();
-        setMessage("PayPal está abierto en otra pestaña. Esta solicitud permanece aquí por si decides regresar o cancelar.");
-        setBusy(false);
-        return;
-      }
-
-      // Si el navegador bloquea la nueva pestaña, usamos la misma como respaldo.
-      setMessage("Tu navegador bloqueó la nueva pestaña. Abriendo PayPal aquí…");
-      window.location.href=result.url;
-    }catch{
-      if(paymentWindow&&!paymentWindow.closed) paymentWindow.close();
-      setMessage("No pudimos conectar con el sistema de pago. Inténtalo de nuevo.");
-      setBusy(false);
-    }
+      if(!response.ok||!result.url){if(paymentWindow&&!paymentWindow.closed)paymentWindow.close();setMessage(copy.errors[result?.code]||copy.connection);setBusy(false);return;}
+      if(paymentWindow&&!paymentWindow.closed){paymentWindow.location.href=result.url;paymentWindow.focus();setMessage(copy.paypalOpen);setBusy(false);return;}
+      setMessage(copy.blocked);window.location.href=result.url;
+    }catch{if(paymentWindow&&!paymentWindow.closed)paymentWindow.close();setMessage(copy.connection);setBusy(false);}
   }
 
   return <main className="min-h-screen bg-[#f7f8fa] text-[#111827]">
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-        <a href="/" className="text-xl font-black tracking-tight">AutoStereoCodes</a>
-        <a href="/" className="text-sm font-bold text-slate-600">← Volver al inicio</a>
-      </div>
-    </header>
-
-    <section className="px-5 py-12 md:py-16">
-      <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-9">
-        <div className="text-center">
-          <div className="text-xs font-black uppercase tracking-[.2em] text-[#d71920]">Solicitud de código</div>
-          <h1 className="mt-2 text-3xl font-black sm:text-4xl">Solicita tu código Honda o Acura</h1>
-          <p className="mt-3 text-slate-600">Llena los datos del radio. El VIN es opcional.</p>
-        </div>
-
-        <form onSubmit={submit} className="mt-8 grid gap-5">
-          <div>
-            <div className="mb-2 text-sm font-black">Marca *</div>
-            <div className="grid grid-cols-2 gap-3">
-              {(["Honda","Acura"] as const).map(option=><button key={option} type="button" onClick={()=>chooseBrand(option)} className={`rounded-xl border-2 px-5 py-4 font-black transition ${brand===option?"border-[#d71920] bg-red-50 text-[#b4151b]":"border-slate-200 bg-white text-slate-700"}`}>{option}</button>)}
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-black">Año *
-              <select name="year" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold outline-none focus:border-[#d71920]"><option value="">Selecciona año</option>{YEARS.map(year=><option key={year} value={year}>{year}</option>)}</select>
-            </label>
-            <label className="text-sm font-black">Modelo *
-              <select name="model" required value={model} onChange={e=>setModel(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold outline-none focus:border-[#d71920]"><option value="">Selecciona modelo</option>{models.map(item=><option key={item} value={item}>{item}</option>)}</select>
-            </label>
-          </div>
-
-          <label className="text-sm font-black">Serie del estéreo *
-            <input name="serial" required maxLength={100} autoCapitalize="characters" placeholder="Ej. U1234 L5678 / S/N 15517841" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/>
-          </label>
-
-          <label className="text-sm font-black">VIN del vehículo <span className="font-semibold text-slate-400">(opcional)</span>
-            <input name="vin" maxLength={17} autoCapitalize="characters" placeholder="17 caracteres, si lo tienes disponible" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 uppercase outline-none focus:border-[#d71920]"/>
-          </label>
-
-          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
-            <div className="font-black text-blue-950">Contacto: solo necesitas uno</div>
-            <p className="mt-1 text-sm leading-6 text-blue-900/80">Puedes dejar WhatsApp/teléfono o correo electrónico. No es necesario llenar ambos.</p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-black">WhatsApp / teléfono
-              <input name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="Ej. +52 664 123 4567" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/>
-            </label>
-            <label className="text-sm font-black">Correo electrónico
-              <input name="email" type="email" autoComplete="email" maxLength={254} placeholder="tu@correo.com" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/>
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-2 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-black text-slate-800">Código de radio Honda / Acura</div><div className="mt-1 text-xs font-semibold text-slate-500">Pago único por solicitud</div></div><span className="text-2xl font-black text-[#b4151b]">${PRICE_USD.toFixed(2)} USD</span></div>
-
-          {message&&<div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 font-semibold text-amber-900">{message}</div>}
-          <button disabled={busy} type="submit" className="rounded-xl bg-[#d71920] px-6 py-4 text-lg font-black uppercase text-white transition hover:bg-[#b4151b] disabled:opacity-60">{busy?"Preparando PayPal…":"Continuar al pago"}</button>
-          <p className="text-center text-xs font-medium leading-5 text-slate-500">PayPal se abre en otra pestaña para que AutoStereoCodes permanezca abierto durante el pago.</p>
-        </form>
-      </div>
-    </section>
+    <header className="border-b border-slate-200 bg-white"><div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4"><a href={href("/")} className="text-xl font-black tracking-tight">AutoStereoCodes</a><div className="flex items-center gap-2"><LanguagePicker language={language} onChange={setLanguage}/><a href={href("/")} className="hidden text-sm font-bold text-slate-600 sm:inline">← {copy.back}</a></div></div></header>
+    <section className="px-5 py-12 md:py-16"><div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-9"><div className="text-center"><div className="text-xs font-black uppercase tracking-[.2em] text-[#d71920]">{copy.label}</div><h1 className="mt-2 text-3xl font-black sm:text-4xl">{copy.title}</h1><p className="mt-3 text-slate-600">{copy.intro}</p></div>
+      <form onSubmit={submit} className="mt-8 grid gap-5">
+        <div><div className="mb-2 text-sm font-black">{copy.brand} *</div><div className="grid grid-cols-2 gap-3">{(["Honda","Acura"] as const).map(option=><button key={option} type="button" onClick={()=>chooseBrand(option)} className={`rounded-xl border-2 px-5 py-4 font-black transition ${brand===option?"border-[#d71920] bg-red-50 text-[#b4151b]":"border-slate-200 bg-white text-slate-700"}`}>{option}</button>)}</div></div>
+        <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-black">{copy.year} *<select name="year" required className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold outline-none focus:border-[#d71920]"><option value="">{copy.selectYear}</option>{YEARS.map(year=><option key={year} value={year}>{year}</option>)}</select></label><label className="text-sm font-black">{copy.model} *<select name="model" required value={model} onChange={e=>setModel(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold outline-none focus:border-[#d71920]"><option value="">{copy.selectModel}</option>{models.map(item=><option key={item} value={item}>{item}</option>)}</select></label></div>
+        <label className="text-sm font-black">{copy.serial} *<input name="serial" required maxLength={100} autoCapitalize="characters" placeholder="U1234 L5678 / S/N 15517841" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/></label>
+        <label className="text-sm font-black">{copy.vin} <span className="font-semibold text-slate-400">({copy.optional})</span><input name="vin" maxLength={17} autoCapitalize="characters" placeholder={copy.vinPlaceholder} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 uppercase outline-none focus:border-[#d71920]"/></label>
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5"><div className="font-black text-blue-950">{copy.contactTitle}</div><p className="mt-1 text-sm leading-6 text-blue-900/80">{copy.contactBody}</p></div>
+        <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-black">{copy.phone}<input name="phone" type="tel" autoComplete="tel" maxLength={32} placeholder="+52 664 123 4567" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/></label><label className="text-sm font-black">{copy.email}<input name="email" type="email" autoComplete="email" maxLength={254} placeholder="name@email.com" className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#d71920]"/></label></div>
+        <div className="flex flex-col gap-2 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-black text-slate-800">{copy.product}</div><div className="mt-1 text-xs font-semibold text-slate-500">{copy.oneTime}</div></div><span className="text-2xl font-black text-[#b4151b]">${PRICE_USD.toFixed(2)} USD</span></div>
+        {message&&<div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 font-semibold text-amber-900">{message}</div>}
+        <button disabled={busy} type="submit" className="rounded-xl bg-[#d71920] px-6 py-4 text-lg font-black uppercase text-white transition hover:bg-[#b4151b] disabled:opacity-60">{busy?copy.preparing:copy.pay}</button><p className="text-center text-xs font-medium leading-5 text-slate-500">{copy.paypalNote}</p>
+      </form></div></section>
   </main>;
 }
