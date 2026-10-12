@@ -3,138 +3,246 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 type Row = {
-  id:number; reference:string; serial:string; year:number|null; brand:string|null; model:string|null;
-  phone:string|null; email:string|null; vin:string|null; language:string; status:string; priority_sms:boolean;
-  payment_provider:string|null; amount_total:number|null; currency:string|null; paid_at:string|null;
-  stereo_code:string|null; code_updated_at:string|null;
+  id:number;
+  reference:string;
+  serial:string;
+  year:number|null;
+  brand:string|null;
+  model:string|null;
+  phone:string|null;
+  email:string|null;
+  language:string;
+  status:string;
+  priority_sms:boolean;
+  payment_provider:string|null;
+  amount_total:number|null;
+  currency:string|null;
+  paid_at:string|null;
+  stereo_code:string|null;
+  code_updated_at:string|null;
 };
 
-type Queue = "all"|"automatic"|"special"|"completed";
-type AiDecision = {queue:"automatic"|"special";confidence:"high"|"medium"|"low";reason:string;source:"ai"|"rules"};
-type LookupResult = {status:"found"|"manual"|"unsupported"|"needs_input";code?:string;source?:string;sourceUrl?:string;reason:string;missing?:string[]};
+type Tab = "pending"|"ready"|"completed";
 
-const languageNames:Record<string,string>={en:"English",es:"Español",pt:"Português",fr:"Français",de:"Deutsch",it:"Italiano"};
-const automaticBrands=new Set(["honda","acura","renault","dacia"]);
-const specialBrands=new Set(["mercedes-benz","mercedes","jeep","chrysler","dodge","nissan"]);
+const ALLOWED_BRANDS = new Set(["honda","acura"]);
 
-function fallbackRouting(row:Row):AiDecision{
-  const brand=(row.brand||"").trim().toLowerCase();
-  if(specialBrands.has(brand)) return {queue:"special",confidence:"high",reason:"Requiere proveedor o validación manual antes de entregar.",source:"rules"};
-  if(automaticBrands.has(brand)) return {queue:"automatic",confidence:"medium",reason:"Prioridad para intentar una fuente oficial o aprobada antes de escalar a proveedor.",source:"rules"};
-  return {queue:"special",confidence:"low",reason:"Todavía no hay una fuente automática validada para esta marca.",source:"rules"};
+function isHondaAcura(row:Row){
+  return ALLOWED_BRANDS.has(String(row.brand||"").trim().toLowerCase());
 }
 
-function reviewState(row:Row){
-  if(row.status==="completed") return {label:"Enviado / completado",className:"bg-blue-500/15 text-blue-300"};
-  if((row.stereo_code||"").trim()) return {label:"Código encontrado — revisar antes de enviar",className:"bg-emerald-500/15 text-emerald-300"};
-  return {label:"Pendiente de conseguir código",className:"bg-slate-500/15 text-slate-300"};
+function amountLabel(row:Row){
+  if(row.amount_total==null) return "—";
+  return new Intl.NumberFormat("en-US",{
+    style:"currency",
+    currency:(row.currency||"USD").toUpperCase(),
+  }).format(row.amount_total/100);
 }
 
-function lookupStyle(status:LookupResult["status"]){
-  if(status==="found") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-100";
-  if(status==="needs_input") return "border-amber-500/30 bg-amber-500/10 text-amber-100";
-  return "border-slate-600 bg-slate-950/70 text-slate-300";
+function dateLabel(value:string|null){
+  if(!value) return "—";
+  return new Intl.DateTimeFormat("es-MX",{dateStyle:"medium",timeStyle:"short"}).format(new Date(value));
 }
 
-function deliveryMessage(r:Row,code:string){
-  if(r.language==="es") return `Hola. Tu código de desbloqueo es: ${code}. Folio: ${r.reference}. Gracias por usar Auto Stereo Codes.`;
-  return `Hello. Your stereo unlock code is: ${code}. Reference: ${r.reference}. Thank you for using Auto Stereo Codes.`;
+function deliveryMessage(row:Row,code:string){
+  const brand=row.brand||"Honda/Acura";
+  if(row.language==="es") return `Hola. Tu código de desbloqueo para ${brand} es: ${code}. Folio: ${row.reference}. Gracias por usar Auto Stereo Codes.`;
+  return `Hello. Your ${brand} stereo unlock code is: ${code}. Reference: ${row.reference}. Thank you for using Auto Stereo Codes.`;
 }
 
-function emailUrl(r:Row,code:string){
-  if(!r.email||!code.trim()) return "";
-  const subject=r.language==="es"?`Tu código de estéreo - ${r.reference}`:`Your stereo code - ${r.reference}`;
-  return `mailto:${r.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(deliveryMessage(r,code.trim()))}`;
+function emailUrl(row:Row,code:string){
+  if(!row.email||!code.trim()) return "";
+  const subject=row.language==="es"?`Tu código Honda/Acura - ${row.reference}`:`Your Honda/Acura code - ${row.reference}`;
+  return `mailto:${row.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(deliveryMessage(row,code.trim()))}`;
 }
 
-function smsUrl(r:Row,code:string){
-  const digits=(r.phone||"").replace(/[^\d+]/g,"");
-  if(!digits||!code.trim()||!r.priority_sms) return "";
-  return `sms:${digits}?body=${encodeURIComponent(deliveryMessage(r,code.trim()))}`;
+function smsUrl(row:Row,code:string){
+  const phone=(row.phone||"").replace(/[^\d+]/g,"");
+  if(!phone||!code.trim()||!row.priority_sms) return "";
+  return `sms:${phone}?body=${encodeURIComponent(deliveryMessage(row,code.trim()))}`;
 }
 
 export default function AdminPanel(){
   const [auth,setAuth]=useState<boolean|null>(null);
   const [password,setPassword]=useState("");
   const [rows,setRows]=useState<Row[]>([]);
-  const [draftCodes,setDraftCodes]=useState<Record<number,string>>({});
-  const [aiById,setAiById]=useState<Record<number,AiDecision>>({});
-  const [lookupById,setLookupById]=useState<Record<number,LookupResult>>({});
-  const [aiConfigured,setAiConfigured]=useState<boolean|null>(null);
-  const [analyzing,setAnalyzing]=useState<number|null>(null);
-  const [lookingUp,setLookingUp]=useState<number|null>(null);
-  const [savingCode,setSavingCode]=useState<number|null>(null);
+  const [codes,setCodes]=useState<Record<number,string>>({});
+  const [tab,setTab]=useState<Tab>("pending");
   const [q,setQ]=useState("");
-  const [queue,setQueue]=useState<Queue>("all");
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const [busy,setBusy]=useState(false);
-
-  async function checkAiStatus(){
-    try{const r=await fetch("/api/admin/route-ai",{method:"GET",cache:"no-store"});if(r.ok){const j=await r.json();setAiConfigured(Boolean(j.aiConfigured));}}catch{}
-  }
-
-  async function analyzeRoute(row:Row,silent=false){
-    if(!silent){setAnalyzing(row.id);setError("");setNotice("");}
-    try{
-      const r=await fetch("/api/admin/route-ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({brand:row.brand,model:row.model,year:row.year,serial:row.serial,radioFamily:row.model||""})});
-      if(!r.ok) throw new Error();
-      const j=await r.json(); const d=j?.decision as AiDecision|undefined; setAiConfigured(Boolean(j.aiConfigured));
-      if(d?.queue&&d?.reason){setAiById(x=>({...x,[row.id]:d}));if(!silent)setNotice(d.source==="ai"?"La IA analizó la solicitud.":j.aiConfigured?"La IA está configurada, pero esta solicitud usó reglas de respaldo.":"Clasificación aplicada con reglas seguras.");}
-    }catch{setAiById(x=>({...x,[row.id]:fallbackRouting(row)}));if(!silent)setError("No se pudo consultar la IA; se aplicaron reglas seguras.");}
-    finally{if(!silent)setAnalyzing(null);}
-  }
-
-  async function lookupCode(row:Row){
-    setLookingUp(row.id);setError("");setNotice("");
-    try{
-      const response=await fetch("/api/admin/code-lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({brand:row.brand,serial:row.serial,vin:row.vin,year:row.year,model:row.model,email:row.email,phone:row.phone})});
-      if(!response.ok) throw new Error();
-      const result=await response.json() as LookupResult;setLookupById(x=>({...x,[row.id]:result}));
-      if(result.status==="found"&&result.code){setDraftCodes(x=>({...x,[row.id]:result.code||""}));setNotice("Código encontrado. Revísalo; ya puedes enviarlo por correo o guardarlo.");}
-      else if(result.status==="needs_input")setNotice("La fuente oficial necesita un dato adicional antes de hacer la consulta.");
-      else setNotice("No hubo un código automático. Dejé disponible la fuente oficial para revisión manual.");
-    }catch{setError("No se pudo ejecutar la búsqueda automática.");}
-    finally{setLookingUp(null);}
-  }
+  const [saving,setSaving]=useState<number|null>(null);
 
   async function load(){
-    const r=await fetch("/api/admin/requests",{cache:"no-store"});
-    if(r.status===401){setAuth(false);setRows([]);return;}
-    if(!r.ok){setAuth(true);setError("No se pudieron cargar las solicitudes.");return;}
-    const j=await r.json();const nextRows:Row[]=j.requests||[];setRows(nextRows);setDraftCodes(Object.fromEntries(nextRows.map(row=>[row.id,row.stereo_code||""])));setAuth(true);setError("");void checkAiStatus();
-    for(const row of nextRows.filter(row=>row.status!=="completed").slice(0,25)){void analyzeRoute(row,true);}
+    const response=await fetch("/api/admin/requests",{cache:"no-store"});
+    if(response.status===401){setAuth(false);setRows([]);return;}
+    if(!response.ok){setAuth(true);setError("No se pudieron cargar las solicitudes.");return;}
+    const data=await response.json();
+    const all:Row[]=Array.isArray(data.requests)?data.requests:[];
+    const onlyHondaAcura=all.filter(isHondaAcura);
+    setRows(onlyHondaAcura);
+    setCodes(Object.fromEntries(onlyHondaAcura.map(row=>[row.id,row.stereo_code||""])));
+    setAuth(true);
+    setError("");
   }
 
   useEffect(()=>{load().catch(()=>setAuth(false));},[]);
 
-  async function login(e:FormEvent){e.preventDefault();setBusy(true);setError("");const r=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});if(!r.ok){setError(r.status===503?"Configura la contraseña del panel.":"Contraseña incorrecta.");setBusy(false);return;}setPassword("");await load();setBusy(false);}
-  async function logout(){await fetch("/api/admin/logout",{method:"POST"});setAuth(false);setRows([]);}
-  async function changeStatus(id:number,status:string){setError("");setNotice("");const r=await fetch("/api/admin/requests",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,status})});if(!r.ok){setError("No se pudo actualizar el estado.");return;}setRows(x=>x.map(row=>row.id===id?{...row,status}:row));if(status==="completed")setNotice("Solicitud movida a Completadas.");}
-  async function saveCode(id:number){setSavingCode(id);setError("");setNotice("");const stereoCode=(draftCodes[id]||"").trim();const r=await fetch("/api/admin/requests",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,stereoCode})});if(!r.ok){setError("No se pudo guardar el código del estéreo.");setSavingCode(null);return;}const j=await r.json();setRows(x=>x.map(row=>row.id===id?{...row,stereo_code:j.stereoCode||null,code_updated_at:j.codeUpdatedAt||null}:row));setNotice(stereoCode?"Código guardado.":"Código eliminado.");setSavingCode(null);}
+  async function login(event:FormEvent){
+    event.preventDefault();
+    setBusy(true);setError("");
+    const response=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});
+    if(!response.ok){setError(response.status===503?"Configura la contraseña del panel.":"Contraseña incorrecta.");setBusy(false);return;}
+    setPassword("");
+    await load();
+    setBusy(false);
+  }
 
-  const routed=useMemo(()=>rows.map(row=>({row,routing:aiById[row.id]||fallbackRouting(row)})),[rows,aiById]);
-  const filtered=useMemo(()=>{const s=q.toLowerCase().trim();return routed.filter(({row,routing})=>{if(queue==="completed"){if(row.status!=="completed")return false;}else{if(row.status==="completed")return false;if(queue!=="all"&&routing.queue!==queue)return false;}if(!s)return true;return [row.reference,row.serial,row.vin||"",row.brand||"",row.model||"",row.phone||"",row.email||"",row.stereo_code||""].some(v=>String(v).toLowerCase().includes(s));});},[q,queue,routed]);
-  const activeRows=rows.filter(r=>r.status!=="completed");
-  const counts={active:activeRows.length,automatic:routed.filter(x=>x.row.status!=="completed"&&x.routing.queue==="automatic").length,special:routed.filter(x=>x.row.status!=="completed"&&x.routing.queue==="special").length,ready:rows.filter(r=>(r.stereo_code||"").trim()&&r.status!=="completed").length,completed:rows.filter(r=>r.status==="completed").length};
+  async function logout(){
+    await fetch("/api/admin/logout",{method:"POST"});
+    setAuth(false);setRows([]);
+  }
 
-  if(auth===null)return <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">Cargando…</main>;
-  if(!auth)return <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white"><form onSubmit={login} className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-8"><div className="text-sm font-black tracking-[.2em] text-blue-400">AUTO STEREO CODES</div><h1 className="mt-4 text-3xl font-black">Panel de administrador</h1><p className="mt-2 text-slate-400">Acceso privado a solicitudes pagadas.</p><input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Contraseña" className="mt-7 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"/>{error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-sm text-amber-100">{error}</p>}<button disabled={busy} className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500">{busy?"Entrando…":"Entrar"}</button></form></main>;
+  async function saveCode(row:Row){
+    setSaving(row.id);setError("");setNotice("");
+    const stereoCode=(codes[row.id]||"").trim();
+    const response=await fetch("/api/admin/requests",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:row.id,stereoCode})});
+    if(!response.ok){setError("No se pudo guardar el código.");setSaving(null);return;}
+    const data=await response.json();
+    setRows(current=>current.map(item=>item.id===row.id?{...item,stereo_code:data.stereoCode||null,code_updated_at:data.codeUpdatedAt||null}:item));
+    setNotice(stereoCode?"Código Honda/Acura guardado.":"Código eliminado.");
+    setSaving(null);
+  }
 
-  return <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8"><div className="mx-auto max-w-7xl">
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><div className="text-sm font-black tracking-[.2em] text-blue-400">AUTO STEREO CODES</div><h1 className="mt-2 text-4xl font-black">Solicitudes pagadas</h1><p className="mt-2 text-sm text-slate-400">Las completadas se archivan aparte.</p><div className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-black ${aiConfigured===true?"bg-emerald-500/15 text-emerald-300":aiConfigured===false?"bg-amber-500/15 text-amber-300":"bg-slate-500/15 text-slate-300"}`}>{aiConfigured===true?"🤖 IA configurada":aiConfigured===false?"🛡️ Reglas activas · IA pendiente":"⏳ Comprobando IA…"}</div></div><div className="flex gap-2"><button onClick={load} className="rounded-xl border border-slate-700 px-4 py-2">Actualizar</button><button onClick={logout} className="rounded-xl bg-slate-800 px-4 py-2">Cerrar sesión</button></div></div>
-    <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{[["Activas",counts.active],["Automáticas",counts.automatic],["Revisión especial",counts.special],["Listas para revisar",counts.ready],["Completadas",counts.completed]].map(([a,b])=><div key={String(a)} className="rounded-2xl border border-white/10 bg-slate-900 p-5"><div className="text-sm text-slate-400">{a}</div><div className="mt-1 text-3xl font-black">{b}</div></div>)}</div>
-    <div className="mt-6 flex flex-wrap gap-2">{([['all','Activas'],['automatic','Automáticas'],['special','Revisión especial'],['completed','✅ Completadas']] as [Queue,string][]).map(([value,label])=><button key={value} onClick={()=>setQueue(value)} className={`rounded-full px-4 py-2 text-sm font-black ${queue===value?value==="completed"?"bg-emerald-600 text-white":"bg-blue-600 text-white":"border border-slate-700 bg-slate-900 text-slate-300"}`}>{label}{value==="completed"?` (${counts.completed})`:""}</button>)}</div>
-    <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar folio, serial, VIN, marca, teléfono, email o código…" className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-blue-500"/>
-    {error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-amber-100">{error}</p>}{notice&&<p className="mt-4 rounded-xl border border-emerald-700 bg-emerald-950 p-3 text-emerald-100">{notice}</p>}
-    <div className="mt-6 space-y-4">{filtered.map(({row:r,routing})=>{const amount=r.amount_total==null?"—":new Intl.NumberFormat("en-US",{style:"currency",currency:(r.currency||"USD").toUpperCase()}).format(r.amount_total/100);const currentCode=(draftCodes[r.id]??r.stereo_code??"").trim();const mail=emailUrl(r,currentCode);const sms=smsUrl(r,currentCode);const state=reviewState(r);const lookup=lookupById[r.id];return <article key={r.id} className="rounded-2xl border border-white/10 bg-slate-900 p-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"><div><div className="text-xs font-bold uppercase tracking-widest text-blue-400">Folio</div><div className="mt-1 text-xl font-black">{r.reference}</div><div className="mt-1 text-sm text-slate-400">{amount} · {r.payment_provider||"paypal"} · {r.paid_at?new Date(r.paid_at).toLocaleString("es-MX"):"—"}</div><div className="mt-3 flex flex-wrap gap-2">{r.status!=="completed"&&<span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${routing.queue==="automatic"?"bg-emerald-500/15 text-emerald-300":"bg-amber-500/15 text-amber-300"}`}>{routing.queue==="automatic"?"⚡ Automática":"🧑‍🔧 Revisión especial"}</span>}<span className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${state.className}`}>{state.label}</span></div></div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">{r.status!=="completed"&&<button onClick={()=>analyzeRoute(r)} disabled={analyzing===r.id} className="rounded-xl border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-sm font-black text-violet-200">{analyzing===r.id?"Analizando…":"Analizar con IA"}</button>}{r.status!=="completed"&&routing.queue==="automatic"&&<button onClick={()=>lookupCode(r)} disabled={lookingUp===r.id} className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-black text-emerald-200">{lookingUp===r.id?"Buscando…":"Buscar código automáticamente"}</button>}<select value={r.status} onChange={e=>changeStatus(r.id,e.target.value)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2"><option value="new">Nueva</option><option value="processing">En proceso</option><option value="completed">Completada</option></select></div></div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5"><Item label="Serial" value={r.serial}/><Item label="VIN" value={r.vin||"—"}/><Item label="Marca" value={r.brand||"—"}/><Item label="Email" value={r.email||"—"}/><Item label="Idioma" value={languageNames[r.language]||r.language}/></div>
-      {lookup&&r.status!=="completed"&&<div className={`mt-5 rounded-2xl border p-4 ${lookupStyle(lookup.status)}`}><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="text-xs font-black uppercase tracking-widest">Resultado de búsqueda · {lookup.status}</div><div className="mt-2 text-sm leading-6">{lookup.reason}</div></div>{lookup.sourceUrl&&<a href={lookup.sourceUrl} target="_blank" rel="noreferrer" className="rounded-xl bg-white/10 px-4 py-2 text-sm font-black">Abrir fuente oficial ↗</a>}</div></div>}
-      <div className="mt-6 rounded-2xl border border-blue-500/20 bg-slate-950/70 p-4"><div className="text-sm font-bold text-blue-300">Código de desbloqueo</div><p className="mt-1 text-xs text-slate-400">{r.status==="completed"?"Solicitud archivada como completada.":"Escribe o revisa el código. El botón de correo se activa en cuanto haya un código y un email del cliente."}</p><div className="mt-3 flex flex-col gap-3 md:flex-row"><input value={draftCodes[r.id]??""} onChange={e=>setDraftCodes(x=>({...x,[r.id]:e.target.value}))} maxLength={100} readOnly={r.status==="completed"} placeholder="Código del estéreo" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-lg outline-none focus:border-blue-500 read-only:text-slate-400"/>{r.status!=="completed"&&<button onClick={()=>saveCode(r.id)} disabled={savingCode===r.id} className="rounded-xl bg-blue-600 px-5 py-3 font-bold hover:bg-blue-500 disabled:opacity-50">{savingCode===r.id?"Guardando…":"Guardar código"}</button>}</div>{r.status!=="completed"&&<div className="mt-4 flex flex-wrap gap-3">{mail?<a href={mail} className="rounded-xl bg-indigo-600 px-4 py-2.5 font-bold hover:bg-indigo-500">✉️ Enviar por correo</a>:<button disabled className="rounded-xl bg-slate-800 px-4 py-2.5 font-bold text-slate-500">✉️ Enviar por correo</button>}{sms?<a href={sms} className="rounded-xl bg-emerald-600 px-4 py-2.5 font-bold hover:bg-emerald-500">Enviar por SMS</a>:null}</div>}{r.status!=="completed"&&!r.email&&<div className="mt-3 text-xs font-semibold text-amber-300">Esta solicitud no tiene correo electrónico guardado.</div>}{r.status!=="completed"&&r.email&&!currentCode&&<div className="mt-3 text-xs font-semibold text-amber-300">Escribe el código para activar el envío por correo.</div>}{r.stereo_code&&<div className="mt-4 text-sm text-slate-400">Código guardado: <span className="font-mono font-bold text-white">{r.stereo_code}</span></div>}</div>
-    </article>})}{filtered.length===0&&<div className="rounded-2xl border border-white/10 bg-slate-900 p-8 text-center text-slate-400">{queue==="completed"?"Todavía no hay solicitudes completadas.":"No hay solicitudes pendientes en esta cola."}</div>}</div>
-  </div></main>;
+  async function markCompleted(row:Row){
+    setError("");setNotice("");
+    const response=await fetch("/api/admin/requests",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:row.id,status:"completed"})});
+    if(!response.ok){setError("No se pudo marcar como completada.");return;}
+    setRows(current=>current.map(item=>item.id===row.id?{...item,status:"completed"}:item));
+    setNotice("Solicitud archivada como completada.");
+  }
+
+  const counts=useMemo(()=>({
+    pending:rows.filter(r=>r.status!=="completed"&&!String(r.stereo_code||"").trim()).length,
+    ready:rows.filter(r=>r.status!=="completed"&&String(r.stereo_code||"").trim()).length,
+    completed:rows.filter(r=>r.status==="completed").length,
+  }),[rows]);
+
+  const filtered=useMemo(()=>{
+    const search=q.toLowerCase().trim();
+    return rows.filter(row=>{
+      const hasCode=Boolean(String(row.stereo_code||"").trim());
+      if(tab==="completed"&&row.status!=="completed") return false;
+      if(tab==="pending"&&(row.status==="completed"||hasCode)) return false;
+      if(tab==="ready"&&(row.status==="completed"||!hasCode)) return false;
+      if(!search) return true;
+      return [row.reference,row.serial,row.brand||"",row.model||"",row.email||"",row.phone||"",row.stereo_code||"",row.year||""].some(value=>String(value).toLowerCase().includes(search));
+    });
+  },[rows,tab,q]);
+
+  if(auth===null) return <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">Cargando…</main>;
+
+  if(!auth) return <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+    <form onSubmit={login} className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-8 shadow-2xl">
+      <div className="text-sm font-black tracking-[.2em] text-red-400">HONDA · ACURA</div>
+      <h1 className="mt-4 text-3xl font-black">Panel de códigos</h1>
+      <p className="mt-2 text-slate-400">Solo solicitudes pagadas de Honda y Acura.</p>
+      <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Contraseña" className="mt-7 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-red-500"/>
+      {error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-sm text-amber-100">{error}</p>}
+      <button disabled={busy} className="mt-5 w-full rounded-xl bg-red-600 px-5 py-3 font-bold hover:bg-red-500 disabled:opacity-60">{busy?"Entrando…":"Entrar"}</button>
+    </form>
+  </main>;
+
+  return <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
+    <div className="mx-auto max-w-7xl">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="text-sm font-black tracking-[.2em] text-red-400">AUTO STEREO CODES · HONDA / ACURA</div>
+          <h1 className="mt-2 text-4xl font-black">Solicitudes Honda y Acura</h1>
+          <p className="mt-2 text-sm text-slate-400">El panel oculta cualquier solicitud de otras marcas.</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={()=>void load()} className="rounded-xl border border-slate-700 px-4 py-2 font-bold">Actualizar</button>
+          <button onClick={()=>void logout()} className="rounded-xl bg-slate-800 px-4 py-2 font-bold">Cerrar sesión</button>
+        </div>
+      </div>
+
+      <div className="mt-7 grid gap-3 sm:grid-cols-3">
+        <Metric label="Pendientes" value={counts.pending}/>
+        <Metric label="Código listo" value={counts.ready}/>
+        <Metric label="Completadas" value={counts.completed}/>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <TabButton active={tab==="pending"} onClick={()=>setTab("pending")}>Pendientes ({counts.pending})</TabButton>
+        <TabButton active={tab==="ready"} onClick={()=>setTab("ready")}>Código listo ({counts.ready})</TabButton>
+        <TabButton active={tab==="completed"} onClick={()=>setTab("completed")}>Completadas ({counts.completed})</TabButton>
+      </div>
+
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar folio, serie, Honda/Acura, modelo, año, email, teléfono o código…" className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-red-500"/>
+
+      {error&&<p className="mt-4 rounded-xl border border-amber-700 bg-amber-950 p-3 text-amber-100">{error}</p>}
+      {notice&&<p className="mt-4 rounded-xl border border-emerald-700 bg-emerald-950 p-3 text-emerald-100">{notice}</p>}
+
+      <div className="mt-6 space-y-4">
+        {filtered.map(row=>{
+          const code=(codes[row.id]??row.stereo_code??"").trim();
+          const mail=emailUrl(row,code);
+          const sms=smsUrl(row,code);
+          const completed=row.status==="completed";
+          return <article key={row.id} className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl">
+            <div className="grid gap-4 p-5 md:grid-cols-[1fr_.9fr_.9fr_auto] md:items-center">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Folio</div>
+                <div className="mt-1 text-xl font-black">{row.reference}</div>
+                <div className="mt-2 inline-flex rounded-full bg-red-500/10 px-3 py-1 text-xs font-black uppercase text-red-300">{row.brand||"Honda/Acura"}</div>
+              </div>
+              <div>
+                <div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Vehículo</div>
+                <div className="mt-1 font-bold">{row.year||"—"} {row.model||"Modelo no indicado"}</div>
+                <div className="mt-1 text-sm text-slate-400">Serie: <span className="font-mono text-slate-200">{row.serial}</span></div>
+              </div>
+              <div>
+                <div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Cliente</div>
+                <div className="mt-1 text-sm font-bold">{row.email||"Sin email"}</div>
+                <div className="mt-1 text-sm text-slate-400">{row.phone||"Sin teléfono"}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Pago</div>
+                <div className="mt-1 text-lg font-black text-emerald-300">{amountLabel(row)}</div>
+                <div className="mt-1 text-xs text-slate-500">{dateLabel(row.paid_at)}</div>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 bg-slate-950/55 p-5">
+              <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                <label className="block">
+                  <span className="text-xs font-black uppercase tracking-[.16em] text-slate-400">Código de desbloqueo Honda / Acura</span>
+                  <input value={codes[row.id]??row.stereo_code??""} onChange={e=>setCodes(current=>({...current,[row.id]:e.target.value.toUpperCase()}))} disabled={completed} placeholder="Escribe el código" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 font-mono text-lg font-black tracking-wider outline-none focus:border-red-500 disabled:opacity-60"/>
+                </label>
+                {!completed&&<button onClick={()=>void saveCode(row)} disabled={saving===row.id} className="rounded-xl bg-red-600 px-5 py-3 font-black hover:bg-red-500 disabled:opacity-60">{saving===row.id?"Guardando…":"Guardar código"}</button>}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {mail&&<a href={mail} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-black">Enviar por correo</a>}
+                {sms&&<a href={sms} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black">Enviar por SMS</a>}
+                {!completed&&code&&<button onClick={()=>void markCompleted(row)} className="rounded-xl border border-emerald-500 px-4 py-2 text-sm font-black text-emerald-300">✓ Marcar completada</button>}
+                {completed&&<span className="rounded-full bg-emerald-500/15 px-4 py-2 text-sm font-black text-emerald-300">Completada</span>}
+              </div>
+            </div>
+          </article>;
+        })}
+      </div>
+
+      {!filtered.length&&<div className="mt-6 rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900 p-10 text-center font-bold text-slate-500">No hay solicitudes Honda/Acura en esta sección.</div>}
+    </div>
+  </main>;
 }
 
-function Item({label,value}:{label:string;value:string}){return <div><div className="text-xs uppercase text-slate-500">{label}</div><div className="mt-1 break-all font-semibold">{value}</div></div>}
+function Metric({label,value}:{label:string;value:number}){
+  return <div className="rounded-2xl border border-white/10 bg-slate-900 p-5"><div className="text-sm text-slate-400">{label}</div><div className="mt-1 text-3xl font-black">{value}</div></div>;
+}
+
+function TabButton({active,onClick,children}:{active:boolean;onClick:()=>void;children:React.ReactNode}){
+  return <button onClick={onClick} className={`rounded-full px-4 py-2 text-sm font-black ${active?"bg-red-600 text-white":"border border-slate-700 bg-slate-900 text-slate-300"}`}>{children}</button>;
+}
