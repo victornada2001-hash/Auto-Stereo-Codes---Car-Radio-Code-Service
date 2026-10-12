@@ -11,6 +11,13 @@ function makeReference() {
   return `ASC-${date}-${random}`;
 }
 
+function canonicalBrand(value: unknown): "Honda" | "Acura" | "" {
+  const brand = String(value ?? "").trim().toLowerCase();
+  if (brand === "honda") return "Honda";
+  if (brand === "acura") return "Acura";
+  return "";
+}
+
 function getPublicSiteUrl(request: NextRequest) {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
   if (configured) return configured;
@@ -60,10 +67,16 @@ export async function GET(request: NextRequest) {
   if (!orderId || !cookie) return redirectAndClear(request, "/payment-success?error=session");
 
   let session;
-  try { session = decryptCheckoutSession(cookie); }
-  catch { return redirectAndClear(request, "/payment-success?error=session"); }
+  try {
+    session = decryptCheckoutSession(cookie);
+  } catch {
+    return redirectAndClear(request, "/payment-success?error=session");
+  }
 
   if (session.orderId !== orderId) return redirectAndClear(request, "/payment-success?error=session");
+
+  const brand = canonicalBrand(session.detectedBrand);
+  if (!brand) return redirectAndClear(request, `/payment-success?error=unsupported&lang=${session.language}`);
 
   try {
     const existingReference = await findExistingReference(orderId);
@@ -101,7 +114,7 @@ export async function GET(request: NextRequest) {
         reference,
         serial: session.serial,
         year: null,
-        brand: session.detectedBrand || null,
+        brand,
         model: session.radioFamily || null,
         phone: session.phone || null,
         email: session.email,
