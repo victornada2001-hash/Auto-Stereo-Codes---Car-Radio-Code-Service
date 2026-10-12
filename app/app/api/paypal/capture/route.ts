@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { decryptCheckoutSession } from "@/lib/payment-session";
 import { paypalRequest } from "@/lib/paypal";
+import { canonicalHondaAcuraBrand, lookupHondaAcura } from "@/lib/honda-acura-lookup";
 
 export const runtime = "nodejs";
 
@@ -9,13 +10,6 @@ function makeReference() {
   const date = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   const random = randomUUID().split("-")[0].toUpperCase();
   return `ASC-${date}-${random}`;
-}
-
-function canonicalBrand(value: unknown): "Honda" | "Acura" | "" {
-  const brand = String(value ?? "").trim().toLowerCase();
-  if (brand === "honda") return "Honda";
-  if (brand === "acura") return "Acura";
-  return "";
 }
 
 function getPublicSiteUrl(request: NextRequest) {
@@ -55,6 +49,36 @@ function extractCompletedCapture(order: any) {
   return captures.find((capture: any) => capture?.status === "COMPLETED") || null;
 }
 
+function splitVehicle(value: unknown) {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(19|20)\d{2}\s+(.+)$/);
+  return {
+    year: match ? Number(match[0].slice(0, 4)) : null,
+    model: match ? match[2].trim() : text,
+  };
+}
+
+async function saveAutomaticCode(reference: string, code: string) {
+  const { url, headers } = supabaseConfig();
+  const endpoint = new URL(`${url}/rest/v1/code_requests`);
+  endpoint.searchParams.set("reference", `eq.${reference}`);
+  const response = await fetch(endpoint, {
+    method: "PATCH",
+    headers: { ...headers, Prefer: "return=minimal" },
+    body: JSON.stringify({
+      stereo_code: code,
+      code_updated_at: new Date().toISOString(),
+      status: "processing",
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    console.error("Automatic code save failed", response.status, await response.text());
+    return false;
+  }
+  return true;
+}
+
 function redirectAndClear(request: NextRequest, path: string) {
   const response = NextResponse.redirect(new URL(path, getPublicSiteUrl(request)));
   response.cookies.set("asc_paypal_checkout", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
@@ -75,8 +99,9 @@ export async function GET(request: NextRequest) {
 
   if (session.orderId !== orderId) return redirectAndClear(request, "/payment-success?error=session");
 
-  const brand = canonicalBrand(session.detectedBrand);
-  if (!brand) return redirectAndClear(request, `/payment-success?error=unsupported&lang=${session.language}`);
+  const canonicalBrand = canonicalHondaAcuraBrand(session.detectedBrand);
+  if (!canonicalBrand) return redirectAndClear(request, `/payment-success?error=unsupported&lang=${session.language}`);
+  const brand = canonicalBrand === "honda" ? "Honda" : "Acura";
 
   try {
     const existingReference = await findExistingReference(orderId);
@@ -106,6 +131,7 @@ export async function GET(request: NextRequest) {
     }
 
     const reference = makeReference();
+    const vehicle = splitVehicle(session.radioFamily);
     const { url, headers } = supabaseConfig();
     const insertResponse = await fetch(`${url}/rest/v1/code_requests`, {
       method: "POST",
@@ -113,9 +139,9 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         reference,
         serial: session.serial,
-        year: null,
+        year: vehicle.year,
         brand,
-        model: session.radioFamily || null,
+        model: vehicle.model || null,
         phone: session.phone || null,
         email: session.email,
         vin: session.vin || null,
@@ -139,6 +165,26 @@ export async function GET(request: NextRequest) {
       if (duplicateReference) return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(duplicateReference)}&lang=${session.language}`);
       console.error("Supabase PayPal insert failed", insertResponse.status, await insertResponse.text());
       return redirectAndClear(request, `/payment-success?error=save&lang=${session.language}`);
+    }
+
+    try {
+      const lookup = await lookupHondaAcura({
+        brand: canonicalBrand,
+        serial: String(session.serial || "").trim(),
+        vin: String(session.vin || "").trim().toUpperCase(),
+        postalCode: String(session.postalCode || "").trim().toUpperCase(),
+        phone: String(session.phone || "").trim(),
+        email: String(session.email || "").trim(),
+        year: vehicle.year,
+        model: vehicle.model || undefined,
+      });
+      if (lookup.status === "found" && lookup.code) {
+        await saveAutomaticCode(reference, lookup.code);
+      } else {
+        console.info("Honda/Acura automatic lookup pending", reference, lookup.status, lookup.reason);
+      }
+    } catch (lookupError) {
+      console.error("Honda/Acura automatic lookup failed", lookupError instanceof Error ? lookupError.message : "unknown");
     }
 
     return redirectAndClear(request, `/payment-success?reference=${encodeURIComponent(reference)}&lang=${session.language}`);
