@@ -38,7 +38,16 @@ export default function SolicitudCodigo(){
       return;
     }
 
-    setBusy(true); setMessage("");
+    // Abrimos la pestaña de pago durante el clic del usuario para evitar que
+    // el navegador la bloquee. AutoStereoCodes permanece abierto en esta pestaña.
+    const paymentWindow=window.open("about:blank","autostereocodes_paypal_checkout");
+    if(paymentWindow){
+      paymentWindow.document.title="Abriendo PayPal…";
+      paymentWindow.document.body.innerHTML='<div style="font-family:system-ui;padding:40px;text-align:center"><h2>Abriendo PayPal…</h2><p>No cierres esta ventana.</p></div>';
+    }
+
+    setBusy(true);
+    setMessage("Preparando el pago. PayPal se abrirá en otra pestaña y esta página permanecerá abierta.");
     try{
       const response=await fetch("/api/checkout",{
         method:"POST",
@@ -47,6 +56,7 @@ export default function SolicitudCodigo(){
       });
       const result=await response.json();
       if(!response.ok||!result.url){
+        if(paymentWindow&&!paymentWindow.closed) paymentWindow.close();
         const messages:Record<string,string>={
           INVALID_EMAIL:"Escribe un correo válido o déjalo vacío y usa WhatsApp.",
           EMAIL_UNDELIVERABLE:"No pudimos validar ese correo. Revisa que esté escrito correctamente o usa WhatsApp.",
@@ -58,8 +68,20 @@ export default function SolicitudCodigo(){
         setMessage(messages[result?.code]||"No pudimos iniciar el pago. Revisa tus datos e inténtalo de nuevo.");
         setBusy(false); return;
       }
-      window.location.assign(result.url);
+
+      if(paymentWindow&&!paymentWindow.closed){
+        paymentWindow.location.href=result.url;
+        paymentWindow.focus();
+        setMessage("PayPal está abierto en otra pestaña. Esta solicitud permanece aquí por si decides regresar o cancelar.");
+        setBusy(false);
+        return;
+      }
+
+      // Si el navegador bloquea la nueva pestaña, usamos la misma como respaldo.
+      setMessage("Tu navegador bloqueó la nueva pestaña. Abriendo PayPal aquí…");
+      window.location.href=result.url;
     }catch{
+      if(paymentWindow&&!paymentWindow.closed) paymentWindow.close();
       setMessage("No pudimos conectar con el sistema de pago. Inténtalo de nuevo.");
       setBusy(false);
     }
@@ -123,8 +145,8 @@ export default function SolicitudCodigo(){
           <div className="flex flex-col gap-2 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-black text-slate-800">Código de radio Honda / Acura</div><div className="mt-1 text-xs font-semibold text-slate-500">Pago único por solicitud</div></div><span className="text-2xl font-black text-[#b4151b]">${PRICE_USD.toFixed(2)} USD</span></div>
 
           {message&&<div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-4 font-semibold text-amber-900">{message}</div>}
-          <button disabled={busy} type="submit" className="rounded-xl bg-[#d71920] px-6 py-4 text-lg font-black uppercase text-white transition hover:bg-[#b4151b] disabled:opacity-60">{busy?"Abriendo pago…":"Continuar al pago"}</button>
-          <p className="text-center text-xs font-medium leading-5 text-slate-500">Servicio independiente especializado en recuperación de códigos de radio Honda y Acura.</p>
+          <button disabled={busy} type="submit" className="rounded-xl bg-[#d71920] px-6 py-4 text-lg font-black uppercase text-white transition hover:bg-[#b4151b] disabled:opacity-60">{busy?"Preparando PayPal…":"Continuar al pago"}</button>
+          <p className="text-center text-xs font-medium leading-5 text-slate-500">PayPal se abre en otra pestaña para que AutoStereoCodes permanezca abierto durante el pago.</p>
         </form>
       </div>
     </section>
