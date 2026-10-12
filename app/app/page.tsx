@@ -1,5 +1,5 @@
-import PremiumHomeV4 from "./PremiumHomeV4";
+import HondaAcuraHome from "./HondaAcuraHome";
 
 export default function Home() {
-  return <PremiumHomeV4 />;
+  return <HondaAcuraHome />;
 }
