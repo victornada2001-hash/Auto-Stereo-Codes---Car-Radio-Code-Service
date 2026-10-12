@@ -12,6 +12,7 @@ const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
 const BASE_PRICE_USD = 17.99;
 const PRIORITY_SMS_PRICE_USD = Number(process.env.PRIORITY_SMS_PRICE_USD || "1.75");
 const BLOCKED_EMAIL_DOMAINS = new Set(["example.com","example.org","example.net","test.com","invalid.com","localhost","mailinator.com"]);
+const ALLOWED_BRANDS = new Set(["Honda", "Acura"]);
 
 function clean(value: unknown, maxLength = 255) { return String(value ?? "").trim().slice(0, maxLength); }
 
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
   const language = normalizeLanguage(body.language);
 
   if (!serial) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
+  if (!ALLOWED_BRANDS.has(detectedBrand)) return NextResponse.json({ code: "UNSUPPORTED_BRAND" }, { status: 400 });
   if (!EMAIL_PATTERN.test(email)) return NextResponse.json({ code: "INVALID_EMAIL" }, { status: 400 });
   if (!(await emailDomainCanReceiveMail(email))) return NextResponse.json({ code: "EMAIL_UNDELIVERABLE" }, { status: 400 });
   if (prioritySms && !validInternationalPhone(phone)) return NextResponse.json({ code: "INVALID_PHONE" }, { status: 400 });
@@ -82,18 +84,18 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         intent: "CAPTURE",
         purchase_units: [{
-          reference_id: "STEREO_CODE",
-          description: prioritySms ? "Car Stereo Unlock Code + Priority SMS" : "Car Stereo Unlock Code",
+          reference_id: "HONDA_ACURA_STEREO_CODE",
+          description: `${detectedBrand} Radio Unlock Code`,
           amount: { currency_code: "USD", value: amountUsd },
         }],
         payment_source: { paypal: { experience_context: {
-          brand_name: "Auto Stereo Codes",
+          brand_name: "Honda & Acura Radio Codes",
           locale: paypalLocale(language),
           landing_page: "GUEST_CHECKOUT",
           shipping_preference: "NO_SHIPPING",
           user_action: "PAY_NOW",
           return_url: `${siteUrl}/api/paypal/capture`,
-          cancel_url: `${siteUrl}/request`,
+          cancel_url: `${siteUrl}/`,
         }}},
       }),
     });
