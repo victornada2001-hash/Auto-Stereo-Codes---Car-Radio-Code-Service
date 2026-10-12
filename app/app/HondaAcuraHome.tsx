@@ -1,154 +1,104 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Language } from "./languages";
+import { LanguagePicker, useSiteLanguage } from "./use-site-language";
 
 const HERO_PHOTO="https://images.unsplash.com/photo-1741243632885-49efead88024?auto=format&fit=crop&fm=jpg&q=82&w=2200";
 
-const GUIDE_CARDS=[
-  {
-    eyebrow:"1 + 6 EN PANTALLA",
-    title:"Anota el número de serie que aparece en la pantalla",
-    body:(
-      <>
-        <p>Se instala en radios Honda sin pantalla de navegación. Enciende el contacto y la radio; a continuación, mantén pulsados simultáneamente los botones de presintonía <strong>1 y 6</strong> (en algunas radios, mantén pulsados a la vez los botones <strong>1, 6 y el de encendido</strong>) durante unos dos segundos hasta que cambie la pantalla.</p>
-        <p className="mt-3">El número de serie aparece bien como un número «U» y un número «L» (por ejemplo, U2154 L2135), bien como un único número S/N (por ejemplo, S/N 2602353). Introduce el formato que aparezca en tu pantalla.</p>
-      </>
-    ),
-    images:[
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-serial-number-screen.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-1-6-method-serial-screen.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-1-6-method-buttons.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-u-l-serial-on-screen.webp",
-    ],
-  },
-  {
-    eyebrow:"PANTALLA TÁCTIL (2013 Y POSTERIORES)",
-    title:"Busca tu número de serie en el menú de diagnóstico",
-    body:(
-      <>
-        <p>Para ver el número de serie en pantalla, abre la pantalla de diagnóstico oculta. Mantén pulsado uno de estos botones hasta que aparezca:</p>
-        <p className="mt-3">• el botón de la parte superior de la radio + Encendido + Menú<br/>• Encendido + Expulsar + Inicio<br/>• Encendido + Menú + el botón Día/Noche (unos tres segundos)</p>
-        <p className="mt-3">A continuación, pulsa «Información detallada y configuración» → «Comprobación de la unidad» → «Unidad HMI» o «Unidad DA» para ver tu número de serie. Pulsa «Volver» para salir.</p>
-        <p className="mt-3">¿No hay botones de diagnóstico? Pulsa «Inicio» → «Menú de información» → «Información del sistema/dispositivo» → «Información del sistema» y lee el número del dispositivo.</p>
-      </>
-    ),
-    images:[
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-touchscreen-diagnostics-serial.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-touchscreen-serial-example.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-ecu-serial-screen.webp",
-    ],
-  },
-  {
-    eyebrow:"NAVEGACIÓN ANTERIOR (2003 A 2012)",
-    title:"Busca tu número de serie en el menú de diagnóstico",
-    body:(
-      <>
-        <p>Incorporado en las unidades de navegación de muchos modelos fabricados entre 2003 y 2012. Con el contacto puesto, mantén pulsados a la vez los botones «Map» (o «Guide»), «Menu» y «Cancel» hasta que aparezca la pantalla de diagnóstico; a continuación, selecciona «Unit Check» y «Navi ECU» para ver el número de serie.</p>
-        <p className="mt-3">En algunas unidades, en su lugar, hay que mantener pulsados los botones «SEEK» o «SKIP» junto con «CH» o «DISC», y a continuación «PWR/VOL»; el número de serie aparecerá en pantalla. Anótalo tal y como se muestra.</p>
-      </>
-    ),
-    images:[
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-navigation-navi-ecu-serial.webp",
-    ],
-  },
-  {
-    eyebrow:"ETIQUETAS Y EJEMPLOS DE PANTALLAS",
-    title:"Cómo es tu número de serie",
-    body:(
-      <>
-        <p>Estos son ejemplos reales de números de serie de Honda, tanto en la etiqueta de la radio como en la pantalla, para que puedas ver exactamente lo que estás buscando.</p>
-        <p className="mt-3">Si el número de serie no aparece en la pantalla, retira la unidad con las llaves de liberación DIN o con un destornillador plano y deslízala hacia delante. El número de serie se encuentra en una etiqueta adhesiva situada en la parte superior, lateral o trasera de la carcasa, y suele tener entre 6 y 14 caracteres (por ejemplo, 954LR052 o SN500074). Introdúcelo tal y como aparece impreso.</p>
-      </>
-    ),
-    images:[
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-serial-number-label.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-6-digit-example.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-1.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-2.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-3.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-4.webp",
-      "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-5.webp",
-    ],
-  },
+const IMAGES=[
+  [
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-serial-number-screen.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-1-6-method-serial-screen.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-1-6-method-buttons.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-u-l-serial-on-screen.webp",
+  ],
+  [
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-touchscreen-diagnostics-serial.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-touchscreen-serial-example.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-ecu-serial-screen.webp",
+  ],
+  ["https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-navigation-navi-ecu-serial.webp"],
+  [
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-serial-number-label.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-6-digit-example.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-1.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-2.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-3.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-4.webp",
+    "https://www.onlineradiocodes.co.uk/storage/guide-images/honda-radio-code-label-example-5.webp",
+  ],
 ];
 
-function MiniCarousel({images,title}:{images:string[];title:string}){
+type Copy={
+  navGuide:string; request:string; heroTitle:string; heroBody:string; heroGuide:string;
+  steps:[string,string,string][]; guideLabel:string; guideTitle:string; guideIntro:string;
+  cards:{eyebrow:string;title:string;paragraphs:string[]}[];
+  serialKinds:string; haveSerial:string; specialistTitle:string; specialistBody:string;
+  prev:string; next:string; viewImage:string;
+};
+
+const COPY:Record<Language,Copy>={
+  es:{navGuide:"Cómo sacar la serie",request:"Solicitar código",heroTitle:"Recupera el código de tu radio Honda o Acura",heroBody:"Primero identifica la serie de tu estéreo con la guía visual. Cuando la tengas, abre la solicitud en una pantalla aparte.",heroGuide:"Ver cómo sacar la serie",steps:[["Identifica la serie","Usa una de las cuatro guías según el tipo de radio que tengas."],["Llena la solicitud","Marca, año, modelo, serie y al menos un medio de contacto."],["Realiza el pago","PayPal abre aparte para que AutoStereoCodes permanezca abierto."]],guideLabel:"Guía visual",guideTitle:"Cómo encontrar el número de serie de tu Honda",guideIntro:"La siguiente guía te indicará dónde encontrar el número de serie según el tipo de radio. Las galerías cambian automáticamente cada 3 segundos y también puedes moverlas con las flechas.",cards:[
+    {eyebrow:"1 + 6 EN PANTALLA",title:"Anota el número de serie que aparece en la pantalla",paragraphs:["Se instala en radios Honda sin pantalla de navegación. Enciende el contacto y la radio; a continuación, mantén pulsados simultáneamente los botones de presintonía 1 y 6 (en algunas radios, mantén pulsados a la vez los botones 1, 6 y el de encendido) durante unos dos segundos hasta que cambie la pantalla.","El número de serie aparece bien como un número «U» y un número «L» (por ejemplo, U2154 L2135), bien como un único número S/N (por ejemplo, S/N 2602353). Introduce el formato que aparezca en tu pantalla."]},
+    {eyebrow:"PANTALLA TÁCTIL (2013 Y POSTERIORES)",title:"Busca tu número de serie en el menú de diagnóstico",paragraphs:["Para ver el número de serie en pantalla, abre la pantalla de diagnóstico oculta. Mantén pulsado uno de estos botones hasta que aparezca:","• el botón de la parte superior de la radio + Encendido + Menú\n• Encendido + Expulsar + Inicio\n• Encendido + Menú + el botón Día/Noche (unos tres segundos)","A continuación, pulsa «Información detallada y configuración» → «Comprobación de la unidad» → «Unidad HMI» o «Unidad DA» para ver tu número de serie. Pulsa «Volver» para salir.","¿No hay botones de diagnóstico? Pulsa «Inicio» → «Menú de información» → «Información del sistema/dispositivo» → «Información del sistema» y lee el número del dispositivo."]},
+    {eyebrow:"NAVEGACIÓN ANTERIOR (2003 A 2012)",title:"Busca tu número de serie en el menú de diagnóstico",paragraphs:["Incorporado en las unidades de navegación de muchos modelos fabricados entre 2003 y 2012. Con el contacto puesto, mantén pulsados a la vez los botones «Map» (o «Guide»), «Menu» y «Cancel» hasta que aparezca la pantalla de diagnóstico; a continuación, selecciona «Unit Check» y «Navi ECU» para ver el número de serie.","En algunas unidades, en su lugar, hay que mantener pulsados los botones «SEEK» o «SKIP» junto con «CH» o «DISC», y a continuación «PWR/VOL»; el número de serie aparecerá en pantalla. Anótalo tal y como se muestra."]},
+    {eyebrow:"ETIQUETAS Y EJEMPLOS DE PANTALLAS",title:"Cómo es tu número de serie",paragraphs:["Estos son ejemplos reales de números de serie de Honda, tanto en la etiqueta de la radio como en la pantalla, para que puedas ver exactamente lo que estás buscando.","Si el número de serie no aparece en la pantalla, retira la unidad con las llaves de liberación DIN o con un destornillador plano y deslízala hacia delante. El número de serie se encuentra en una etiqueta adhesiva situada en la parte superior, lateral o trasera de la carcasa, y suele tener entre 6 y 14 caracteres (por ejemplo, 954LR052 o SN500074). Introdúcelo tal y como aparece impreso."]},
+  ],serialKinds:"Cómo es el número de serie de tu Honda",haveSerial:"Ya tengo mi serie · Solicitar código",specialistTitle:"Especializado únicamente en Honda y Acura",specialistBody:"La página, el formulario y el panel están enfocados en códigos de radio para estas dos marcas.",prev:"Imagen anterior",next:"Imagen siguiente",viewImage:"Ver imagen"},
+  en:{navGuide:"Find the serial",request:"Request code",heroTitle:"Recover your Honda or Acura radio code",heroBody:"First identify your stereo serial number with the visual guide. Once you have it, open the request form on a separate page.",heroGuide:"See how to find the serial",steps:[["Find the serial","Use one of the four guides based on your radio type."],["Complete the request","Brand, year, model, serial and at least one contact method."],["Make the payment","PayPal opens separately so AutoStereoCodes stays open."]],guideLabel:"Visual guide",guideTitle:"How to find your Honda radio serial number",guideIntro:"Choose the guide that matches your radio. Galleries advance automatically every 3 seconds and can also be changed with the arrows.",cards:[
+    {eyebrow:"1 + 6 ON DISPLAY",title:"Write down the serial number shown on the display",paragraphs:["Used on Honda radios without navigation screens. Turn the ignition and radio on, then hold preset buttons 1 and 6 at the same time. On some radios hold 1, 6 and the power button together for about two seconds until the display changes.","The serial may appear as a U number and an L number (for example U2154 L2135), or as one S/N number (for example S/N 2602353). Enter it exactly as shown."]},
+    {eyebrow:"TOUCHSCREEN (2013 AND NEWER)",title:"Find your serial number in the diagnostic menu",paragraphs:["Open the hidden diagnostic screen and hold the applicable button combination until it appears.","• top radio button + Power + Menu\n• Power + Eject + Home\n• Power + Menu + Day/Night button (about three seconds)","Then choose Detailed Information and Settings → Unit Check → HMI Unit or DA Unit to display the serial number. Use Back to exit.","If there are no diagnostic buttons, go to Home → Information Menu → System/Device Information → System Information and read the device number."]},
+    {eyebrow:"OLDER NAVIGATION (2003–2012)",title:"Find your serial number in the diagnostic menu",paragraphs:["On many navigation units from 2003–2012, turn the ignition on and hold Map (or Guide), Menu and Cancel together until the diagnostic screen appears. Then select Unit Check and Navi ECU.","On some units, hold SEEK or SKIP together with CH or DISC, then press PWR/VOL. The serial number will appear on screen. Copy it exactly."]},
+    {eyebrow:"LABELS AND SCREEN EXAMPLES",title:"What your serial number looks like",paragraphs:["These are real examples of Honda serial numbers shown on radio labels and screens so you can recognize what to look for.","If the serial is not shown on screen, remove the unit with DIN release keys or a flat screwdriver and slide it forward. The serial is usually on a label on the top, side or rear of the unit and is commonly 6 to 14 characters long. Enter it exactly as printed."]},
+  ],serialKinds:"Honda serial number formats",haveSerial:"I have my serial · Request code",specialistTitle:"Specialized only in Honda and Acura",specialistBody:"The website, form and admin workflow are focused on radio codes for these two brands.",prev:"Previous image",next:"Next image",viewImage:"View image"},
+  pt:{navGuide:"Como achar a série",request:"Solicitar código",heroTitle:"Recupere o código do rádio Honda ou Acura",heroBody:"Primeiro identifique o número de série com o guia visual. Depois, abra a solicitação em uma página separada.",heroGuide:"Ver como achar a série",steps:[["Identifique a série","Use um dos quatro guias conforme o tipo de rádio."],["Preencha a solicitação","Marca, ano, modelo, série e pelo menos um contato."],["Faça o pagamento","O PayPal abre separado para manter o site aberto."]],guideLabel:"Guia visual",guideTitle:"Como encontrar o número de série do seu Honda",guideIntro:"Escolha o guia correspondente ao seu rádio. As galerias mudam automaticamente a cada 3 segundos e também podem ser controladas pelas setas.",cards:[
+    {eyebrow:"1 + 6 NA TELA",title:"Anote o número de série mostrado na tela",paragraphs:["Em rádios Honda sem navegação, ligue a ignição e o rádio e mantenha pressionados 1 e 6 ao mesmo tempo. Em alguns modelos, mantenha 1, 6 e o botão de ligar juntos por cerca de dois segundos.","A série pode aparecer como U e L (ex.: U2154 L2135) ou como um único S/N. Digite exatamente como aparece."]},
+    {eyebrow:"TELA TOUCH (2013 E NOVOS)",title:"Procure a série no menu de diagnóstico",paragraphs:["Abra a tela de diagnóstico oculta usando a combinação correspondente.","• botão superior + Liga + Menu\n• Liga + Ejetar + Início\n• Liga + Menu + Dia/Noite (cerca de três segundos)","Depois acesse Informações detalhadas e configurações → Verificação da unidade → Unidade HMI ou DA.","Se não houver botões de diagnóstico, use Início → Menu de informações → Informações do sistema/dispositivo → Informações do sistema."]},
+    {eyebrow:"NAVEGAÇÃO ANTIGA (2003–2012)",title:"Procure a série no menu de diagnóstico",paragraphs:["Em muitas unidades, mantenha Map/Guide, Menu e Cancel pressionados até abrir o diagnóstico e selecione Unit Check → Navi ECU.","Em algumas unidades, mantenha SEEK/SKIP com CH/DISC e depois PWR/VOL. Anote a série exatamente como aparece."]},
+    {eyebrow:"ETIQUETAS E EXEMPLOS",title:"Como é o número de série",paragraphs:["Veja exemplos reais de números de série em etiquetas e telas Honda.","Se não aparecer na tela, remova a unidade e procure uma etiqueta na parte superior, lateral ou traseira. Normalmente tem de 6 a 14 caracteres. Digite exatamente como impresso."]},
+  ],serialKinds:"Formatos de série Honda",haveSerial:"Já tenho a série · Solicitar código",specialistTitle:"Especializado apenas em Honda e Acura",specialistBody:"O site, formulário e painel são focados em códigos de rádio dessas duas marcas.",prev:"Imagem anterior",next:"Próxima imagem",viewImage:"Ver imagem"},
+  fr:{navGuide:"Trouver le numéro",request:"Demander le code",heroTitle:"Récupérez le code radio de votre Honda ou Acura",heroBody:"Identifiez d’abord le numéro de série avec le guide visuel, puis ouvrez la demande sur une page séparée.",heroGuide:"Voir comment trouver le numéro",steps:[["Identifiez le numéro","Utilisez l’un des quatre guides selon votre autoradio."],["Remplissez la demande","Marque, année, modèle, série et au moins un contact."],["Effectuez le paiement","PayPal s’ouvre séparément afin que le site reste ouvert."]],guideLabel:"Guide visuel",guideTitle:"Comment trouver le numéro de série de votre Honda",guideIntro:"Choisissez le guide correspondant à votre autoradio. Les galeries changent toutes les 3 secondes et peuvent aussi être contrôlées avec les flèches.",cards:[
+    {eyebrow:"1 + 6 À L’ÉCRAN",title:"Notez le numéro de série affiché",paragraphs:["Sur les radios Honda sans navigation, mettez le contact et allumez la radio, puis maintenez 1 et 6. Sur certains modèles, maintenez 1, 6 et Power pendant environ deux secondes.","Le numéro peut apparaître sous forme U/L ou comme un seul S/N. Saisissez-le exactement comme affiché."]},
+    {eyebrow:"ÉCRAN TACTILE (2013 ET +)",title:"Cherchez le numéro dans le menu diagnostic",paragraphs:["Ouvrez l’écran de diagnostic caché avec la combinaison adaptée.","• bouton supérieur + Power + Menu\n• Power + Eject + Home\n• Power + Menu + Jour/Nuit (environ trois secondes)","Puis ouvrez Detailed Information and Settings → Unit Check → HMI Unit ou DA Unit.","Sans boutons diagnostic, utilisez Home → Information Menu → System/Device Information → System Information."]},
+    {eyebrow:"ANCIENNE NAVIGATION (2003–2012)",title:"Cherchez le numéro dans le menu diagnostic",paragraphs:["Sur de nombreuses unités, maintenez Map/Guide, Menu et Cancel jusqu’à l’écran diagnostic, puis Unit Check → Navi ECU.","Sur certaines unités, maintenez SEEK/SKIP avec CH/DISC puis PWR/VOL. Recopiez le numéro exactement."]},
+    {eyebrow:"ÉTIQUETTES ET EXEMPLES",title:"À quoi ressemble le numéro de série",paragraphs:["Voici des exemples réels de numéros de série Honda sur étiquette et écran.","S’il n’apparaît pas à l’écran, retirez l’unité et recherchez l’étiquette sur le dessus, le côté ou l’arrière. Elle comporte généralement 6 à 14 caractères."]},
+  ],serialKinds:"Formats de numéro de série Honda",haveSerial:"J’ai mon numéro · Demander le code",specialistTitle:"Spécialisé uniquement Honda et Acura",specialistBody:"Le site, le formulaire et le panneau sont dédiés aux codes radio de ces deux marques.",prev:"Image précédente",next:"Image suivante",viewImage:"Voir l’image"},
+  de:{navGuide:"Seriennummer finden",request:"Code anfordern",heroTitle:"Radio-Code für Honda oder Acura wiederherstellen",heroBody:"Ermitteln Sie zuerst die Seriennummer mit der Bildanleitung und öffnen Sie danach das separate Anfrageformular.",heroGuide:"Seriennummer-Anleitung",steps:[["Seriennummer finden","Nutzen Sie eine der vier Anleitungen passend zu Ihrem Radio."],["Anfrage ausfüllen","Marke, Jahr, Modell, Seriennummer und mindestens eine Kontaktmöglichkeit."],["Bezahlen","PayPal öffnet separat, damit AutoStereoCodes geöffnet bleibt."]],guideLabel:"Bildanleitung",guideTitle:"So finden Sie die Seriennummer Ihres Honda-Radios",guideIntro:"Wählen Sie die passende Anleitung. Die Bilder wechseln automatisch alle 3 Sekunden und lassen sich auch per Pfeil steuern.",cards:[
+    {eyebrow:"1 + 6 IM DISPLAY",title:"Seriennummer vom Display notieren",paragraphs:["Bei Honda-Radios ohne Navigation Zündung und Radio einschalten und 1 und 6 gleichzeitig gedrückt halten. Bei manchen Radios 1, 6 und Power etwa zwei Sekunden halten.","Die Nummer erscheint als U/L-Kombination oder als einzelne S/N. Genau wie angezeigt eingeben."]},
+    {eyebrow:"TOUCHSCREEN (2013 UND NEUER)",title:"Seriennummer im Diagnosemenü suchen",paragraphs:["Öffnen Sie den versteckten Diagnosebildschirm mit der passenden Tastenkombination.","• obere Taste + Power + Menu\n• Power + Eject + Home\n• Power + Menu + Tag/Nacht (ca. drei Sekunden)","Danach Detailed Information and Settings → Unit Check → HMI Unit oder DA Unit.","Ohne Diagnosetasten: Home → Information Menu → System/Device Information → System Information."]},
+    {eyebrow:"ÄLTERE NAVIGATION (2003–2012)",title:"Seriennummer im Diagnosemenü suchen",paragraphs:["Bei vielen Geräten Map/Guide, Menu und Cancel gedrückt halten, dann Unit Check → Navi ECU wählen.","Bei manchen Geräten SEEK/SKIP mit CH/DISC halten und anschließend PWR/VOL drücken. Nummer exakt notieren."]},
+    {eyebrow:"ETIKETTEN UND BEISPIELE",title:"So sieht die Seriennummer aus",paragraphs:["Hier sehen Sie echte Honda-Seriennummern auf Etiketten und Displays.","Wenn sie nicht im Display erscheint, Gerät herausziehen und Etikett oben, seitlich oder hinten suchen. Meist 6 bis 14 Zeichen lang."]},
+  ],serialKinds:"Honda-Seriennummernformate",haveSerial:"Seriennummer vorhanden · Code anfordern",specialistTitle:"Nur auf Honda und Acura spezialisiert",specialistBody:"Website, Formular und Verwaltung sind auf Radio-Codes dieser beiden Marken ausgerichtet.",prev:"Vorheriges Bild",next:"Nächstes Bild",viewImage:"Bild anzeigen"},
+  it:{navGuide:"Trova il seriale",request:"Richiedi codice",heroTitle:"Recupera il codice radio della tua Honda o Acura",heroBody:"Prima identifica il numero di serie con la guida visiva, poi apri la richiesta in una pagina separata.",heroGuide:"Vedi come trovare il seriale",steps:[["Trova il seriale","Usa una delle quattro guide in base al tipo di radio."],["Compila la richiesta","Marca, anno, modello, seriale e almeno un contatto."],["Effettua il pagamento","PayPal si apre separatamente per lasciare AutoStereoCodes aperto."]],guideLabel:"Guida visiva",guideTitle:"Come trovare il numero di serie della tua Honda",guideIntro:"Scegli la guida adatta alla tua radio. Le gallerie cambiano automaticamente ogni 3 secondi e puoi usare anche le frecce.",cards:[
+    {eyebrow:"1 + 6 SUL DISPLAY",title:"Annota il numero di serie mostrato sul display",paragraphs:["Sulle radio Honda senza navigazione, accendi quadro e radio e tieni premuti 1 e 6. Su alcuni modelli tieni premuti 1, 6 e Power per circa due secondi.","Il seriale può apparire come U/L oppure come un unico S/N. Inseriscilo esattamente come mostrato."]},
+    {eyebrow:"TOUCHSCREEN (2013 E SUCCESSIVI)",title:"Trova il seriale nel menu diagnostico",paragraphs:["Apri la schermata diagnostica nascosta con la combinazione adatta.","• tasto superiore + Power + Menu\n• Power + Eject + Home\n• Power + Menu + Giorno/Notte (circa tre secondi)","Poi apri Detailed Information and Settings → Unit Check → HMI Unit o DA Unit.","Se non ci sono tasti diagnostici: Home → Information Menu → System/Device Information → System Information."]},
+    {eyebrow:"NAVIGAZIONE PRECEDENTE (2003–2012)",title:"Trova il seriale nel menu diagnostico",paragraphs:["Su molte unità tieni premuti Map/Guide, Menu e Cancel fino alla schermata diagnostica, poi scegli Unit Check → Navi ECU.","Su alcune unità tieni SEEK/SKIP con CH/DISC e poi premi PWR/VOL. Copia il seriale esattamente."]},
+    {eyebrow:"ETICHETTE ED ESEMPI",title:"Come appare il numero di serie",paragraphs:["Questi sono esempi reali di numeri di serie Honda su etichetta e display.","Se non appare sullo schermo, estrai l’unità e cerca l’etichetta sulla parte superiore, laterale o posteriore. Di solito ha da 6 a 14 caratteri."]},
+  ],serialKinds:"Formati del seriale Honda",haveSerial:"Ho il seriale · Richiedi codice",specialistTitle:"Specializzato solo in Honda e Acura",specialistBody:"Il sito, il modulo e il pannello sono dedicati ai codici radio di questi due marchi.",prev:"Immagine precedente",next:"Immagine successiva",viewImage:"Vedi immagine"},
+};
+
+function MiniCarousel({images,title,copy}:{images:string[];title:string;copy:Copy}){
   const [index,setIndex]=useState(0);
-  useEffect(()=>{
-    if(images.length<2) return;
-    const timer=window.setInterval(()=>setIndex(current=>(current+1)%images.length),3000);
-    return ()=>window.clearInterval(timer);
-  },[images.length]);
-
-  function previous(){setIndex(current=>(current-1+images.length)%images.length);}
-  function next(){setIndex(current=>(current+1)%images.length);}
-
+  useEffect(()=>{if(images.length<2)return;const timer=window.setInterval(()=>setIndex(current=>(current+1)%images.length),3000);return()=>window.clearInterval(timer);},[images.length]);
   return <div className="relative overflow-hidden rounded-2xl bg-slate-950">
-    <div className="relative aspect-[16/10] overflow-hidden">
-      {images.map((src,i)=><img key={src} src={src} alt={`${title} · ejemplo ${i+1}`} className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ${i===index?"opacity-100":"pointer-events-none opacity-0"}`}/>) }
-    </div>
-    {images.length>1&&<>
-      <button type="button" onClick={previous} aria-label="Imagen anterior" className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-2xl font-black text-white backdrop-blur hover:bg-black/75">‹</button>
-      <button type="button" onClick={next} aria-label="Imagen siguiente" className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-2xl font-black text-white backdrop-blur hover:bg-black/75">›</button>
-      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">{images.map((_,i)=><button key={i} type="button" onClick={()=>setIndex(i)} aria-label={`Ver imagen ${i+1}`} className={`h-2 rounded-full transition-all ${i===index?"w-6 bg-red-500":"w-2 bg-white/65"}`}/>)}</div>
-    </>}
+    <div className="relative aspect-[16/10] overflow-hidden">{images.map((src,i)=><img key={src} src={src} alt={`${title} · ${copy.viewImage} ${i+1}`} className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-500 ${i===index?"opacity-100":"pointer-events-none opacity-0"}`}/>)}</div>
+    {images.length>1&&<><button type="button" onClick={()=>setIndex(current=>(current-1+images.length)%images.length)} aria-label={copy.prev} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-2xl font-black text-white">‹</button><button type="button" onClick={()=>setIndex(current=>(current+1)%images.length)} aria-label={copy.next} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/55 text-2xl font-black text-white">›</button><div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">{images.map((_,i)=><button key={i} type="button" onClick={()=>setIndex(i)} aria-label={`${copy.viewImage} ${i+1}`} className={`h-2 rounded-full ${i===index?"w-6 bg-red-500":"w-2 bg-white/65"}`}/>)}</div></>}
   </div>;
 }
 
 export default function HondaAcuraHome(){
+  const {language,setLanguage,href}=useSiteLanguage();
+  const copy=COPY[language];
   return <main className="min-h-screen bg-[#f7f8fa] text-[#111827]">
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <a href="/" className="text-xl font-black tracking-tight">AutoStereoCodes</a>
-        <div className="flex items-center gap-3"><a href="#serie" className="hidden text-sm font-bold text-slate-600 sm:inline">Cómo sacar la serie</a><a href="/solicitar" className="rounded-xl bg-[#d71920] px-5 py-3 text-sm font-black uppercase text-white shadow-sm transition hover:bg-[#b4151b]">Solicitar código</a></div>
-      </div>
-    </header>
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur"><div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4"><a href={href("/")} className="text-xl font-black tracking-tight">AutoStereoCodes</a><div className="flex items-center gap-2"><LanguagePicker language={language} onChange={setLanguage}/><a href="#serie" className="hidden text-sm font-bold text-slate-600 lg:inline">{copy.navGuide}</a><a href={href("/solicitar")} className="rounded-xl bg-[#d71920] px-4 py-3 text-xs font-black uppercase text-white sm:text-sm">{copy.request}</a></div></div></header>
 
-    <section className="relative isolate overflow-hidden bg-[#0b1118] px-5 py-24 text-white md:py-32">
-      <div className="absolute inset-0 -z-20 bg-cover bg-center opacity-50" style={{backgroundImage:`url(${HERO_PHOTO})`}} aria-hidden="true"/>
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#071018] via-[#071018]/90 to-[#071018]/35" aria-hidden="true"/>
-      <div className="mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <div className="text-sm font-black uppercase tracking-[.24em] text-red-400">Honda + Acura</div>
-          <h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">Recupera el código de tu radio Honda o Acura</h1>
-          <p className="mt-6 text-lg leading-8 text-slate-200">Primero identifica la serie de tu estéreo con la guía visual. Cuando la tengas, abre la solicitud en una pantalla aparte.</p>
-          <div className="mt-8 flex flex-wrap gap-3"><a href="/solicitar" className="rounded-xl bg-[#d71920] px-7 py-4 font-black uppercase text-white shadow-xl">Solicitar mi código</a><a href="#serie" className="rounded-xl border border-white/25 bg-white/10 px-7 py-4 font-black uppercase text-white backdrop-blur">Ver cómo sacar la serie</a></div>
-        </div>
-      </div>
-      <div className="absolute bottom-3 right-4 text-[10px] text-white/45">Foto: Abhinand Venugopal / Unsplash</div>
-    </section>
+    <section className="relative isolate overflow-hidden bg-[#0b1118] px-5 py-24 text-white md:py-32"><div className="absolute inset-0 -z-20 bg-cover bg-center opacity-50" style={{backgroundImage:`url(${HERO_PHOTO})`}} aria-hidden="true"/><div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#071018] via-[#071018]/90 to-[#071018]/35"/><div className="mx-auto max-w-6xl"><div className="max-w-2xl"><div className="text-sm font-black uppercase tracking-[.24em] text-red-400">Honda + Acura</div><h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">{copy.heroTitle}</h1><p className="mt-6 text-lg leading-8 text-slate-200">{copy.heroBody}</p><div className="mt-8 flex flex-wrap gap-3"><a href={href("/solicitar")} className="rounded-xl bg-[#d71920] px-7 py-4 font-black uppercase text-white shadow-xl">{copy.request}</a><a href="#serie" className="rounded-xl border border-white/25 bg-white/10 px-7 py-4 font-black uppercase text-white backdrop-blur">{copy.heroGuide}</a></div></div></div></section>
 
-    <section className="px-5 py-14">
-      <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
-        {[['1','Identifica la serie','Usa una de las cuatro guías según el tipo de radio que tengas.'],['2','Llena la solicitud','Marca, año, modelo, serie y al menos un medio de contacto.'],['3','Realiza el pago','PayPal abre aparte para que AutoStereoCodes permanezca abierto.']].map(([n,t,d])=><div key={n} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="grid h-10 w-10 place-items-center rounded-full bg-red-50 font-black text-[#d71920]">{n}</div><h2 className="mt-4 text-xl font-black">{t}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{d}</p></div>)}
-      </div>
-    </section>
+    <section className="px-5 py-14"><div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">{copy.steps.map(([title,body],i)=><div key={title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="grid h-10 w-10 place-items-center rounded-full bg-red-50 font-black text-[#d71920]">{i+1}</div><h2 className="mt-4 text-xl font-black">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-600">{body}</p></div>)}</div></section>
 
-    <section id="serie" className="border-y border-slate-200 bg-white px-5 py-16 md:py-20">
-      <div className="mx-auto max-w-6xl">
-        <div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.22em] text-[#d71920]">Guía visual</div><h2 className="mt-3 text-3xl font-black sm:text-4xl">Cómo encontrar el número de serie de tu Honda</h2><p className="mt-4 leading-7 text-slate-600">La siguiente guía te indicará dónde encontrar el número de serie según el tipo de radio. Las galerías cambian automáticamente cada 3 segundos y también puedes moverlas con las flechas.</p></div>
+    <section id="serie" className="border-y border-slate-200 bg-white px-5 py-16 md:py-20"><div className="mx-auto max-w-6xl"><div className="max-w-3xl"><div className="text-xs font-black uppercase tracking-[.22em] text-[#d71920]">{copy.guideLabel}</div><h2 className="mt-3 text-3xl font-black sm:text-4xl">{copy.guideTitle}</h2><p className="mt-4 leading-7 text-slate-600">{copy.guideIntro}</p></div><div className="mt-10 grid items-start gap-6 lg:grid-cols-2">{copy.cards.map((card,i)=><article key={card.eyebrow} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"><div className="p-4"><MiniCarousel images={IMAGES[i]} title={card.title} copy={copy}/></div><div className="px-6 pb-7"><div className="text-xs font-black uppercase tracking-[.18em] text-[#d71920]">{card.eyebrow}</div><h3 className="mt-2 text-xl font-black">{card.title}</h3><div className="mt-3 text-sm leading-6 text-slate-600">{card.paragraphs.map((paragraph,p)=><p key={p} className={p?"mt-3 whitespace-pre-line":"whitespace-pre-line"}>{paragraph}</p>)}</div></div></article>)}</div>
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5"><div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">{copy.serialKinds}</div><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{[['Standard (U/L)','U2154 L2135'],['S/N','S/N 15517841'],['Touchscreen','975GU294'],['Navigation','HFB22016680'],['Mitsubishi','954LR052'],['Accessory','FGZ24253655JC'],['SN-Series','SN500074'],['Numeric','22081908']].map(([kind,value])=><div key={kind} className="rounded-xl border border-slate-200 bg-white px-4 py-3"><div className="text-[10px] font-black uppercase tracking-wider text-red-500">{kind}</div><div className="mt-1 font-mono text-sm font-black text-slate-800">{value}</div></div>)}</div></div><div className="mt-8 text-center"><a href={href("/solicitar")} className="inline-flex rounded-xl bg-[#d71920] px-8 py-4 font-black uppercase text-white">{copy.haveSerial}</a></div></div></section>
 
-        <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
-          {GUIDE_CARDS.map(card=><article key={card.eyebrow} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="p-4"><MiniCarousel images={card.images} title={card.title}/></div>
-            <div className="px-6 pb-7">
-              <div className="text-xs font-black uppercase tracking-[.18em] text-[#d71920]">{card.eyebrow}</div>
-              <h3 className="mt-2 text-xl font-black">{card.title}</h3>
-              <div className="mt-3 text-sm leading-6 text-slate-600">{card.body}</div>
-            </div>
-          </article>)}
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <div className="text-xs font-black uppercase tracking-[.16em] text-slate-500">Cómo es el número de serie de tu Honda</div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{[['Standard (U/L)','U2154 L2135'],['S/N','S/N 15517841'],['Touchscreen','975GU294'],['Navigation','HFB22016680'],['Mitsubishi','954LR052'],['Accessory','FGZ24253655JC'],['SN-Series','SN500074'],['Numeric','22081908']].map(([kind,value])=><div key={kind} className="rounded-xl border border-slate-200 bg-white px-4 py-3"><div className="text-[10px] font-black uppercase tracking-wider text-red-500">{kind}</div><div className="mt-1 font-mono text-sm font-black text-slate-800">{value}</div></div>)}</div>
-        </div>
-
-        <div className="mt-8 text-center"><a href="/solicitar" className="inline-flex rounded-xl bg-[#d71920] px-8 py-4 font-black uppercase text-white">Ya tengo mi serie · Solicitar código</a></div>
-      </div>
-    </section>
-
-    <section className="px-5 py-14 text-center"><div className="mx-auto max-w-3xl"><h2 className="text-2xl font-black">Especializado únicamente en Honda y Acura</h2><p className="mt-3 leading-7 text-slate-600">La página, el formulario y el panel están enfocados en códigos de radio para estas dos marcas.</p></div></section>
-    <footer className="bg-[#101820] px-5 py-8 text-center text-sm text-slate-400">© {new Date().getFullYear()} AutoStereoCodes · Honda & Acura Radio Codes</footer>
+    <section className="px-5 py-14 text-center"><div className="mx-auto max-w-3xl"><h2 className="text-2xl font-black">{copy.specialistTitle}</h2><p className="mt-3 leading-7 text-slate-600">{copy.specialistBody}</p></div></section><footer className="bg-[#101820] px-5 py-8 text-center text-sm text-slate-400">© {new Date().getFullYear()} AutoStereoCodes · Honda & Acura Radio Codes</footer>
   </main>;
 }
