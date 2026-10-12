@@ -62,6 +62,8 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 }); }
 
   const serial = clean(body.serial, 100);
+  const vin = clean(body.vin, 32).toUpperCase();
+  const postalCode = clean(body.postalCode, 20).toUpperCase();
   const email = clean(body.email, 254).toLowerCase();
   const phone = clean(body.phone, 32);
   const detectedBrand = clean(body.detectedBrand, 120);
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
   const prioritySms = body.prioritySms === true;
   const language = normalizeLanguage(body.language);
 
-  if (!serial) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
+  if (!serial || !vin || !postalCode || !phone || !radioFamily) return NextResponse.json({ code: "INVALID_INPUT" }, { status: 400 });
   if (!ALLOWED_BRANDS.has(detectedBrand)) return NextResponse.json({ code: "UNSUPPORTED_BRAND" }, { status: 400 });
   if (!EMAIL_PATTERN.test(email)) return NextResponse.json({ code: "INVALID_EMAIL" }, { status: 400 });
   if (!(await emailDomainCanReceiveMail(email))) return NextResponse.json({ code: "EMAIL_UNDELIVERABLE" }, { status: 400 });
@@ -111,7 +113,7 @@ export async function POST(request: Request) {
     }
 
     const session = encryptCheckoutSession({
-      orderId: String(result.id), serial, vin: "", postalCode: "", phone: prioritySms ? phone : "", email,
+      orderId: String(result.id), serial, vin, postalCode, phone, email,
       language, prioritySms, amountUsd, detectedBrand, radioFamily,
     });
 
