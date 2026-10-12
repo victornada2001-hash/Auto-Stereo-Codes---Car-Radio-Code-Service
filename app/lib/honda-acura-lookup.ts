@@ -41,7 +41,6 @@ export async function lookupHondaAcura(input: HondaAcuraLookupInput): Promise<Ho
   const sourceUrl = officialSourceFor(input.brand);
   const missing: string[] = [];
   if (!input.serial) missing.push("serial");
-  if (!input.vin) missing.push("vin");
   if (!input.phone && !input.email) missing.push("contact");
 
   if (missing.length) {
@@ -50,7 +49,7 @@ export async function lookupHondaAcura(input: HondaAcuraLookupInput): Promise<Ho
       source: "Honda/Acura official radio code service",
       sourceUrl,
       missing,
-      reason: "Se requieren la serie del radio, VIN y al menos un medio de contacto.",
+      reason: "Se requiere la serie del radio y al menos un medio de contacto. El VIN es opcional en nuestra solicitud.",
     };
   }
 
