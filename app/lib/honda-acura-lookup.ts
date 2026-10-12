@@ -42,9 +42,7 @@ export async function lookupHondaAcura(input: HondaAcuraLookupInput): Promise<Ho
   const missing: string[] = [];
   if (!input.serial) missing.push("serial");
   if (!input.vin) missing.push("vin");
-  if (!input.postalCode) missing.push("postalCode");
-  if (!input.phone) missing.push("phone");
-  if (!input.email) missing.push("email");
+  if (!input.phone && !input.email) missing.push("contact");
 
   if (missing.length) {
     return {
@@ -52,7 +50,7 @@ export async function lookupHondaAcura(input: HondaAcuraLookupInput): Promise<Ho
       source: "Honda/Acura official radio code service",
       sourceUrl,
       missing,
-      reason: "Para la recuperación oficial se requieren VIN, ZIP/código postal, teléfono, email y serie del radio.",
+      reason: "Se requieren la serie del radio, VIN y al menos un medio de contacto.",
     };
   }
 
@@ -63,7 +61,7 @@ export async function lookupHondaAcura(input: HondaAcuraLookupInput): Promise<Ho
       status: "manual",
       source: "Honda/Acura",
       sourceUrl,
-      reason: "El conector autorizado de Honda/Acura todavía no está configurado; requiere revisión manual.",
+      reason: "El conector autorizado de Honda/Acura todavía no está configurado; requiere revisión manual en la fuente oficial.",
     };
   }
 
