@@ -76,3 +76,5 @@ go=function(page){phase8PreviousGo(page);if(page==='privacy')loadPrivacySettings
 sb.auth.onAuthStateChange((event,newSession)=>{if(event==='PASSWORD_RECOVERY'){session=newSession;setTimeout(showRecoveryPasswordModal,50)}});
 const p8Timer=setInterval(()=>{if(document.querySelector('main.content')){injectPhaseEightUI();clearInterval(p8Timer)}},100);
 setTimeout(()=>injectPhaseEightUI(),1100);
+
+(()=>{const s=document.createElement('script');s.src='phase9.js';s.defer=true;document.body.appendChild(s)})();
