@@ -1,5 +1,6 @@
 function phase19FriendlyError(err){
   const m=(err?.message||String(err||'')).toLowerCase();
+  if(m.includes('rate_limit_exceeded'))return'Has realizado demasiadas acciones en poco tiempo. Espera un momento e inténtalo nuevamente.';
   if(m.includes('rewind requires'))return'Deshacer requiere TJ Plus o superior.';
   if(m.includes('cannot rewind matched like'))return'No puedes deshacer un Like que ya creó un Match.';
   if(m.includes('no recent action'))return'No hay una acción reciente para deshacer.';
@@ -26,7 +27,6 @@ undoLast=async function(){
   }catch(e){toast(phase19FriendlyError(e));}
 };
 
-const p19ConfirmBlockCurrent=confirmBlockCurrent;
 confirmBlockCurrent=async function(){
   const id=currentConversation?.other?.id;if(!id)return;
   const {error}=await sb.rpc('block_user',{target_user:id});if(error)return toast(error.message);
