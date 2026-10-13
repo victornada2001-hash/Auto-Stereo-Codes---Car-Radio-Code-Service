@@ -28,8 +28,8 @@ async function enforceAccountState(){
 }
 
 function goRestrictionSupport(){
-  ensureRestrictionOverlay().style.display='none';
-  if(typeof go==='function'){go('account');setTimeout(()=>document.getElementById('supportCard')?.scrollIntoView({behavior:'smooth'}),120)}
+  const overlay=ensureRestrictionOverlay();overlay.classList.add('hidden');overlay.style.display='none';
+  if(typeof go==='function'){go('support');setTimeout(()=>$('supportSubject')?.focus(),120)}
 }
 
 const p13Boot=boot;
@@ -70,7 +70,11 @@ const p13LoadAdmin=loadAdmin;
 loadAdmin=async function(){await p13LoadAdmin();injectAdminAudit();await loadAdminAudit()};
 
 const p13Go=go;
-go=function(page){p13Go(page);if(page==='admin')setTimeout(()=>{injectAdminAudit();loadAdminAudit()},80)};
+go=function(page){
+  p13Go(page);
+  if(page==='admin')setTimeout(()=>{injectAdminAudit();loadAdminAudit()},80);
+  if(accountRestrictionState&&accountRestrictionState.account_state!=='active'&&page!=='support')setTimeout(enforceAccountState,20);
+};
 
 sb.auth.onAuthStateChange(async(_event,s)=>{if(s){session=s;setTimeout(enforceAccountState,150)}});
 setTimeout(()=>{ensureRestrictionOverlay();if(session)enforceAccountState();injectAdminAudit()},1000);
