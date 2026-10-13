@@ -25,3 +25,11 @@ const p17Go=go;
 go=function(page){p17Go(page);if(page==='filters')setTimeout(loadAdvancedFilters,60)};
 
 setTimeout(()=>{injectAdvancedFiltersUI();if(session)loadAdvancedFilters()},900);
+
+if(!document.querySelector('script[data-tjs-phase18]')){
+  const phase18Script=document.createElement('script');
+  phase18Script.src='phase18.js?v=1';
+  phase18Script.defer=true;
+  phase18Script.dataset.tjsPhase18='1';
+  document.body.appendChild(phase18Script);
+}
