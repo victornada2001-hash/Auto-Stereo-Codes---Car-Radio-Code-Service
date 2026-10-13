@@ -120,3 +120,5 @@ if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serv
 
 const phaseObserver=setInterval(()=>{if($('app')){injectPhaseSixUI();clearInterval(phaseObserver)}},100);
 setTimeout(()=>{injectPhaseSixUI();if(session){loadVerificationStatus();loadNotificationPreferences()}},700);
+
+const phase7Script=document.createElement('script');phase7Script.src='phase7.js?v=1';phase7Script.defer=true;document.body.appendChild(phase7Script);
