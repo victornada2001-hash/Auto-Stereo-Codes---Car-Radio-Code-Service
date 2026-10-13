@@ -118,3 +118,11 @@ setTimeout(()=>{
   if(typeof injectPhaseNineUI==='function')injectPhaseNineUI();
   refreshConnectivity();
 },1500);
+
+if(!document.querySelector('script[data-tjs-phase11]')){
+  const phase11Script=document.createElement('script');
+  phase11Script.src='phase11.js?v=1';
+  phase11Script.defer=true;
+  phase11Script.dataset.tjsPhase11='1';
+  document.body.appendChild(phase11Script);
+}
