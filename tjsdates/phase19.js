@@ -41,3 +41,11 @@ setTimeout(()=>{
   const undoButtons=[...document.querySelectorAll('button')].filter(b=>/deshacer|rewind/i.test(b.textContent||''));
   for(const b of undoButtons)b.title='Recupera tu última acción disponible';
 },700);
+
+if(!document.querySelector('script[data-tjs-phase20]')){
+  const phase20Script=document.createElement('script');
+  phase20Script.src='phase20.js?v=1';
+  phase20Script.defer=true;
+  phase20Script.dataset.tjsPhase20='1';
+  document.body.appendChild(phase20Script);
+}
