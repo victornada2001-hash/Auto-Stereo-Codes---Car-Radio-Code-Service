@@ -126,3 +126,10 @@ if(!document.querySelector('script[data-tjs-phase11]')){
   phase11Script.dataset.tjsPhase11='1';
   document.body.appendChild(phase11Script);
 }
+if(!document.querySelector('script[data-tjs-phase12]')){
+  const phase12Script=document.createElement('script');
+  phase12Script.src='phase12.js?v=1';
+  phase12Script.defer=true;
+  phase12Script.dataset.tjsPhase12='1';
+  document.body.appendChild(phase12Script);
+}
