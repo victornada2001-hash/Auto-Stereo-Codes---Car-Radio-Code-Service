@@ -1,0 +1,12 @@
+{
+  "name": "TJSDATES",
+  "short_name": "TJSDATES",
+  "description": "Citas locales para Tijuana y San Diego, solo mayores de 18 años.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0b18",
+  "theme_color": "#140c21",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
