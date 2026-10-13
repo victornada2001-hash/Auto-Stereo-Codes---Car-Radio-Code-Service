@@ -100,3 +100,11 @@ finishOnboarding=async function(){
 };
 
 setTimeout(async()=>{try{await loadInterestCatalog();injectProfileDetailsUI();injectOnboardingInterests();if(session)await loadExtendedProfile()}catch(e){console.error(e)}},900);
+
+if(!document.querySelector('script[data-tjs-phase17]')){
+  const phase17Script=document.createElement('script');
+  phase17Script.src='phase17.js?v=1';
+  phase17Script.defer=true;
+  phase17Script.dataset.tjsPhase17='1';
+  document.body.appendChild(phase17Script);
+}
