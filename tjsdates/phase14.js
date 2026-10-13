@@ -80,3 +80,11 @@ sb.auth.onAuthStateChange((event,s)=>{
 });
 
 window.addEventListener('pageshow',()=>{if(session&&document.visibilityState==='visible')setTimeout(()=>{if(typeof enforceAccountState==='function')enforceAccountState()},100)});
+
+if(!document.querySelector('script[data-tjs-phase15]')){
+  const phase15Script=document.createElement('script');
+  phase15Script.src='phase15.js?v=1';
+  phase15Script.defer=true;
+  phase15Script.dataset.tjsPhase15='1';
+  document.body.appendChild(phase15Script);
+}
