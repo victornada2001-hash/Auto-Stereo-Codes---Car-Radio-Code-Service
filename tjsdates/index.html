@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <title>TJSDATES</title>
 <meta name="theme-color" content="#140c21"/>
+<meta name="description" content="TJSDATES: citas locales para adultos en Tijuana y San Diego."/>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="enhancements.css">
 </head>
 <body>
 <div id="landing" class="wrap">
@@ -36,4 +40,5 @@
 </main></div><nav class="bottom"><button class="active" data-page="discover" onclick="go('discover')">♥<br>Descubrir</button><button data-page="likes" onclick="go('likes')">💗<br>Likes</button><button data-page="matches" onclick="go('matches')">💬<br>Matches</button><button data-page="notifications" onclick="go('notifications')">🔔<br>Alertas</button><button data-page="profile" onclick="go('profile')">👤<br>Perfil</button></nav></div>
 <div id="modal" class="modal hidden"><div class="card"><div id="modalBody"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" onclick="closeModal()">Cerrar</button></div></div></div><div id="toast" class="toast hidden"></div>
 <script src="app.js"></script>
+<script src="enhancements.js"></script>
 </body></html>
