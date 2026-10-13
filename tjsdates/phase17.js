@@ -26,10 +26,15 @@ go=function(page){p17Go(page);if(page==='filters')setTimeout(loadAdvancedFilters
 
 setTimeout(()=>{injectAdvancedFiltersUI();if(session)loadAdvancedFilters()},900);
 
+function loadPhase19(){
+  if(document.querySelector('script[data-tjs-phase19]'))return;
+  const s=document.createElement('script');s.src='phase19.js?v=1';s.defer=true;s.dataset.tjsPhase19='1';document.body.appendChild(s);
+}
 if(!document.querySelector('script[data-tjs-phase18]')){
   const phase18Script=document.createElement('script');
   phase18Script.src='phase18.js?v=1';
   phase18Script.defer=true;
   phase18Script.dataset.tjsPhase18='1';
+  phase18Script.onload=loadPhase19;
   document.body.appendChild(phase18Script);
-}
+}else loadPhase19();
