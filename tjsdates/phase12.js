@@ -53,3 +53,11 @@ async function loadMyReports(){
 setTimeout(()=>{injectPhaseTwelveUI();if(session){loadBlockedUsers();loadMyReports()}},900);
 const p12Go=go;
 go=function(page){p12Go(page);if(page==='safety'){setTimeout(()=>{injectPhaseTwelveUI();loadBlockedUsers();loadMyReports()},80)}};
+
+if(!document.querySelector('script[data-tjs-phase13]')){
+  const phase13Script=document.createElement('script');
+  phase13Script.src='phase13.js?v=1';
+  phase13Script.defer=true;
+  phase13Script.dataset.tjsPhase13='1';
+  document.body.appendChild(phase13Script);
+}
