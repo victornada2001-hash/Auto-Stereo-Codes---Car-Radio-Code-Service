@@ -78,3 +78,11 @@ go=function(page){
 
 sb.auth.onAuthStateChange(async(_event,s)=>{if(s){session=s;setTimeout(enforceAccountState,150)}});
 setTimeout(()=>{ensureRestrictionOverlay();if(session)enforceAccountState();injectAdminAudit()},1000);
+
+if(!document.querySelector('script[data-tjs-phase14]')){
+  const phase14Script=document.createElement('script');
+  phase14Script.src='phase14.js?v=1';
+  phase14Script.defer=true;
+  phase14Script.dataset.tjsPhase14='1';
+  document.body.appendChild(phase14Script);
+}
