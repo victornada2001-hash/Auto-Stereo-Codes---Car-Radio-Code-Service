@@ -52,3 +52,11 @@ setTimeout(()=>{
   const note=document.querySelector('#page-photos .uploadbox .note');
   if(note)note.textContent='JPEG, PNG o WebP · máximo 10 MB por archivo. Las fotos nuevas pasan por moderación.';
 },700);
+
+if(!document.querySelector('script[data-tjs-phase16]')){
+  const phase16Script=document.createElement('script');
+  phase16Script.src='phase16.js?v=1';
+  phase16Script.defer=true;
+  phase16Script.dataset.tjsPhase16='1';
+  document.body.appendChild(phase16Script);
+}
