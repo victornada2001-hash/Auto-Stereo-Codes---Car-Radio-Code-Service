@@ -40,6 +40,11 @@ function friendlyLocationError(err){
   return 'No fue posible obtener tu ubicación.';
 }
 
+function phase30ActionError(err){
+  if(typeof phase21FriendlyError==='function')return phase21FriendlyError(err);
+  return err?.message||'No se pudo completar la acción.';
+}
+
 // Replace the original geolocation handler with clearer permission/network states.
 requestLocation=function(){
   if(!requireOnline())return;
@@ -53,7 +58,7 @@ requestLocation=function(){
       if(error)throw error;
       toast('Ubicación aproximada actualizada de forma privada.');
       if(session)loadDiscovery();
-    }catch(e){toast(phase21FriendlyError?.(e)||e.message||'No se pudo guardar la ubicación.');}
+    }catch(e){toast(phase30ActionError(e));}
     finally{buttons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.oldText||'📍 Actualizar ubicación'})}
   },err=>{
     toast(friendlyLocationError(err));
