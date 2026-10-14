@@ -45,7 +45,6 @@ function phase30ActionError(err){
   return err?.message||'No se pudo completar la acción.';
 }
 
-// Replace the original geolocation handler with clearer permission/network states.
 requestLocation=function(){
   if(!requireOnline())return;
   if(!navigator.geolocation)return toast('Este navegador no ofrece geolocalización.');
@@ -96,19 +95,22 @@ async function setupServiceWorkerUpdateFlow(){
   }catch(e){console.warn('TJSDATES SW update check failed',e)}
 }
 
-// Avoid exposing raw backend/browser details to users while still retaining diagnostics in console.
 window.addEventListener('unhandledrejection',event=>{
   console.error('TJSDATES unhandled promise rejection',event.reason);
   const m=String(event.reason?.message||event.reason||'');
   if(/AbortError|ResizeObserver/i.test(m))return;
   if(document.visibilityState==='visible')toast(navigator.onLine?'No se pudo completar una operación. Intenta nuevamente.':'Sin conexión. La operación no se completó.');
 });
-window.addEventListener('error',event=>{
-  console.error('TJSDATES browser error',event.error||event.message);
-});
-
+window.addEventListener('error',event=>{console.error('TJSDATES browser error',event.error||event.message)});
 window.addEventListener('online',setNetworkState);
 window.addEventListener('offline',setNetworkState);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setNetworkState()});
-
 setTimeout(()=>{setNetworkState();setupServiceWorkerUpdateFlow()},700);
+
+if(!document.querySelector('script[data-tjs-phase33]')){
+  const phase33Script=document.createElement('script');
+  phase33Script.src='phase33.js?v=1';
+  phase33Script.defer=true;
+  phase33Script.dataset.tjsPhase33='1';
+  document.body.appendChild(phase33Script);
+}
