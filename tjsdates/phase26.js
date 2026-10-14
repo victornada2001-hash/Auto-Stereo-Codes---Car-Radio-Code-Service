@@ -111,3 +111,11 @@ authTab=function(mode){
 };
 
 setTimeout(()=>{injectForgotPasswordLink();if(typeof authMode!=='undefined')authTab(authMode)},500);
+
+if(!document.querySelector('script[data-tjs-phase30]')){
+  const phase30Script=document.createElement('script');
+  phase30Script.src='phase30.js?v=1';
+  phase30Script.defer=true;
+  phase30Script.dataset.tjsPhase30='1';
+  document.body.appendChild(phase30Script);
+}
