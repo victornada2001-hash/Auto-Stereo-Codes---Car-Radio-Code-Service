@@ -6,28 +6,32 @@ let passwordRecoveryBusy=false;
 function injectForgotPasswordLink(){
   const submit=$('authSubmit');
   const host=submit?.parentElement;
-  if(!host||$('forgotPasswordBtn'))return;
-  const b=document.createElement('button');
-  b.id='forgotPasswordBtn';
-  b.type='button';
-  b.className='btn ghost';
-  b.style.cssText='width:100%;margin-top:10px';
+  if(!host)return;
+  let b=$('forgotPasswordBtn');
+  if(!b){
+    b=document.createElement('button');
+    b.id='forgotPasswordBtn';
+    b.type='button';
+    b.className='btn ghost';
+    b.style.cssText='width:100%;margin-top:10px';
+    submit.insertAdjacentElement('afterend',b);
+  }
   b.textContent='¿Olvidaste tu contraseña?';
   b.onclick=requestPasswordReset;
-  submit.insertAdjacentElement('afterend',b);
 }
 
 async function requestPasswordReset(){
   if(passwordRecoveryBusy)return;
-  const email=($('authEmail')?.value||'').trim().toLowerCase();
+  const email=($('authEmail')?.value||session?.user?.email||'').trim().toLowerCase();
   if(!validEmail(email))return setStatus('authStatus','Escribe primero el correo de tu cuenta.');
   const btn=$('forgotPasswordBtn');passwordRecoveryBusy=true;if(btn)btn.disabled=true;
   try{
     const redirectTo=location.origin+location.pathname+'?recovery=1';
     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
     if(error)throw error;
-    setStatus('authStatus','Si existe una cuenta con ese correo, recibirás un enlace para cambiar la contraseña.',true);
-  }catch(e){setStatus('authStatus',authFriendlyError(e));}
+    if(session)toast('Te enviamos un enlace para cambiar tu contraseña.');
+    else setStatus('authStatus','Si existe una cuenta con ese correo, recibirás un enlace para cambiar la contraseña.',true);
+  }catch(e){if(session)toast(authFriendlyError(e));else setStatus('authStatus',authFriendlyError(e));}
   finally{passwordRecoveryBusy=false;if(btn)setTimeout(()=>btn.disabled=false,2500)}
 }
 
@@ -38,6 +42,7 @@ function passwordStrengthMessage(v){
 }
 
 function showPasswordRecoveryModal(){
+  if(passwordRecoveryMode&&$('newRecoveryPassword'))return;
   passwordRecoveryMode=true;
   const modal=$('modal');const body=$('modalBody');if(!modal||!body)return;
   body.innerHTML=`<div class="pill">Recuperación de cuenta</div><h2>Crea una contraseña nueva</h2>
@@ -68,6 +73,11 @@ async function saveRecoveredPassword(){
   finally{passwordRecoveryBusy=false;if(btn)btn.disabled=false;}
 }
 
+// Replace the older phase8 recovery functions so both listeners/UI paths converge here.
+sendPasswordRecovery=requestPasswordReset;
+showRecoveryPasswordModal=showPasswordRecoveryModal;
+completePasswordRecovery=saveRecoveredPassword;
+
 // Prevent the generic modal close button from dismissing a recovery flow accidentally.
 const p26CloseModal=closeModal;
 closeModal=function(){
@@ -78,13 +88,6 @@ closeModal=function(){
   }
   p26CloseModal();
 };
-
-sb.auth.onAuthStateChange((event,s)=>{
-  if(event==='PASSWORD_RECOVERY'){
-    session=s||session;
-    setTimeout(showPasswordRecoveryModal,80);
-  }
-});
 
 window.addEventListener('pageshow',async()=>{
   injectForgotPasswordLink();
