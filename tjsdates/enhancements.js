@@ -32,7 +32,7 @@ function injectPhaseSixUI(){
     chat.insertBefore(reply,composer);
     const t=document.createElement('div');t.id='typingIndicator';t.className='typing hidden';t.textContent='Escribiendo…';chat.insertBefore(t,composer);
     const attach=document.createElement('button');attach.className='btn ghost attachbtn';attach.type='button';attach.textContent='📷';attach.title='Enviar imagen';attach.onclick=()=>$('chatImageInput')?.click();composer.insertBefore(attach,composer.firstChild);
-    const file=document.createElement('input');file.id='chatImageInput';file.type='file';file.accept='image/jpeg,image/png,image/webp,image/heic';file.hidden=true;file.onchange=()=>{if(file.files?.[0])uploadChatImage(file.files[0]);file.value=''};composer.appendChild(file);
+    const file=document.createElement('input');file.id='chatImageInput';file.type='file';file.accept='image/jpeg,image/png,image/webp';file.hidden=true;file.onchange=()=>{if(file.files?.[0])uploadChatImage(file.files[0]);file.value=''};composer.appendChild(file);
     $('chatInput')?.addEventListener('input',broadcastTyping);
   }
   const admin=$('page-admin');
@@ -120,5 +120,3 @@ if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serv
 
 const phaseObserver=setInterval(()=>{if($('app')){injectPhaseSixUI();clearInterval(phaseObserver)}},100);
 setTimeout(()=>{injectPhaseSixUI();if(session){loadVerificationStatus();loadNotificationPreferences()}},700);
-
-const phase7Script=document.createElement('script');phase7Script.src='phase7.js?v=1';phase7Script.defer=true;document.body.appendChild(phase7Script);
