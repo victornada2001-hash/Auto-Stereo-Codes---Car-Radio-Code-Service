@@ -53,3 +53,11 @@ function polishRegionalLabels(){
 setTimeout(polishRegionalLabels,400);
 const p21Go=go;
 go=function(page){p21Go(page);if(page==='plans'||page==='double')setTimeout(polishRegionalLabels,40)};
+
+if(!document.querySelector('script[data-tjs-phase22]')){
+  const phase22Script=document.createElement('script');
+  phase22Script.src='phase22.js?v=1';
+  phase22Script.defer=true;
+  phase22Script.dataset.tjsPhase22='1';
+  document.body.appendChild(phase22Script);
+}
