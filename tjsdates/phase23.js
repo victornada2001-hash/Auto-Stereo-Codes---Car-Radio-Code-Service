@@ -73,3 +73,11 @@ uploadReportEvidence=async function(reportId){
 setTimeout(()=>{
   if(session&&$('page-support')&&!$('page-support').classList.contains('hidden'))loadSupportTickets();
 },700);
+
+if(!document.querySelector('script[data-tjs-phase24]')){
+  const phase24Script=document.createElement('script');
+  phase24Script.src='phase24.js?v=1';
+  phase24Script.defer=true;
+  phase24Script.dataset.tjsPhase24='1';
+  document.body.appendChild(phase24Script);
+}
