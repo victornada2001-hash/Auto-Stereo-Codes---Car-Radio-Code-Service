@@ -30,19 +30,22 @@ uploadPhotos=async function(files){
   const remaining=Math.max(0,9-current.length),arr=[...files].slice(0,remaining);
   if(!arr.length)return setStatus('photoStatus','Máximo 9 fotos.');
   setStatus('photoStatus','Procesando fotos...',true);
-  let nextPos=current.length?Math.max(...current.map(x=>Number(x.position)||0))+1:0;
   let uploaded=0;
   for(const f of arr){
+    let path=null;
     try{
       if(f.size>10*1024*1024)throw new Error(`${f.name}: máximo 10 MB`);
       if(!['image/jpeg','image/png','image/webp'].includes(f.type))throw new Error(`${f.name}: formato no compatible`);
       const blob=await compressImage(f);
-      const path=`${session.user.id}/${crypto.randomUUID()}.webp`;
+      path=`${session.user.id}/${crypto.randomUUID()}.webp`;
       const up=await sb.storage.from('profile-photos').upload(path,blob,{contentType:'image/webp',upsert:false});if(up.error)throw up.error;
-      const ins=await sb.from('profile_photos').insert({user_id:session.user.id,storage_path:path,position:nextPos++,is_primary:current.length===0&&uploaded===0});
-      if(ins.error){await sb.storage.from('profile-photos').remove([path]);throw ins.error}
+      const reg=await sb.rpc('register_my_profile_photo',{p_storage_path:path});
+      if(reg.error)throw reg.error;
       uploaded++;
-    }catch(e){setStatus('photoStatus',e.message);break}
+    }catch(e){
+      if(path)await sb.storage.from('profile-photos').remove([path]).catch(()=>{});
+      setStatus('photoStatus',e.message);break;
+    }
   }
   if(uploaded)setStatus('photoStatus',`${uploaded} foto${uploaded===1?'':'s'} subida${uploaded===1?'':'s'}. Pendiente${uploaded===1?'':'s'} de moderación.`,true);
   loadPhotos();
