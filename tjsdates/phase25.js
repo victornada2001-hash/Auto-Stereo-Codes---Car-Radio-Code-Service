@@ -102,3 +102,11 @@ go=function(page){
 };
 
 setTimeout(()=>{injectSessionSecurityCard()},900);
+
+if(!document.querySelector('script[data-tjs-phase26]')){
+  const phase26Script=document.createElement('script');
+  phase26Script.src='phase26.js?v=1';
+  phase26Script.defer=true;
+  phase26Script.dataset.tjsPhase26='1';
+  document.body.appendChild(phase26Script);
+}
