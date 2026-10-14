@@ -3,10 +3,19 @@
 function injectNotificationPreferencesUI(){
   const page=$('page-notifications');
   if(!page||$('notificationPrefsCard'))return;
-  const c=document.createElement('div');
-  c.id='notificationPrefsCard';
-  c.className='card';
-  c.style.marginBottom='14px';
+  let c=$('notifPrefsCard');
+  if(c){
+    c.id='notificationPrefsCard';
+    c.style.marginBottom='14px';
+    c.style.marginTop='0';
+  }else{
+    c=document.createElement('div');
+    c.id='notificationPrefsCard';
+    c.className='card';
+    c.style.marginBottom='14px';
+    const head=page.querySelector('.sectionhead');
+    if(head?.nextSibling)page.insertBefore(c,head.nextSibling);else page.prepend(c);
+  }
   c.innerHTML=`<div class="sectionhead"><div><div class="pill">Preferencias</div><h3 style="margin:7px 0 0">Qué quieres recibir</h3></div><button class="btn ghost" type="button" onclick="loadNotificationPreferences()">Actualizar</button></div>
     <div class="privacygrid">
       <label class="privacytoggle"><input id="npMatches" type="checkbox"><span><b>Nuevos Matches</b><div class="note">Avísame cuando haya un Match nuevo.</div></span></label>
@@ -16,8 +25,6 @@ function injectNotificationPreferencesUI(){
       <label class="privacytoggle"><input id="npMarketing" type="checkbox"><span><b>Novedades de TJSDATES</b><div class="note">Promociones y novedades opcionales.</div></span></label>
     </div>
     <button id="saveNotificationPrefsBtn" class="btn primary" style="margin-top:14px" type="button" onclick="saveNotificationPreferences()">Guardar preferencias</button><div id="notificationPrefsStatus" class="status"></div>`;
-  const head=page.querySelector('.sectionhead');
-  if(head?.nextSibling)page.insertBefore(c,head.nextSibling);else page.prepend(c);
 }
 
 async function loadNotificationPreferences(){
