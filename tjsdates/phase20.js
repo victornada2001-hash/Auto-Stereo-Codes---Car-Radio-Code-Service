@@ -91,3 +91,11 @@ setTimeout(()=>{
   const input=$('chatImageInput');if(input)input.accept='image/jpeg,image/png,image/webp';
   if(session)loadMatchHistory();
 },900);
+
+if(!document.querySelector('script[data-tjs-phase21]')){
+  const phase21Script=document.createElement('script');
+  phase21Script.src='phase21.js?v=1';
+  phase21Script.defer=true;
+  phase21Script.dataset.tjsPhase21='1';
+  document.body.appendChild(phase21Script);
+}
