@@ -112,3 +112,11 @@ go=function(page){
 };
 
 setTimeout(()=>{injectNotificationPreferencesUI();if(session&&!$('page-notifications')?.classList.contains('hidden'))loadNotificationPreferences();},700);
+
+if(!document.querySelector('script[data-tjs-phase25]')){
+  const phase25Script=document.createElement('script');
+  phase25Script.src='phase25.js?v=1';
+  phase25Script.defer=true;
+  phase25Script.dataset.tjsPhase25='1';
+  document.body.appendChild(phase25Script);
+}
