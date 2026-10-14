@@ -54,3 +54,11 @@ window.addEventListener('offline',()=>{
 });
 
 setTimeout(()=>{injectMobileMoreMenu();renderMoreMenu()},600);
+
+if(!document.querySelector('script[data-tjs-phase23]')){
+  const phase23Script=document.createElement('script');
+  phase23Script.src='phase23.js?v=1';
+  phase23Script.defer=true;
+  phase23Script.dataset.tjsPhase23='1';
+  document.body.appendChild(phase23Script);
+}
