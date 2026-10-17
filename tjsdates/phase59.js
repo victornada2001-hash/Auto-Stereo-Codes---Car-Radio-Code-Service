@@ -1,14 +1,28 @@
 // Phase 59: polished Discovery action buttons without changing business logic.
 function p59Copy(){const en=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';return en?{rewind:'Rewind',pass:'Pass',super:'Highlighted Like',like:'Like',premium:'Premium'}:{rewind:'Rewind',pass:'Pasar',super:'Like destacado',like:'Me gusta',premium:'Premium'}}
 function p59DecorateActions(){
-  const a=document.querySelector('#page-discover .actions');if(!a||a.dataset.p59==='1')return;a.dataset.p59='1';
+  const a=document.querySelector('#page-discover .actions');if(!a)return;a.dataset.p59='1';
   const t=p59Copy(),buttons=[...a.querySelectorAll('button')];
   const cfg=[['rewind',t.rewind,'↩'],['pass',t.pass,'✕'],['super',t.super,'★'],['like',t.like,'♥']];
-  buttons.slice(0,4).forEach((b,i)=>{const [kind,label,icon]=cfg[i];b.classList.add('p59action','p59-'+kind);b.setAttribute('aria-label',label);b.setAttribute('title',label);b.innerHTML=`<span class="p59icon">${icon}</span><span class="p59label">${label}</span>`;b.addEventListener('pointerdown',()=>b.classList.add('pressed'));['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>b.classList.remove('pressed')));});
+  buttons.slice(0,4).forEach((b,i)=>{
+    const [kind,label,icon]=cfg[i];
+    b.classList.add('p59action','p59-'+kind);
+    b.setAttribute('aria-label',label);b.setAttribute('title',label);
+    const iconEl=b.querySelector('.p59icon'),labelEl=b.querySelector('.p59label');
+    if(iconEl)iconEl.textContent=icon;else b.insertAdjacentHTML('afterbegin',`<span class="p59icon">${icon}</span>`);
+    const currentLabel=b.querySelector('.p59label');
+    if(currentLabel)currentLabel.textContent=label;else b.insertAdjacentHTML('beforeend',`<span class="p59label">${label}</span>`);
+    if(b.dataset.p59Bound!=='1'){
+      b.dataset.p59Bound='1';
+      b.addEventListener('pointerdown',()=>b.classList.add('pressed'));
+      ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>b.classList.remove('pressed')));
+    }
+  });
 }
 function p59Pulse(kind){const b=document.querySelector(`#page-discover .p59-${kind}`);if(!b)return;b.classList.remove('p59pulse');void b.offsetWidth;b.classList.add('p59pulse');setTimeout(()=>b.classList.remove('p59pulse'),360)}
 function p59Wrap(name,kind){const fn=window[name];if(typeof fn!=='function'||fn.__p59)return;const wrapped=function(...args){p59Pulse(kind);return fn.apply(this,args)};wrapped.__p59=true;window[name]=wrapped}
 function p59Styles(){if($('p59styles'))return;const s=document.createElement('style');s.id='p59styles';s.textContent=`#page-discover .actions{display:flex;justify-content:center;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:14px}.p59action{width:64px!important;height:64px!important;border-radius:50%!important;display:flex!important;align-items:center;justify-content:center;position:relative;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}.p59action .p59icon{font-size:27px;line-height:1}.p59label{position:absolute;top:68px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:var(--muted);font-weight:700}.p59-rewind{border-color:#f6c35b!important;color:#f6c35b!important}.p59-pass{width:72px!important;height:72px!important;border-color:#ff6078!important;color:#ff6078!important}.p59-super{border-color:#52b8ff!important;color:#52b8ff!important}.p59-like{width:72px!important;height:72px!important;border-color:#42f59e!important;color:#42f59e!important}.p59action:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 8px 24px rgba(0,0,0,.22)}.p59action.pressed{transform:scale(.9)}.p59pulse{animation:p59pulse .34s ease}@keyframes p59pulse{50%{transform:scale(1.14);filter:brightness(1.25)}}@media(max-width:520px){#page-discover .actions{gap:9px}.p59action{width:56px!important;height:56px!important}.p59-pass,.p59-like{width:64px!important;height:64px!important}.p59label{display:none}}@media(prefers-reduced-motion:reduce){.p59action{transition:none}.p59pulse{animation:none}}`;document.head.appendChild(s)}
 p59Styles();p59DecorateActions();p59Wrap('undoLast','rewind');p59Wrap('passCurrent','pass');p59Wrap('superLikeCurrent','super');p59Wrap('likeCurrent','like');
 const p59Go=typeof go==='function'?go:null;if(p59Go)go=function(page){p59Go(page);if(page==='discover')setTimeout(p59DecorateActions,40)};setTimeout(p59DecorateActions,700);
+document.addEventListener('tjsdates:language-changed',()=>setTimeout(p59DecorateActions,0));
 if(!document.querySelector('script[data-tjs-phase60]')){const s=document.createElement('script');s.src='phase60.js?v=1';s.defer=true;s.dataset.tjsPhase60='1';document.body.appendChild(s)}
