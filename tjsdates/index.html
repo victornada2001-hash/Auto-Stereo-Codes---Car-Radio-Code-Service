@@ -11,8 +11,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="enhancements.css">
+<style>#startupGate{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#140c21;transition:opacity .2s ease}.startupbox{text-align:center;padding:24px}.startupheart{font-size:46px;animation:tjspulse 1s ease-in-out infinite}.startupbrand{font-weight:900;font-size:22px;margin-top:8px}.startupnote{opacity:.7;font-size:13px;margin-top:6px}@keyframes tjspulse{50%{transform:scale(1.08);opacity:.78}}@media(prefers-reduced-motion:reduce){.startupheart{animation:none}}</style>
 </head>
 <body>
+<div id="startupGate" role="status" aria-live="polite"><div class="startupbox"><div class="startupheart">♥</div><div class="startupbrand">TJSDATES</div><div class="startupnote">Preparando una conexión segura…</div></div></div>
 <div id="landing" class="wrap">
   <div class="top"><div class="brand"><div class="logo">♥</div>TJSDATES</div><div class="row"><button class="btn ghost" onclick="showAuth('login')">Iniciar sesión</button><button class="btn primary" onclick="showAuth('signup')">Crear cuenta</button></div></div>
   <section class="hero"><div><div class="pill">📍 Tijuana + San Diego · 18+</div><h1>Conoce personas <span>cerca de ti</span>.</h1><p>Una experiencia de citas local, segura y moderna. Descubre perfiles, haz match y conversa sin revelar tu ubicación exacta.</p><div class="row"><button class="btn primary" onclick="showAuth('signup')">Crear cuenta</button><button class="btn ghost" onclick="showAuth('login')">Ya tengo cuenta</button></div></div><div class="orb"></div></section>
@@ -44,7 +46,5 @@
 <script src="phase7.js"></script>
 <script src="phase8.js"></script>
 <script src="phase9.js"></script>
-<script src="phase39.js?v=1" data-tjs-phase39="1"></script>
 <script src="phase10.js"></script>
-<script src="phase40.js?v=1"></script>
 </body></html>
