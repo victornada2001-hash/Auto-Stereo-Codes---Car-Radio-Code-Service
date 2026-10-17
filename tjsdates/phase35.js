@@ -122,3 +122,7 @@ const p35AuthTab=authTab;
 authTab=function(mode){p35AuthTab(mode);syncAuthFieldRules();};
 window.addEventListener('pageshow',syncAuthFieldRules);
 setTimeout(syncAuthFieldRules,500);
+
+if(!document.querySelector('script[data-tjs-phase36]')){
+  const s=document.createElement('script');s.src='phase36.js?v=1';s.defer=true;s.dataset.tjsPhase36='1';document.body.appendChild(s);
+}
