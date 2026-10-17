@@ -89,3 +89,7 @@ const p48Go=typeof go==='function'?go:null;if(p48Go)go=function(page){p48Go(page
 const p48LoadAdmin=typeof loadAdmin==='function'?loadAdmin:null;if(p48LoadAdmin)loadAdmin=async function(){await p48LoadAdmin();await loadAdminVerification48();};
 
 setTimeout(()=>{injectVerification48();if(session)loadVerification48();if(adminRole)loadAdminVerification48();},350);
+
+if(!document.querySelector('script[data-tjs-phase49]')){
+  const s=document.createElement('script');s.src='phase49.js?v=1';s.defer=true;s.dataset.tjsPhase49='1';document.body.appendChild(s);
+}
