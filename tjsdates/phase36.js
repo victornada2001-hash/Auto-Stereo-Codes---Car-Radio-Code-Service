@@ -55,8 +55,6 @@ saveAdvancedFilters=async function(){
   finally{if(btn)btn.disabled=false;}
 };
 
-// Generic helper for any current/future Privacy UI. Direct writes to profile_visibility
-// are revoked; this keeps all changes validated and scoped to auth.uid().
 async function saveMyVisibilitySettings(values={}){
   if(!session)throw new Error('unauthenticated');
   const {data,error}=await sb.from('profile_visibility').select('*').eq('user_id',session.user.id).maybeSingle();
@@ -68,4 +66,8 @@ async function saveMyVisibilitySettings(values={}){
   });
   if(r.error)throw r.error;
   return true;
+}
+
+if(!document.querySelector('script[data-tjs-phase37]')){
+  const s=document.createElement('script');s.src='phase37.js?v=1';s.defer=true;s.dataset.tjsPhase37='1';document.body.appendChild(s);
 }
