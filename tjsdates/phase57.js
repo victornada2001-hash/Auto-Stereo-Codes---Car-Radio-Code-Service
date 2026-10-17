@@ -40,3 +40,4 @@ function p57Styles(){if($('p57styles'))return;const s=document.createElement('st
 const p57Render=typeof renderDeck==='function'?renderDeck:null;if(p57Render)renderDeck=function(){const r=p57Render();setTimeout(p57Decorate,20);return r};
 const p57Go=typeof go==='function'?go:null;if(p57Go)go=function(page){p57Go(page);if(page==='discover')setTimeout(p57Decorate,100)};
 p57Styles();setTimeout(p57Decorate,800);
+if(!document.querySelector('script[data-tjs-phase58]')){const s=document.createElement('script');s.src='phase58.js?v=1';s.defer=true;s.dataset.tjsPhase58='1';document.body.appendChild(s)}
