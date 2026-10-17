@@ -57,3 +57,7 @@ sendMessage=async function(){
 sendMessage.__tjs47Wrapped=true;
 
 window.__TJSDATES_PRIVATE_TYPING_READY=true;
+
+if(!document.querySelector('script[data-tjs-phase68]')){
+  const s=document.createElement('script');s.src='phase68.js?v=1';s.defer=true;s.dataset.tjsPhase68='1';document.body.appendChild(s);
+}
