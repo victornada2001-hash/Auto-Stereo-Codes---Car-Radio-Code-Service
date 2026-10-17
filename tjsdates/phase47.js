@@ -56,10 +56,11 @@ function tjs47Wrap(name,key,options={}){
 }
 
 function installPhase47Guards(){
+  // Guard the leaf mutation only. likeCurrent/superLikeCurrent call createLike internally,
+  // so wrapping both layers with the same key would cause a self-deadlock.
   tjs47Wrap('createLike','profile-decision',{busyMessage:true});
-  tjs47Wrap('likeCurrent','profile-decision',{busyMessage:true});
   tjs47Wrap('passCurrent','profile-decision',{busyMessage:true});
-  tjs47Wrap('rewind','profile-decision');
+  tjs47Wrap('undoLast','profile-decision',{busyMessage:true});
   tjs47Wrap('sendMessage','chat-send',{busyMessage:true});
   tjs47Wrap('sendSocialMessage','social-chat-send',{busyMessage:true});
   tjs47Wrap('finishOnboarding','onboarding-save',{busyMessage:true});
