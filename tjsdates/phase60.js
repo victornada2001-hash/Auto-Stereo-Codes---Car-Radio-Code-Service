@@ -37,7 +37,3 @@ undoLast=async function(){
   if(typeof tjs47Run==='function')return tjs47Run('profile-decision',run,{busyMessage:true});
   return run();
 };
-
-if(!document.querySelector('script[data-tjs-phase61]')){
-  const s=document.createElement('script');s.src='phase61.js?v=1';s.defer=true;s.dataset.tjsPhase61='1';document.body.appendChild(s);
-}
