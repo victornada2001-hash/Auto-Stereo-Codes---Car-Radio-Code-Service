@@ -1,0 +1,29 @@
+name: TJSDATES Health Check
+
+on:
+  push:
+    paths:
+      - 'tjsdates/**'
+      - '.github/workflows/tjsdates-healthcheck.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax for every phase
+        run: |
+          set -e
+          node --check tjsdates/app.js
+          node --check tjsdates/enhancements.js
+          node --check tjsdates/sw.js
+          for f in tjsdates/phase*.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+      - name: Validate phase reachability, PWA cache, and config JSON
+        run: node tjsdates/tests/healthcheck.mjs
