@@ -77,3 +77,4 @@ function p64HandleAuthError(){
 }
 if(sb?.auth?.onAuthStateChange){sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')p64ShowReset()});}
 setTimeout(async()=>{p64InjectForgot();p64HandleAuthError();if(new URLSearchParams(location.search).get('recovery')==='1'){const {data}=await sb.auth.getSession();if(data?.session)p64ShowReset();}},350);
+if(!document.querySelector('script[data-tjs-phase65]')){const s=document.createElement('script');s.src='phase65.js?v=1';s.defer=true;s.dataset.tjsPhase65='1';document.body.appendChild(s)}
