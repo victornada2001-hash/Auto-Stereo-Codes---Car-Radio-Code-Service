@@ -60,3 +60,7 @@ const p45Go=typeof go==='function'?go:null;
 if(p45Go)go=function(page){p45Go(page);if(page==='premium')setTimeout(loadPremium,60);};
 
 setTimeout(()=>{if($('page-premium')&&!$('page-premium').classList.contains('hidden'))loadPremium();},300);
+
+if(!document.querySelector('script[data-tjs-phase46]')){
+  const s=document.createElement('script');s.src='phase46.js?v=1';s.defer=true;s.dataset.tjsPhase46='1';document.body.appendChild(s);
+}
