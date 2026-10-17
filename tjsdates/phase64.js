@@ -1,5 +1,12 @@
-// Phase 64: password recovery and reset flow.
+// Phase 64: password recovery, reset and hardened signup confirmation flow.
+const P64_PROD_ORIGIN='https://tjsdates.vercel.app';
 function p64StrongPassword(v){return typeof v==='string'&&v.length>=10&&/[A-Z]/.test(v)&&/[a-z]/.test(v)&&/[0-9]/.test(v)}
+function p64AppOrigin(){
+  const h=location.hostname||'';
+  if(h==='tjsdates.vercel.app')return P64_PROD_ORIGIN;
+  return location.origin;
+}
+function p64RedirectUrl(recovery=false){return `${p64AppOrigin()}${location.pathname||'/'}${recovery?'?recovery=1':''}`}
 function p64InjectForgot(){
   const card=document.querySelector('#auth .auth.card');
   if(!card||document.getElementById('p64Forgot'))return;
@@ -10,8 +17,7 @@ async function p64ForgotPassword(){
   const email=(document.getElementById('authEmail')?.value||'').trim();
   const status=document.getElementById('authStatus');
   if(!email){if(status){status.textContent='Escribe tu correo electrónico primero.';status.className='status err';}return;}
-  const redirectTo=`${location.origin}${location.pathname}?recovery=1`;
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:p64RedirectUrl(true)});
   if(status){status.textContent=error?error.message:'Si el correo existe, recibirás un enlace para restablecer tu contraseña.';status.className='status '+(error?'err':'ok');}
 }
 function p64CloseReset(){document.getElementById('p64Reset')?.remove()}
@@ -36,13 +42,36 @@ async function p64SavePassword(){
   history.replaceState({},'',location.pathname);
   setTimeout(async()=>{p64CloseReset();await sb.auth.signOut({scope:'global'});session=null;profile=null;showAuth('login');},700);
 }
-const p64SubmitAuth=typeof submitAuth==='function'?submitAuth:null;if(p64SubmitAuth)submitAuth=async function(){
-  if(typeof authMode!=='undefined'&&authMode==='signup'){
-    const pass=document.getElementById('authPass')?.value||'';
-    if(!p64StrongPassword(pass))return setStatus('authStatus','La contraseña debe tener 10+ caracteres, mayúscula, minúscula y número.');
+async function p64Signup(){
+  const email=document.getElementById('authEmail')?.value.trim()||'';
+  const password=document.getElementById('authPass')?.value||'';
+  const birth=document.getElementById('authBirth')?.value||'';
+  if(!email)return setStatus('authStatus','Ingresa un correo válido.');
+  if(!p64StrongPassword(password))return setStatus('authStatus','La contraseña debe tener 10+ caracteres, mayúscula, minúscula y número.');
+  if(!birth||typeof yearsOld!=='function'||yearsOld(birth)<18||!document.getElementById('ageCheck')?.checked)return setStatus('authStatus','TJSDATES es solo para mayores de 18 años.');
+  if(!document.getElementById('termsCheck')?.checked)return setStatus('authStatus','Debes aceptar los términos y el aviso de privacidad.');
+  const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:p64RedirectUrl(false),data:{birth_date:birth}}});
+  if(error)return setStatus('authStatus',error.message);
+  if(data.user){
+    await sb.from('profiles').update({birth_date:birth}).eq('id',data.user.id);
+    await sb.from('consents').insert([{user_id:data.user.id,consent_type:'age_18_plus',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'terms',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'privacy',granted:true,document_version:'1.0'}]);
   }
+  setStatus('authStatus',data.session?'Cuenta creada.':'Revisa tu correo para confirmar tu cuenta.',true);
+  if(data.session)await boot();
+}
+const p64SubmitAuth=typeof submitAuth==='function'?submitAuth:null;if(p64SubmitAuth)submitAuth=async function(){
+  if(typeof authMode!=='undefined'&&authMode==='signup')return await p64Signup();
   return await p64SubmitAuth.apply(this,arguments);
 };
 const p64AuthTab=typeof authTab==='function'?authTab:null;if(p64AuthTab)authTab=function(mode){const r=p64AuthTab.apply(this,arguments);setTimeout(()=>{const b=document.getElementById('p64Forgot');if(b)b.style.display=mode==='login'?'':'none'},0);return r};
+function p64HandleAuthError(){
+  const q=new URLSearchParams(location.search),h=new URLSearchParams((location.hash||'').replace(/^#/,''));
+  const code=q.get('error_code')||h.get('error_code');
+  const desc=q.get('error_description')||h.get('error_description');
+  if(!code&&!desc)return;
+  showAuth('login');
+  setStatus('authStatus',desc?decodeURIComponent(desc.replace(/\+/g,' ')):'El enlace de autenticación no es válido o ya venció.');
+  history.replaceState({},'',location.pathname);
+}
 if(sb?.auth?.onAuthStateChange){sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')p64ShowReset()});}
-setTimeout(async()=>{p64InjectForgot();if(new URLSearchParams(location.search).get('recovery')==='1'){const {data}=await sb.auth.getSession();if(data?.session)p64ShowReset();}},350);
+setTimeout(async()=>{p64InjectForgot();p64HandleAuthError();if(new URLSearchParams(location.search).get('recovery')==='1'){const {data}=await sb.auth.getSession();if(data?.session)p64ShowReset();}},350);
