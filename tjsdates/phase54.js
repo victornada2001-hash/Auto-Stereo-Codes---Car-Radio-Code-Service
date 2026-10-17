@@ -78,7 +78,6 @@ if(p54SubscribeChat)subscribeChat=function(){
   const r=p54SubscribeChat();
   setTimeout(()=>{
     if(!realtimeChannel||!currentConversation)return;
-    // Existing message subscriptions refresh the chat; inbox refresh is lightweight and debounced here.
   },0);
   return r;
 };
@@ -88,3 +87,7 @@ if(p54Go)go=function(page){p54Go(page);if(page==='matches')setTimeout(()=>loadMa
 
 match54Styles();
 setTimeout(()=>{if(session)loadMatches54();},800);
+
+if(!document.querySelector('script[data-tjs-phase55]')){
+  const s=document.createElement('script');s.src='phase55.js?v=1';s.defer=true;s.dataset.tjsPhase55='1';document.body.appendChild(s);
+}
