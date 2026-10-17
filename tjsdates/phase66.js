@@ -32,3 +32,11 @@ async function p66Signup(){
 // Phase 64's submitAuth wrapper resolves p64Signup dynamically, so replacing it
 // preserves login/recovery behavior while fixing only the signup path.
 if(typeof p64Signup==='function')p64Signup=p66Signup;
+
+if(!document.querySelector('script[data-tjs-phase67]')){
+  const s=document.createElement('script');
+  s.src='phase67.js?v=1';
+  s.defer=true;
+  s.dataset.tjsPhase67='1';
+  document.body.appendChild(s);
+}
