@@ -62,3 +62,7 @@ if(p41ApplyLanguage)applyTjsLanguage=function(){p41ApplyLanguage();injectService
 injectConnectivityBanner();injectServiceAreaNote();
 setTimeout(()=>{injectServiceAreaNote();if(typeof applyTjsLanguage==='function')applyTjsLanguage();releaseStartupGate();},120);
 window.addEventListener('pageshow',()=>setTimeout(()=>{injectServiceAreaNote();releaseStartupGate()},80));
+
+if(!document.querySelector('script[data-tjs-phase42]')){
+  const s=document.createElement('script');s.src='phase42.js?v=1';s.defer=true;s.dataset.tjsPhase42='1';document.body.appendChild(s);
+}
