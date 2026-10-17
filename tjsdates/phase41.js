@@ -38,12 +38,22 @@ function injectServiceAreaNote(){
   grid.appendChild(c);
 }
 
+function syncPhase41Connectivity(){
+  const existing=$('networkBanner');
+  if(existing){
+    if(navigator.onLine){existing.classList.add('hidden');}
+    else{existing.textContent=tjsUiLanguage==='en'?'Offline. Some actions will be available when your connection returns.':'Sin conexión. Algunas acciones estarán disponibles cuando vuelva internet.';existing.classList.remove('hidden');}
+    return;
+  }
+  let b=$('connectivityBanner');
+  if(!b){b=document.createElement('div');b.id='connectivityBanner';b.setAttribute('role','status');b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top));z-index:9998;padding:8px 14px;border-radius:999px;background:#2d2238;border:1px solid var(--line);box-shadow:0 8px 30px #0005;font-size:13px;font-weight:800;display:none';document.body.appendChild(b);}
+  if(navigator.onLine)b.style.display='none';else{b.textContent=tjsUiLanguage==='en'?'Offline · some actions are unavailable':'Sin conexión · algunas acciones no están disponibles';b.style.display='block';}
+}
+
 function injectConnectivityBanner(){
-  if($('connectivityBanner'))return;
-  const b=document.createElement('div');b.id='connectivityBanner';b.setAttribute('role','status');b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top));z-index:9998;padding:8px 14px;border-radius:999px;background:#2d2238;border:1px solid var(--line);box-shadow:0 8px 30px #0005;font-size:13px;font-weight:800;display:none';document.body.appendChild(b);
-  const sync=()=>{if(navigator.onLine){b.style.display='none'}else{b.textContent=tjsUiLanguage==='en'?'Offline · some actions are unavailable':'Sin conexión · algunas acciones no están disponibles';b.style.display='block'}};
-  window.addEventListener('online',async()=>{sync();try{if(session&&typeof ensureFreshSession==='function')await ensureFreshSession()}catch(_e){}});
-  window.addEventListener('offline',sync);sync();
+  syncPhase41Connectivity();
+  window.addEventListener('online',async()=>{syncPhase41Connectivity();try{if(session&&typeof ensureFreshSession==='function')await ensureFreshSession()}catch(_e){}});
+  window.addEventListener('offline',syncPhase41Connectivity);
 }
 
 function releaseStartupGate(){
@@ -57,11 +67,11 @@ function releaseStartupGate(){
 }
 
 const p41ApplyLanguage=typeof applyTjsLanguage==='function'?applyTjsLanguage:null;
-if(p41ApplyLanguage)applyTjsLanguage=function(){p41ApplyLanguage();injectServiceAreaNote();const c=$('serviceAreaSafetyCard');if(c){c.querySelector('h3').textContent='🌎 '+(tjsUiLanguage==='en'?'Service area':'Área de servicio');c.querySelector('p').textContent=tjsUiLanguage==='en'?'TJSDATES currently limits location-based discovery to the Tijuana–San Diego region. Exact coordinates are never shown to other users.':'TJSDATES actualmente limita el descubrimiento por ubicación a la región Tijuana–San Diego. Tus coordenadas exactas nunca se muestran a otros usuarios.';}const b=$('connectivityBanner');if(b&&!navigator.onLine)b.textContent=tjsUiLanguage==='en'?'Offline · some actions are unavailable':'Sin conexión · algunas acciones no están disponibles';};
+if(p41ApplyLanguage)applyTjsLanguage=function(){p41ApplyLanguage();injectServiceAreaNote();const c=$('serviceAreaSafetyCard');if(c){c.querySelector('h3').textContent='🌎 '+(tjsUiLanguage==='en'?'Service area':'Área de servicio');c.querySelector('p').textContent=tjsUiLanguage==='en'?'TJSDATES currently limits location-based discovery to the Tijuana–San Diego region. Exact coordinates are never shown to other users.':'TJSDATES actualmente limita el descubrimiento por ubicación a la región Tijuana–San Diego. Tus coordenadas exactas nunca se muestran a otros usuarios.';}syncPhase41Connectivity();};
 
 injectConnectivityBanner();injectServiceAreaNote();
 setTimeout(()=>{injectServiceAreaNote();if(typeof applyTjsLanguage==='function')applyTjsLanguage();releaseStartupGate();},120);
-window.addEventListener('pageshow',()=>setTimeout(()=>{injectServiceAreaNote();releaseStartupGate()},80));
+window.addEventListener('pageshow',()=>setTimeout(()=>{injectServiceAreaNote();releaseStartupGate();syncPhase41Connectivity();},80));
 
 if(!document.querySelector('script[data-tjs-phase42]')){
   const s=document.createElement('script');s.src='phase42.js?v=1';s.defer=true;s.dataset.tjsPhase42='1';document.body.appendChild(s);
