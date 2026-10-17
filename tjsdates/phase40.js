@@ -71,7 +71,12 @@ function applyTjsLanguage(){
   document.querySelectorAll('.tjs-language-btn').forEach(b=>{b.textContent=tjsUiLanguage==='es'?'EN':'ES';b.title=tjsUiLanguage==='es'?'Switch to English':'Cambiar a español';});
 }
 
-function toggleTjsLanguage(){tjsUiLanguage=tjsUiLanguage==='es'?'en':'es';applyTjsLanguage();if(typeof normalizePhase39Labels==='function')normalizePhase39Labels();}
+function toggleTjsLanguage(){
+  tjsUiLanguage=tjsUiLanguage==='es'?'en':'es';
+  applyTjsLanguage();
+  if(typeof normalizePhase39Labels==='function')normalizePhase39Labels();
+  document.dispatchEvent(new CustomEvent('tjsdates:language-changed',{detail:{language:tjsUiLanguage}}));
+}
 
 function injectLanguageControls(){
   if(!document.querySelector('.tjs-language-btn')){
