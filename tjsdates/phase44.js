@@ -62,3 +62,7 @@ hardenInteractiveAccessibility();
 if(typeof applyTjsLanguage==='function')applyTjsLanguage();
 if(typeof releaseStartupGate==='function')releaseStartupGate();
 setTimeout(()=>{hardenInteractiveAccessibility();if(typeof releaseStartupGate==='function')releaseStartupGate();},120);
+
+if(!document.querySelector('script[data-tjs-phase45]')){
+  const s=document.createElement('script');s.src='phase45.js?v=1';s.defer=true;s.dataset.tjsPhase45='1';document.body.appendChild(s);
+}
