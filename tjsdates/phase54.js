@@ -4,10 +4,10 @@ function match54Copy(){
   const en=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';
   return en?{
     noMessages:'No messages yet',photo:'Photo',you:'You',unread:'unread',matched:'New Match',
-    today:'Today',yesterday:'Yesterday'
+    today:'Today',yesterday:'Yesterday',empty:'You do not have any matches yet. Keep discovering profiles.'
   }:{
     noMessages:'Aún no hay mensajes',photo:'Foto',you:'Tú',unread:'sin leer',matched:'Nuevo Match',
-    today:'Hoy',yesterday:'Ayer'
+    today:'Hoy',yesterday:'Ayer',empty:'Aún no tienes matches. Sigue descubriendo perfiles.'
   };
 }
 
@@ -49,8 +49,14 @@ async function loadMatches54(){
     d.innerHTML=`<div class="match54-main"><div class="avatar">${photos[m.other_user_id]?`<img src="${photos[m.other_user_id]}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:esc((p.display_name||'?')[0])}</div><div class="match54-copy"><div class="match54-top"><b>${esc(p.display_name||'Match')} ${p.is_verified?'✓':''}</b><span>${esc(match54Time(m.last_message_at||m.matched_at))}</span></div><div class="match54-preview ${unread?'match54-unreadtext':''}">${esc(match54Preview(m))}</div><div class="note">${esc(p.city||'')}${p.relationship_goal?' · '+esc(p.relationship_goal):''}</div></div>${unread?`<span class="match54-badge" aria-label="${unread} ${esc(match54Copy().unread)}">${unread>99?'99+':unread}</span>`:''}</div>`;
     g.appendChild(d);
   }
-  if(!rows.length)g.innerHTML='<div class="card empty" style="grid-column:1/-1">Aún no tienes matches. Sigue descubriendo perfiles.</div>';
+  if(!rows.length)g.innerHTML=`<div class="card empty" style="grid-column:1/-1">${esc(match54Copy().empty)}</div>`;
   return true;
+}
+
+let match54RefreshTimer=null;
+function match54ScheduleRefresh(delay=120){
+  clearTimeout(match54RefreshTimer);
+  match54RefreshTimer=setTimeout(()=>{if(session)loadMatches54().catch(()=>{});},delay);
 }
 
 function match54Styles(){
@@ -69,24 +75,29 @@ if(p54LoadMatches)loadMatches=async function(){
 const p54OpenChat=typeof openChat==='function'?openChat:null;
 if(p54OpenChat)openChat=async function(match,p){
   const r=await p54OpenChat(match,p);
-  setTimeout(()=>loadMatches54().catch(()=>{}),250);
+  match54ScheduleRefresh(160);
   return r;
 };
 
-const p54SubscribeChat=typeof subscribeChat==='function'?subscribeChat:null;
-if(p54SubscribeChat)subscribeChat=function(){
-  const r=p54SubscribeChat();
-  setTimeout(()=>{
-    if(!realtimeChannel||!currentConversation)return;
-  },0);
-  return r;
-};
+// Chat realtime handlers call loadMessages() on message INSERT/UPDATE. Refresh the
+// inbox from that same signal so previews and unread badges stay in sync without
+// creating a second Realtime channel for the whole messages table.
+const p54LoadMessages=typeof loadMessages==='function'?loadMessages:null;
+if(p54LoadMessages&&!p54LoadMessages.__p54InboxWrapped){
+  const wrapped=async function(...args){
+    const r=await p54LoadMessages.apply(this,args);
+    match54ScheduleRefresh(90);
+    return r;
+  };
+  wrapped.__p54InboxWrapped=true;
+  loadMessages=wrapped;
+}
 
 const p54Go=typeof go==='function'?go:null;
-if(p54Go)go=function(page){p54Go(page);if(page==='matches')setTimeout(()=>loadMatches54(),80);};
+if(p54Go)go=function(page){p54Go(page);if(page==='matches')match54ScheduleRefresh(60);};
 
 match54Styles();
-setTimeout(()=>{if(session)loadMatches54();},800);
+setTimeout(()=>{if(session)match54ScheduleRefresh(0);},800);
 
 if(!document.querySelector('script[data-tjs-phase55]')){
   const s=document.createElement('script');s.src='phase55.js?v=1';s.defer=true;s.dataset.tjsPhase55='1';document.body.appendChild(s);
