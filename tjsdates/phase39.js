@@ -115,3 +115,7 @@ go=function(page){
 
 setTimeout(()=>{injectMobileMoreNav();normalizePhase39Labels()},250);
 setTimeout(()=>{injectMobileMoreNav();normalizePhase39Labels()},1400);
+
+if(!document.querySelector('script[data-tjs-phase40]')){
+  const s=document.createElement('script');s.src='phase40.js?v=1';s.defer=true;s.dataset.tjsPhase40='1';document.body.appendChild(s);
+}
