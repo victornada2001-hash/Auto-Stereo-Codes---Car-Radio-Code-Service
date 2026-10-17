@@ -103,3 +103,11 @@ setTimeout(()=>{
   const input=document.getElementById('photoInput');
   if(input)input.accept='image/jpeg,image/png,image/webp';
 },300);
+
+if(!document.querySelector('script[data-tjs-phase66]')){
+  const s=document.createElement('script');
+  s.src='phase66.js?v=1';
+  s.defer=true;
+  s.dataset.tjsPhase66='1';
+  document.body.appendChild(s);
+}
