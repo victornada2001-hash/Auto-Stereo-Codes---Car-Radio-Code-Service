@@ -101,3 +101,7 @@ if(p53Go)go=function(page){
 
 chat53Styles();
 setTimeout(()=>{if(currentConversation){refreshChatContext53();chat53DecorateReceipts();}},700);
+
+if(!document.querySelector('script[data-tjs-phase54]')){
+  const s=document.createElement('script');s.src='phase54.js?v=1';s.defer=true;s.dataset.tjsPhase54='1';document.body.appendChild(s);
+}
