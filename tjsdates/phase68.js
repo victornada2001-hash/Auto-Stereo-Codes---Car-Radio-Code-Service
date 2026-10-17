@@ -47,3 +47,7 @@ if(p68Go)go=function(page){p68Go(page);if(page==='double')setTimeout(p68FixDoubl
 setTimeout(p68FixDoubleInviteUI,700);
 window.addEventListener('tjsdates:language-changed',()=>setTimeout(p68FixDoubleInviteUI,0));
 window.__TJSDATES_EXPLORE_DOUBLE_HARDENED=true;
+
+if(!document.querySelector('script[data-tjs-phase69]')){
+  const s=document.createElement('script');s.src='phase69.js?v=1';s.defer=true;s.dataset.tjsPhase69='1';document.body.appendChild(s);
+}
