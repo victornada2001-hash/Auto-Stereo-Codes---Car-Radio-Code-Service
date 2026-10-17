@@ -1,4 +1,5 @@
 // Phase 64: password recovery and reset flow.
+function p64StrongPassword(v){return typeof v==='string'&&v.length>=10&&/[A-Z]/.test(v)&&/[a-z]/.test(v)&&/[0-9]/.test(v)}
 function p64InjectForgot(){
   const card=document.querySelector('#auth .auth.card');
   if(!card||document.getElementById('p64Forgot'))return;
@@ -22,20 +23,26 @@ function p64ShowReset(){
   #p64Reset input,#p64Reset button{width:100%;box-sizing:border-box;font:inherit;border-radius:12px;padding:12px;margin-top:10px}
   #p64Reset input{background:#22222c;color:#fff;border:1px solid #3a3a48}#p64Reset button{border:0;background:#ff4d7d;color:#fff;font-weight:800;cursor:pointer}
   #p64Reset .status{margin-top:10px;color:#c8c8d4}
-  </style><div class="box"><h2>Nueva contraseña</h2><p>Usa al menos 10 caracteres y evita reutilizar una contraseña de otro servicio.</p><input id="p64Pass1" type="password" autocomplete="new-password" minlength="10" placeholder="Nueva contraseña"><input id="p64Pass2" type="password" autocomplete="new-password" minlength="10" placeholder="Confirmar contraseña"><button onclick="p64SavePassword()">Guardar nueva contraseña</button><div id="p64Status" class="status" aria-live="polite"></div></div>`;
+  </style><div class="box"><h2>Nueva contraseña</h2><p>Usa al menos 10 caracteres, una mayúscula, una minúscula y un número.</p><input id="p64Pass1" type="password" autocomplete="new-password" minlength="10" placeholder="Nueva contraseña"><input id="p64Pass2" type="password" autocomplete="new-password" minlength="10" placeholder="Confirmar contraseña"><button onclick="p64SavePassword()">Guardar nueva contraseña</button><div id="p64Status" class="status" aria-live="polite"></div></div>`;
   document.body.appendChild(root);
 }
 async function p64SavePassword(){
   const a=document.getElementById('p64Pass1')?.value||'',b=document.getElementById('p64Pass2')?.value||'',st=document.getElementById('p64Status');
-  if(a.length<10){if(st)st.textContent='La contraseña debe tener al menos 10 caracteres.';return;}
+  if(!p64StrongPassword(a)){if(st)st.textContent='Usa 10+ caracteres con mayúscula, minúscula y número.';return;}
   if(a!==b){if(st)st.textContent='Las contraseñas no coinciden.';return;}
-  if(!/[A-Za-z]/.test(a)||!/[0-9]/.test(a)){if(st)st.textContent='Incluye al menos una letra y un número.';return;}
   const {error}=await sb.auth.updateUser({password:a});
   if(error){if(st)st.textContent=error.message;return;}
   if(st)st.textContent='Contraseña actualizada. Cerrando la sesión para que vuelvas a entrar…';
   history.replaceState({},'',location.pathname);
   setTimeout(async()=>{p64CloseReset();await sb.auth.signOut({scope:'global'});session=null;profile=null;showAuth('login');},700);
 }
+const p64SubmitAuth=typeof submitAuth==='function'?submitAuth:null;if(p64SubmitAuth)submitAuth=async function(){
+  if(typeof authMode!=='undefined'&&authMode==='signup'){
+    const pass=document.getElementById('authPass')?.value||'';
+    if(!p64StrongPassword(pass))return setStatus('authStatus','La contraseña debe tener 10+ caracteres, mayúscula, minúscula y número.');
+  }
+  return await p64SubmitAuth.apply(this,arguments);
+};
 const p64AuthTab=typeof authTab==='function'?authTab:null;if(p64AuthTab)authTab=function(mode){const r=p64AuthTab.apply(this,arguments);setTimeout(()=>{const b=document.getElementById('p64Forgot');if(b)b.style.display=mode==='login'?'':'none'},0);return r};
 if(sb?.auth?.onAuthStateChange){sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')p64ShowReset()});}
 setTimeout(async()=>{p64InjectForgot();if(new URLSearchParams(location.search).get('recovery')==='1'){const {data}=await sb.auth.getSession();if(data?.session)p64ShowReset();}},350);
