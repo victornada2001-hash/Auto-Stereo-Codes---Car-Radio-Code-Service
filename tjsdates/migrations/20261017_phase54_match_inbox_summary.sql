@@ -34,7 +34,7 @@ as $$
       m.id as match_id,
       c.id as conversation_id,
       case when m.user_low = auth.uid() then m.user_high else m.user_low end as other_user_id,
-      m.created_at as matched_at
+      m.matched_at as matched_at
     from public.matches m
     join public.conversations c on c.match_id = m.id
     where m.status = 'active'
