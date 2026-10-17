@@ -15,3 +15,4 @@ if(p58DecorateBase)p57Decorate=async function(){await p58DecorateBase();const ca
 (function(){const s=document.createElement('style');s.id='p58styles';s.textContent='.profilecard{overflow:hidden}.p58feedback{position:absolute;top:72px;z-index:12;padding:8px 12px;border:4px solid currentColor;border-radius:10px;font-size:30px;font-weight:900;letter-spacing:2px;opacity:0;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.35)}.p58like{left:18px;color:#42f59e}.p58pass{right:18px;color:#ff6078}.profilecard{will-change:transform,opacity}';document.head.appendChild(s)})();
 const p58Render=typeof renderDeck==='function'?renderDeck:null;if(p58Render)renderDeck=function(){const r=p58Render();setTimeout(()=>p57Decorate?.(),25);return r};
 setTimeout(()=>p57Decorate?.(),850);
+if(!document.querySelector('script[data-tjs-phase59]')){const s=document.createElement('script');s.src='phase59.js?v=1';s.defer=true;s.dataset.tjsPhase59='1';document.body.appendChild(s)}
