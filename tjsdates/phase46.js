@@ -83,3 +83,7 @@ const p46Go=typeof go==='function'?go:null;if(p46Go)go=function(page){p46Go(page
 
 setTimeout(injectLegalCenter46,260);
 window.addEventListener('pageshow',()=>setTimeout(injectLegalCenter46,100));
+
+if(!document.querySelector('script[data-tjs-phase47]')){
+  const s=document.createElement('script');s.src='phase47.js?v=1';s.defer=true;s.dataset.tjsPhase47='1';document.body.appendChild(s);
+}
