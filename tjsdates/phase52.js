@@ -106,3 +106,7 @@ if(p52LoadProfileForm)loadProfileForm=async function(){const r=await p52LoadProf
 
 injectTrust52Styles();
 setTimeout(()=>{injectTrust52Card();if(session)refreshTrust52Card();injectTrust52OnCandidate();},700);
+
+if(!document.querySelector('script[data-tjs-phase53]')){
+  const s=document.createElement('script');s.src='phase53.js?v=1';s.defer=true;s.dataset.tjsPhase53='1';document.body.appendChild(s);
+}
