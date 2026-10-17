@@ -28,3 +28,7 @@ createSupportTicket=async function(){
 };
 createSupportTicket.__tjsSecure=true;
 window.__TJSDATES_SUPPORT_RPC_READY=true;
+
+if(!document.querySelector('script[data-tjs-phase70]')){
+  const s=document.createElement('script');s.src='phase70.js?v=1';s.defer=true;s.dataset.tjsPhase70='1';document.body.appendChild(s);
+}
