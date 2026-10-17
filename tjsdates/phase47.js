@@ -56,27 +56,20 @@ function tjs47Wrap(name,key,options={}){
 }
 
 function installPhase47Guards(){
-  // Profile decisions share one lock so a rapid Like/Pass combination cannot create two actions.
   tjs47Wrap('createLike','profile-decision',{busyMessage:true});
   tjs47Wrap('likeCurrent','profile-decision',{busyMessage:true});
   tjs47Wrap('passCurrent','profile-decision',{busyMessage:true});
   tjs47Wrap('rewind','profile-decision');
-
-  // Chat and forms.
   tjs47Wrap('sendMessage','chat-send',{busyMessage:true});
   tjs47Wrap('sendSocialMessage','social-chat-send',{busyMessage:true});
   tjs47Wrap('finishOnboarding','onboarding-save',{busyMessage:true});
   tjs47Wrap('saveProfile','profile-save',{busyMessage:true});
   tjs47Wrap('saveFilters','filters-save',{busyMessage:true});
   tjs47Wrap('requestLocation','location-save',{busyMessage:true});
-
-  // Photos: serialize mutations to protect order and primary-photo state.
   tjs47Wrap('uploadPhotos','photo-upload',{busyMessage:true});
   tjs47Wrap('setPrimary','photo-mutation',{busyMessage:true});
   tjs47Wrap('deletePhoto','photo-mutation',{busyMessage:true});
   tjs47Wrap('movePhoto','photo-mutation',{busyMessage:true});
-
-  // Community, support and safety flows.
   tjs47Wrap('createPlanTJ','plan-create',{busyMessage:true});
   tjs47Wrap('joinPlanTJ',(...args)=>'plan-join-'+String(args[0]||''),{busyMessage:true});
   tjs47Wrap('leavePlanTJ',(...args)=>'plan-leave-'+String(args[0]||''),{busyMessage:true});
@@ -95,3 +88,7 @@ setTimeout(installPhase47Guards,1200);
 window.addEventListener('pageshow',()=>setTimeout(installPhase47Guards,80));
 
 window.__TJSDATES_MUTATION_GUARDS_READY=true;
+
+if(!document.querySelector('script[data-tjs-phase48]')){
+  const s=document.createElement('script');s.src='phase48.js?v=1';s.defer=true;s.dataset.tjsPhase48='1';document.body.appendChild(s);
+}
