@@ -73,3 +73,11 @@ window.addEventListener('pageshow',()=>{
   setTimeout(injectChangePasswordButton,120);
 });
 setTimeout(()=>{resumePasswordRecoveryFromUrl();injectChangePasswordButton()},900);
+
+if(!document.querySelector('script[data-tjs-phase35]')){
+  const phase35Script=document.createElement('script');
+  phase35Script.src='phase35.js?v=1';
+  phase35Script.defer=true;
+  phase35Script.dataset.tjsPhase35='1';
+  document.body.appendChild(phase35Script);
+}
