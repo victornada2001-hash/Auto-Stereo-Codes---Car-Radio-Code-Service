@@ -91,3 +91,11 @@ const p33Go=go;
 go=function(page){p33Go(page);if(page==='notifications')setTimeout(()=>{injectWebPushCard();refreshWebPushState()},90)};
 
 setTimeout(()=>{injectWebPushCard();if(session)refreshWebPushState()},1000);
+
+if(!document.querySelector('script[data-tjs-phase34]')){
+  const phase34Script=document.createElement('script');
+  phase34Script.src='phase34.js?v=1';
+  phase34Script.defer=true;
+  phase34Script.dataset.tjsPhase34='1';
+  document.body.appendChild(phase34Script);
+}
