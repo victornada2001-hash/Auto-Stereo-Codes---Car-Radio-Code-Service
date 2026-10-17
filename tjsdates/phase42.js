@@ -26,45 +26,37 @@ function setText42(selector,text){const e=document.querySelector(selector);if(e)
 function setNthLabel42(parent,index,text){const labels=document.querySelectorAll(`${parent} .field label`);if(labels[index])labels[index].textContent=text;}
 
 function applyCoreBilingual42(){
-  // Onboarding
   setText42('#onboarding .pill',tr42('onboardingBadge'));setText42('#onboarding h2',tr42('completeProfile'));
   setNthLabel42('#onboarding',0,tr42('name'));setNthLabel42('#onboarding',1,tr42('city'));setNthLabel42('#onboarding',2,tr42('gender'));setNthLabel42('#onboarding',3,tr42('goal'));setNthLabel42('#onboarding',4,tr42('bio'));setNthLabel42('#onboarding',5,tr42('meetWho'));
   const obChips=document.querySelectorAll('#obGenders .chip');if(obChips[0])obChips[0].textContent=tr42('women');if(obChips[1])obChips[1].textContent=tr42('men');if(obChips[2])obChips[2].textContent=tr42('otherGenders');
   const obSave=document.querySelector('#onboarding button[onclick="finishOnboarding()"]');if(obSave)obSave.textContent=tr42('saveContinue');
 
-  // Photos
   setText42('#page-photos .pill',tr42('upToPhotos'));setText42('#page-photos h2',tr42('yourPhotos'));
   const add=document.querySelector('#page-photos button[onclick*="photoInput"]');if(add)add.textContent=tr42('addPhotos');
   const pnote=document.querySelector('#page-photos .uploadbox .note');if(pnote)pnote.textContent=tr42('photoNote');
 
-  // Filters
   setText42('#page-filters .pill',tr42('controlSee'));setText42('#page-filters h2',tjsUiLanguage==='en'?'Filters':'Filtros');
   setNthLabel42('#page-filters',0,tr42('minAge'));setNthLabel42('#page-filters',1,tr42('maxAge'));setNthLabel42('#page-filters',2,tr42('maxDistance'));setNthLabel42('#page-filters',3,tr42('showMe'));
   const fchips=document.querySelectorAll('#fGenders .chip');if(fchips[0])fchips[0].textContent=tr42('women');if(fchips[1])fchips[1].textContent=tr42('men');if(fchips[2])fchips[2].textContent=tr42('otherGenders');
   const fsave=document.querySelector('#page-filters button[onclick="saveFilters()"]');if(fsave)fsave.textContent=tr42('saveFilters');
 
-  // Profile
   const profileLabels=document.querySelectorAll('#page-profile .field label');
   const profileTexts=[tr42('name'),tr42('city'),tr42('pronouns'),tr42('occupation'),tr42('school'),tr42('height'),tr42('bio')];profileTexts.forEach((t,i)=>{if(profileLabels[i])profileLabels[i].textContent=t});
   const profileSave=document.querySelector('#page-profile button[onclick="saveProfile()"]');if(profileSave)profileSave.textContent=tr42('saveChanges');
   const profileLoc=document.querySelector('#page-profile button[onclick="requestLocation()"]');if(profileLoc)profileLoc.textContent=tr42('saveApprox');
 
-  // Safety cards
   setText42('#page-safety .pill',tr42('safetyFirst'));
   const cards=document.querySelectorAll('#page-safety .safetygrid .card');
   const safetyData=[[tr42('blockReport'),tr42('blockReportText')],[tr42('privateLocation'),tr42('privateLocationText')],[tr42('recommendations'),tr42('recommendationsText')],[tr42('adultsOnly'),tr42('adultsOnlyText')]];
   safetyData.forEach((x,i)=>{const c=cards[i];if(!c)return;const h=c.querySelector('h3'),p=c.querySelector('p');if(h)h.textContent=x[0];if(p)p.textContent=x[1]});
 
-  // Chat controls
   const chatBtns=document.querySelectorAll('#chatTitle button');if(chatBtns[0])chatBtns[0].textContent=tr42('report');if(chatBtns[1])chatBtns[1].textContent=tr42('block');if(chatBtns[2])chatBtns[2].textContent=tr42('unmatch');
   const ci=$('chatInput');if(ci)ci.placeholder=tr42('messagePlaceholder');const send=ci?.parentElement?.querySelector('button');if(send)send.textContent=tr42('send');
 
-  // Generic refresh buttons and modal close
   document.querySelectorAll('button.btn.ghost').forEach(b=>{if(['Actualizar','Refresh'].includes(b.textContent.trim()))b.textContent=tr42('refresh')});
   const modalClose=document.querySelector('#modal .row button');if(modalClose)modalClose.textContent=tr42('close');
 }
 
-// Make the empty discovery state bilingual every time the deck renders.
 const p42RenderDeck=typeof renderDeck==='function'?renderDeck:null;
 if(p42RenderDeck)renderDeck=function(){
   p42RenderDeck();
@@ -84,3 +76,7 @@ if(p42Go)go=function(page){p42Go(page);setTimeout(applyCoreBilingual42,50);};
 
 setTimeout(applyCoreBilingual42,180);
 window.addEventListener('pageshow',()=>setTimeout(applyCoreBilingual42,80));
+
+if(!document.querySelector('script[data-tjs-phase43]')){
+  const s=document.createElement('script');s.src='phase43.js?v=1';s.defer=true;s.dataset.tjsPhase43='1';document.body.appendChild(s);
+}
