@@ -8,7 +8,8 @@ function p60Msg(err){
     ['not_latest_decision',en?'Only your most recent decision can be undone.':'Solo puedes deshacer tu decisión más reciente.'],
     ['rewind_expired',en?'That Rewind window has expired.':'La ventana para deshacer esa acción ya expiró.'],
     ['match_already_created',en?'A Like that already created a Match cannot be undone.':'No se puede deshacer un Like que ya creó un Match.'],
-    ['invalid_target',en?'That profile is no longer available.':'Ese perfil ya no está disponible.']
+    ['invalid_target',en?'That profile is no longer available.':'Ese perfil ya no está disponible.'],
+    ['rate_limit_exceeded',en?'Too many Rewind attempts. Try again later.':'Has intentado Rewind demasiadas veces. Intenta más tarde.']
   ];
   for(const [k,v] of pairs)if(m.includes(k))return v;
   return err?.message||(en?'Rewind could not be completed.':'No se pudo completar Rewind.');
@@ -21,9 +22,14 @@ async function p60RestoreProfile(id){
   else if(idx===0){candidateIndex=0;renderDeck();}
 }
 
+let p60RewindBusy=false;
 undoLast=async function(){
+  if(p60RewindBusy){
+    return toast(typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en'?'Rewind is already processing.':'Rewind ya se está procesando.');
+  }
   if(typeof p59Pulse==='function')p59Pulse('rewind');
-  const run=async()=>{
+  p60RewindBusy=true;
+  try{
     if(!lastAction)return toast(typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en'?'There is no recent action to undo.':'No hay una acción reciente para deshacer.');
     if(lastAction.matched)return toast(typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en'?'A Like that already created a Match cannot be undone.':'No se puede deshacer un Like que ya creó un Match.');
     const saved={...lastAction};
@@ -33,9 +39,9 @@ undoLast=async function(){
     lastAction=null;
     await p60RestoreProfile(saved.id);
     toast(typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en'?'Last decision undone.':'Última acción deshecha.');
-  };
-  if(typeof tjs47Run==='function')return tjs47Run('profile-decision',run,{busyMessage:true});
-  return run();
+  }finally{
+    p60RewindBusy=false;
+  }
 };
 
 if(!document.querySelector('script[data-tjs-phase61]')){
