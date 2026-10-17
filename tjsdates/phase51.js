@@ -99,3 +99,7 @@ if(p51Go)go=function(page){p51Go(page);if(page==='safety')setTimeout(()=>{inject
 injectSafety51Styles();
 setTimeout(()=>{injectSafety51();if(session)refreshSafetyReminders51();},500);
 window.addEventListener('pageshow',()=>setTimeout(()=>{if(session)refreshSafetyReminders51();},150));
+
+if(!document.querySelector('script[data-tjs-phase52]')){
+  const s=document.createElement('script');s.src='phase52.js?v=1';s.defer=true;s.dataset.tjsPhase52='1';document.body.appendChild(s);
+}
