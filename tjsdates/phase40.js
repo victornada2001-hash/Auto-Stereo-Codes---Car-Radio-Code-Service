@@ -109,3 +109,7 @@ const p40Timer=setInterval(()=>{
   if(typeof showMobileMore==='function'){showMobileMore=bilingualMobileMore;clearInterval(p40Timer);}
 },180);
 setTimeout(()=>{injectLanguageControls();if(typeof showMobileMore==='function')showMobileMore=bilingualMobileMore;},1600);
+
+if(!document.querySelector('script[data-tjs-phase41]')){
+  const s=document.createElement('script');s.src='phase41.js?v=1';s.defer=true;s.dataset.tjsPhase41='1';document.body.appendChild(s);
+}
