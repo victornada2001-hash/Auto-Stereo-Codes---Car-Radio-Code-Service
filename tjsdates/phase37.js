@@ -69,3 +69,7 @@ async function applyReferralCode(){
 const p37Go=go;
 go=function(page){p37Go(page);if(page==='profile')setTimeout(()=>{injectReferralCard();loadReferralCode()},90)};
 setTimeout(()=>{injectReferralCard();if(session)loadReferralCode()},1000);
+
+if(!document.querySelector('script[data-tjs-phase38]')){
+  const s=document.createElement('script');s.src='phase38.js?v=1';s.defer=true;s.dataset.tjsPhase38='1';document.body.appendChild(s);
+}
