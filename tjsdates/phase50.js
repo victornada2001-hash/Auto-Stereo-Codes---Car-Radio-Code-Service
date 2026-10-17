@@ -100,3 +100,7 @@ function injectSafety50Styles(){if($('safety50Styles'))return;const s=document.c
 const p50Apply=typeof applyTjsLanguage==='function'?applyTjsLanguage:null;if(p50Apply)applyTjsLanguage=function(){p50Apply();injectSafety50();};
 const p50Go=typeof go==='function'?go:null;if(p50Go)go=function(page){p50Go(page);if(page==='safety')setTimeout(()=>{injectSafety50();loadDateSafety50();},80);};
 injectSafety50Styles();setTimeout(()=>{injectSafety50();},400);
+
+if(!document.querySelector('script[data-tjs-phase51]')){
+  const s=document.createElement('script');s.src='phase51.js?v=1';s.defer=true;s.dataset.tjsPhase51='1';document.body.appendChild(s);
+}
