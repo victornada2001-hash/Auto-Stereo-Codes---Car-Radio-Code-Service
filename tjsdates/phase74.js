@@ -65,8 +65,8 @@ loadPlansTJ=async function(){
   const cards=[...box.querySelectorAll('.plancard')];
   rows.forEach((g,i)=>{
     const card=cards[i];if(!card)return;
-    const controls=card.lastElementChild?.firstElementChild||card.lastElementChild;
-    if(!controls)return;
+    const outer=card.lastElementChild;if(!outer)return;
+    const controls=outer.firstElementChild?.classList?.contains('row')?outer.firstElementChild:outer;
     if(g.joined||g.is_owner){
       const members=document.createElement('button');members.className='btn ghost';members.textContent='👥 '+p74Text('Participantes','Participants');members.onclick=()=>p74OpenMembers(g.id,g.title,!!g.is_owner);controls.appendChild(members);
     }
