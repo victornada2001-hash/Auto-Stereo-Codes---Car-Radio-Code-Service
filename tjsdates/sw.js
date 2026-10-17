@@ -1,5 +1,6 @@
-const CACHE='tjsdates-v14';
+const CACHE='tjsdates-v15';
 const CORE=['/','/index.html','/styles.css','/app.js','/enhancements.js','/enhancements.css','/manifest.webmanifest','/icon.svg','/phase7.js','/phase8.js','/phase9.js','/phase10.js','/phase11.js','/phase12.js','/phase13.js','/phase14.js','/phase15.js','/phase16.js','/phase17.js','/phase18.js','/phase19.js','/phase20.js','/phase21.js','/phase22.js','/phase23.js','/phase24.js','/phase25.js','/phase26.js','/phase30.js','/phase33.js','/phase34.js'];
+const CORE_PATHS=new Set(CORE.map(x=>new URL(x,self.location.origin).pathname));
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))) });
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('message',e=>{if(e.data?.type==='SKIP_WAITING')self.skipWaiting()});
@@ -23,4 +24,23 @@ self.addEventListener('notificationclick',e=>{
     return clients.openWindow?clients.openWindow(target):undefined;
   }));
 });
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('/index.html'))))});
+
+// Privacy rule: never cache Supabase/API/auth/storage responses or any cross-origin request.
+// Only the explicitly listed static app shell is stored offline.
+self.addEventListener('fetch',e=>{
+  const req=e.request;
+  if(req.method!=='GET')return;
+  const url=new URL(req.url);
+  if(url.origin!==self.location.origin)return;
+
+  if(req.mode==='navigate'){
+    e.respondWith(fetch(req).catch(()=>caches.match('/index.html')));
+    return;
+  }
+
+  if(!CORE_PATHS.has(url.pathname))return;
+  e.respondWith(fetch(req).then(r=>{
+    if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(url.pathname,copy));}
+    return r;
+  }).catch(()=>caches.match(url.pathname)));
+});
