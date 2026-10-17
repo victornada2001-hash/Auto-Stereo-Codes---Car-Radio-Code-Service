@@ -40,3 +40,4 @@ loadPlansTJ=async function(){
 };
 
 window.__TJSDATES_PLAN_LIFECYCLE_READY=true;
+if(!document.querySelector('script[data-tjs-phase74]')){const s=document.createElement('script');s.src='phase74.js?v=1';s.defer=true;s.dataset.tjsPhase74='1';document.body.appendChild(s)}
