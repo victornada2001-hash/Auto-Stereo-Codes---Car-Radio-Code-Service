@@ -122,3 +122,7 @@ function injectVerification49Styles(){
 
 injectVerification49Styles();
 setTimeout(()=>{injectVerification49Styles();if(session&&$('verifyState48'))loadVerification48();if(adminRole&&$('adminVerifyList48'))loadAdminVerification48();},400);
+
+if(!document.querySelector('script[data-tjs-phase50]')){
+  const s=document.createElement('script');s.src='phase50.js?v=1';s.defer=true;s.dataset.tjsPhase50='1';document.body.appendChild(s);
+}
