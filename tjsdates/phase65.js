@@ -24,7 +24,7 @@ uploadPhotos=async function(files){
     const arr=[...(files||[])].slice(0,remaining);
     if(!arr.length)return setStatus('photoStatus','Máximo 9 fotos.');
     setStatus('photoStatus','Procesando fotos...',true);
-    let uploaded=0;
+    let uploaded=0,failedMessage='';
     for(const file of arr){
       let path='';
       try{
@@ -43,11 +43,16 @@ uploadPhotos=async function(files){
         uploaded++;
       }catch(e){
         if(path){try{await sb.storage.from('profile-photos').remove([path])}catch(_e){}}
-        setStatus('photoStatus',p65PhotoError(e));
+        failedMessage=p65PhotoError(e);
         break;
       }
     }
-    if(uploaded)setStatus('photoStatus',`${uploaded} foto${uploaded===1?'':'s'} subida${uploaded===1?'':'s'}. Queda${uploaded===1?'':'n'} pendiente${uploaded===1?'':'s'} de moderación.`,true);
+    if(failedMessage){
+      const prefix=uploaded?`${uploaded} foto${uploaded===1?'':'s'} sí se subió${uploaded===1?'':'ron'}. `:'';
+      setStatus('photoStatus',prefix+failedMessage);
+    }else if(uploaded){
+      setStatus('photoStatus',`${uploaded} foto${uploaded===1?'':'s'} subida${uploaded===1?'':'s'}. Queda${uploaded===1?'':'n'} pendiente${uploaded===1?'':'s'} de moderación.`,true);
+    }
     await loadPhotos();
   }finally{
     p65PhotoBusy=false;
@@ -67,7 +72,7 @@ setPrimary=async function(id){
 };
 
 movePhoto=async function(id,dir){
-  if(!session||p65PhotoBusy||![ -1,1 ].includes(Number(dir)))return;
+  if(!session||p65PhotoBusy||![-1,1].includes(Number(dir)))return;
   p65PhotoBusy=true;
   try{
     const {error}=await sb.rpc('move_my_profile_photo',{photo_uuid:id,direction:Number(dir)});
@@ -94,7 +99,6 @@ deletePhoto=async function(id,_untrustedPath){
   finally{p65PhotoBusy=false;}
 };
 
-// Keep the upload control aligned with the bucket policy.
 setTimeout(()=>{
   const input=document.getElementById('photoInput');
   if(input)input.accept='image/jpeg,image/png,image/webp';
