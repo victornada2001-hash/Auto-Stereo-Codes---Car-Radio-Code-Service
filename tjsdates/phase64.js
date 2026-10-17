@@ -52,9 +52,11 @@ async function p64Signup(){
   if(!document.getElementById('termsCheck')?.checked)return setStatus('authStatus','Debes aceptar los términos y el aviso de privacidad.');
   const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:p64RedirectUrl(false),data:{birth_date:birth}}});
   if(error)return setStatus('authStatus',error.message);
-  if(data.user){
-    await sb.from('profiles').update({birth_date:birth}).eq('id',data.user.id);
-    await sb.from('consents').insert([{user_id:data.user.id,consent_type:'age_18_plus',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'terms',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'privacy',granted:true,document_version:'1.0'}]);
+  if(data.user&&data.session){
+    const pr=await sb.from('profiles').update({birth_date:birth}).eq('id',data.user.id);
+    if(pr.error)return setStatus('authStatus','La cuenta se creó, pero no se pudo completar el perfil. Cierra sesión y contacta soporte.');
+    const cr=await sb.from('consents').insert([{user_id:data.user.id,consent_type:'age_18_plus',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'terms',granted:true,document_version:'1.0'},{user_id:data.user.id,consent_type:'privacy',granted:true,document_version:'1.0'}]);
+    if(cr.error)return setStatus('authStatus','La cuenta se creó, pero no se pudieron registrar los consentimientos. Cierra sesión y contacta soporte.');
   }
   setStatus('authStatus',data.session?'Cuenta creada.':'Revisa tu correo para confirmar tu cuenta.',true);
   if(data.session)await boot();
