@@ -45,7 +45,10 @@ if(p70Support)loadSupportTickets=async function(...args){
     for(const row of rows){
       const input=row.querySelector('input[placeholder="Responder a soporte..."]');
       const btn=input&&row.querySelector('button');
-      if(input&&btn){btn.onclick=()=>p70ReplySupport(t.id,input,card.querySelector('.supportreply')?.parentElement||card);}
+      if(input&&btn){
+        const replies=row.previousElementSibling;
+        if(replies)btn.onclick=()=>p70ReplySupport(t.id,input,replies);
+      }
     }
   });
   return r;
