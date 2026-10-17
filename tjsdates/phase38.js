@@ -134,3 +134,11 @@ go=function(page){
 
 window.addEventListener('beforeunload',()=>{clearInterval(deletionCountdownTimer)});
 setTimeout(()=>{injectConsentHistoryCard();if(session){loadMyConsents();loadDeletionStatus()}},1100);
+
+if(!document.querySelector('script[data-tjs-phase39]')){
+  const phase39Script=document.createElement('script');
+  phase39Script.src='phase39.js?v=1';
+  phase39Script.defer=true;
+  phase39Script.dataset.tjsPhase39='1';
+  document.body.appendChild(phase39Script);
+}
