@@ -1,0 +1,13 @@
+// Phase 61: smart Rewind availability and clearer action state.
+function p61Copy(){const en=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';return en?{premium:'Rewind requires TJ Plus or higher',empty:'Nothing to rewind',ready:'Undo your last decision',matched:'A Match cannot be rewound'}:{premium:'Rewind requiere TJ Plus o superior',empty:'No hay nada que deshacer',ready:'Deshacer tu última decisión',matched:'Un Match no se puede deshacer'}}
+function p61RewindButton(){return document.querySelector('#page-discover .p59-rewind')||document.querySelector('#page-discover .actions button:first-child')}
+function p61SyncRewind(){const b=p61RewindButton();if(!b)return;const t=p61Copy(),rank=Number(currentPlan?.plan_rank||0),a=typeof lastAction!=='undefined'?lastAction:null;let disabled=false,label=t.ready;if(rank<1){disabled=true;label=t.premium}else if(!a){disabled=true;label=t.empty}else if(a.matched){disabled=true;label=t.matched}b.disabled=disabled;b.setAttribute('aria-disabled',String(disabled));b.title=label;b.setAttribute('aria-label',label);b.classList.toggle('p61-disabled',disabled)}
+function p61Watch(){p61SyncRewind();setTimeout(p61SyncRewind,120);setTimeout(p61SyncRewind,500)}
+const p61Render=typeof renderDeck==='function'?renderDeck:null;if(p61Render)renderDeck=function(){const r=p61Render();setTimeout(p61SyncRewind,20);return r};
+const p61Undo=typeof undoLast==='function'?undoLast:null;if(p61Undo)undoLast=async function(...args){const r=await p61Undo.apply(this,args);setTimeout(p61SyncRewind,30);return r};
+const p61Like=typeof likeCurrent==='function'?likeCurrent:null;if(p61Like)likeCurrent=async function(...args){const r=await p61Like.apply(this,args);setTimeout(p61SyncRewind,30);return r};
+const p61Pass=typeof passCurrent==='function'?passCurrent:null;if(p61Pass)passCurrent=async function(...args){const r=await p61Pass.apply(this,args);setTimeout(p61SyncRewind,30);return r};
+const p61Super=typeof superLikeCurrent==='function'?superLikeCurrent:null;if(p61Super)superLikeCurrent=async function(...args){const r=await p61Super.apply(this,args);setTimeout(p61SyncRewind,30);return r};
+const p61LoadPlan=typeof loadPlan==='function'?loadPlan:null;if(p61LoadPlan)loadPlan=async function(...args){const r=await p61LoadPlan.apply(this,args);setTimeout(p61SyncRewind,30);return r};
+(function(){const s=document.createElement('style');s.id='p61styles';s.textContent='.p61-disabled{opacity:.38!important;filter:grayscale(.35);cursor:not-allowed!important;box-shadow:none!important}.p61-disabled:hover{transform:none!important}';document.head.appendChild(s)})();
+p61Watch();
