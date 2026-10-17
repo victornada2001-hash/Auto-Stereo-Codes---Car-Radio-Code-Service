@@ -28,12 +28,15 @@ function chat53ActivityLabel(value){
 async function chat53FetchOtherProfile(){
   const id=currentConversation?.other?.id;if(!id)return null;
   try{
-    const {data,error}=await sb.from('profiles')
-      .select('id,display_name,city,is_verified,bio,occupation,school,relationship_goal,last_active_at,created_at')
-      .eq('id',id).maybeSingle();
+    const {data,error}=await sb.rpc('get_public_profile_detail',{target_user:id});
     if(error)throw error;
     return data||null;
   }catch(_e){return null;}
+}
+
+function chat53SafeFallback(){
+  const o=currentConversation?.other||{};
+  return {id:o.id||null,display_name:o.display_name||null,city:o.city||null,is_verified:!!o.is_verified,relationship_goal:o.relationship_goal||null};
 }
 
 function chat53EnsureHeader(){
@@ -50,13 +53,13 @@ async function refreshChatContext53(){
   const host=chat53EnsureHeader();if(!host)return;
   const t=chat53Copy();
   const p=await chat53FetchOtherProfile();
-  const base=p||currentConversation.other||{};
+  const base=p||chat53SafeFallback();
   const work=[base.occupation,base.school].filter(Boolean).join(' · ');
   const activity=chat53ActivityLabel(base.last_active_at);
   const chips=[];
   if(base.is_verified)chips.push(`✓ ${t.verified}`);
   if(base.city)chips.push(`📍 ${base.city}`);
-  chips.push(`◷ ${activity}`);
+  if(p)chips.push(`◷ ${activity}`);
   if(base.relationship_goal)chips.push(`♡ ${base.relationship_goal}`);
   host.innerHTML=`<div class="chat53-chips">${chips.map(x=>`<span>${esc(x)}</span>`).join('')}</div>
     ${work?`<div class="chat53-row"><b>${esc(t.work)}:</b> ${esc(work)}</div>`:''}
@@ -103,5 +106,5 @@ chat53Styles();
 setTimeout(()=>{if(currentConversation){refreshChatContext53();chat53DecorateReceipts();}},700);
 
 if(!document.querySelector('script[data-tjs-phase54]')){
-  const s=document.createElement('script');s.src='phase54.js?v=1';s.defer=true;s.dataset.tjsPhase54='1';document.body.appendChild(s);
+  const s=document.createElement('script');s.src='phase54.js?v=2';s.defer=true;s.dataset.tjsPhase54='1';document.body.appendChild(s);
 }
