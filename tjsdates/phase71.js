@@ -25,3 +25,7 @@ uploadReportEvidence=async function(reportId){
 };
 uploadReportEvidence.__tjsSecure=true;
 window.__TJSDATES_REPORT_EVIDENCE_RPC_READY=true;
+
+if(!document.querySelector('script[data-tjs-phase72]')){
+  const s=document.createElement('script');s.src='phase72.js?v=1';s.defer=true;s.dataset.tjsPhase72='1';document.body.appendChild(s);
+}
