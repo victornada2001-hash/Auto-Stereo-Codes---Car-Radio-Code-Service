@@ -1,4 +1,4 @@
-// Phase 41: secure service-area location UX and release startup interaction gate.
+// Phase 41: secure service-area location UX and startup interaction gate.
 
 function phase41LocationError(err){
   const m=String(err?.message||err||'');
@@ -57,13 +57,15 @@ function injectConnectivityBanner(){
 }
 
 function releaseStartupGate(){
+  if(!window.__TJSDATES_FULL_READY)return false;
   const gate=$('startupGate');
-  if(!gate)return;
+  if(!gate){document.documentElement.dataset.tjsReady='1';return true;}
   gate.setAttribute('aria-hidden','true');
   gate.style.opacity='0';
   gate.style.pointerEvents='none';
   setTimeout(()=>gate.remove(),220);
   document.documentElement.dataset.tjsReady='1';
+  return true;
 }
 
 const p41ApplyLanguage=typeof applyTjsLanguage==='function'?applyTjsLanguage:null;
