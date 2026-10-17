@@ -26,3 +26,4 @@ const p62Like=typeof likeCurrent==='function'?likeCurrent:null;if(p62Like)likeCu
 const p62Pass=typeof passCurrent==='function'?passCurrent:null;if(p62Pass)passCurrent=async function(...args){const r=await p62Pass.apply(this,args);p62Schedule(250);return r};
 const p62Super=typeof superLikeCurrent==='function'?superLikeCurrent:null;if(p62Super)superLikeCurrent=async function(...args){const r=await p62Super.apply(this,args);p62Schedule(250);return r};
 setTimeout(()=>{if(session)p62RefreshRewindState()},900);
+(()=>{if(!document.querySelector('script[data-tjs-phase63]')){const s=document.createElement('script');s.src='/phase63.js?v=1';s.dataset.tjsPhase63='1';document.body.appendChild(s)}})();
