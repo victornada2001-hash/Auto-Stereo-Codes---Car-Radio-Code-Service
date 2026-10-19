@@ -120,3 +120,26 @@ document.addEventListener('DOMContentLoaded',attach);
 if(document.readyState!=='loading')attach();
 rates();
 })();
+
+
+/* Phase 78: ensure landing signup and login CTAs always have distinct labels. */
+(function(){
+  function fixLandingActions(){
+    const landing=document.getElementById('landing');if(!landing)return;
+    const signup=landing.querySelector('.hero button[onclick*="signup"]');
+    const login=landing.querySelector('.hero button[onclick*="login"]');
+    const english=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';
+    if(signup){signup.textContent=english?'Create account':'Crear cuenta';signup.setAttribute('aria-label',signup.textContent);}
+    if(login){login.textContent=english?'I have an account':'Ya tengo cuenta';login.setAttribute('aria-label',login.textContent);}
+  }
+  fixLandingActions();
+  window.addEventListener('pageshow',fixLandingActions);
+  window.addEventListener('tjsdates:language-changed',()=>setTimeout(fixLandingActions,0));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fixLandingActions);
+  const landing=document.getElementById('landing');
+  if(landing){
+    let pending=false;
+    new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;fixLandingActions();});})
+      .observe(landing,{childList:true,subtree:true,characterData:true});
+  }
+})();
