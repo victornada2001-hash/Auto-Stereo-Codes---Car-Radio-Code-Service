@@ -76,3 +76,47 @@
   p76PressFeedback();p76Banner();setTimeout(()=>{p76AnimateVisible();p76DecoratePremium();},120);
   window.__TJSDATES_ROMANTIC_VISUALS_READY=true;
 })();
+
+
+/* Phase 77: pricing by apparent country / VPN exit IP, with a live USD/MXN rate. */
+(function(){
+let country='MX',mxnRate=null,rateUpdated=false;
+const rates=async()=>{
+ try{
+  const [loc,fx]=await Promise.all([
+   fetch('https://ipwho.is/',{cache:'no-store'}).then(r=>r.json()),
+   fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=MXN',{cache:'no-store'}).then(r=>r.json())
+  ]);
+  if(loc&&loc.success&&loc.country_code)country=loc.country_code.toUpperCase();
+  if(fx&&Number(fx.rates?.MXN)>0){mxnRate=Number(fx.rates.MXN);rateUpdated=true;}
+ }catch(e){console.warn('Country or FX unavailable',e);}
+ refreshPrices();
+};
+function refreshPrices(){
+ const grid=document.getElementById('plansGrid');if(!grid)return;
+ const cards=[...grid.querySelectorAll('.plancard')];
+ cards.forEach((card,i)=>{
+  const plan=String(card.querySelector('.pill')?.textContent||'').toLowerCase();
+  const amount=plan.includes('platinum')?18:plan.includes('gold')?15:plan.includes('plus')?13:0;
+  const price=card.querySelector('.price');if(!price)return;
+  const usd=country==='US';
+  const label=amount===0?(usd?'Free':'Gratis'):usd?'US$'+amount.toFixed(2):(mxnRate?'$'+(amount*mxnRate).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+' MXN':'US$'+amount.toFixed(2));
+  price.innerHTML=label+' <span>/mes</span>';
+  if(!usd&&!mxnRate&&amount)price.title='No se pudo consultar el tipo de cambio; precio base en USD';
+  if(!usd&&mxnRate&&amount)price.title='Conversión orientativa: 1 USD = '+mxnRate.toFixed(4)+' MXN. Cobro final confirmado al pagar.';
+ });
+}
+const obs=new MutationObserver(()=>refreshPrices());
+function attach(){
+ const el=document.getElementById('plansGrid');
+ if(!el||el.dataset.phase77)return;
+ el.dataset.phase77='1';
+ let pending=false;
+ const m=new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;refreshPrices()})});
+ m.observe(el,{childList:true,subtree:false});
+ refreshPrices();
+}
+document.addEventListener('DOMContentLoaded',attach);
+if(document.readyState!=='loading')attach();
+rates();
+})();
