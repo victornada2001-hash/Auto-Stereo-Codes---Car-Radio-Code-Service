@@ -263,3 +263,12 @@ body:before{
 #photoGrid .photo .primarytag{top:36px!important}
 #photoGrid .tjs-photo-dots{right:8px!important;left:auto!important;top:8px!important;z-index:12!important}
 #photoGrid .tjs-photo-options{z-index:20!important}
+
+/* Phase 87: private identity confirmation */
+#tjsIdentityCard{margin-top:16px}
+#tjsIdentityCard .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+#tjsIdentityCard input[type=file]{max-width:100%;font-size:14px}
+#tjsIdentityCard label.note{display:block;margin-top:14px;line-height:1.5}
+#tjsIdentityQueue{margin-top:20px}
+.tjs-identity-review{border:1px solid #543456;border-radius:14px;padding:13px;margin:12px 0;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.tjs-identity-review p{flex:1 1 100%;overflow-wrap:anywhere;font-size:13px}
