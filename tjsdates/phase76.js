@@ -436,3 +436,54 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  superLikeCurrent=function(){if(next()){toast('Interacción de demostración: no se gastaron Super Likes.');return;}return superlike.apply(this,arguments)};
  undoLast=function(){if(demoMode){candidateIndex=Math.max(0,candidateIndex-1);renderDeck();return;}return undo.apply(this,arguments)};
 })();
+
+
+/* Phase 84: minimum single-face photo at onboarding. */
+(function(){
+ let validatedFile=null,hasUploaded=false;
+ const input=()=>document.getElementById('tjsFaceInput');
+ const status=msg=>{const el=document.getElementById('tjsFaceStatus');if(el)el.textContent=msg;};
+ async function detectFace(file){
+  const url=URL.createObjectURL(file);
+  try{
+   const image=new Image();image.src=url;await image.decode();
+   if(image.naturalWidth<300||image.naturalHeight<300)throw Error('Usa una fotografía más clara (mínimo 300 × 300 píxeles).');
+   if(typeof FaceDetector==='undefined')throw Error('Este navegador no admite detección facial. Prueba Chrome en Android o una versión compatible para continuar.');
+   const detector=new FaceDetector({fastMode:false,maxDetectedFaces:3});
+   const faces=await detector.detect(image);
+   if(faces.length!==1)throw Error(faces.length?'Debe aparecer una sola cara.':'No se detectó una cara. Sube una foto frontal y bien iluminada.');
+   return true;
+  }finally{URL.revokeObjectURL(url);}
+ }
+ async function validate(file){
+  validatedFile=null;hasUploaded=false;
+  if(!file)return;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){status('Usa JPG, PNG o WebP de máximo 10 MB.');return;}
+  status('Comprobando que aparece una cara…');
+  try{await detectFace(file);validatedFile=file;status('✓ Rostro detectado. Puedes completar el registro.');}catch(e){status(e.message);}
+ }
+ function ready(){
+  const control=input();if(!control||control.dataset.tjs84)return;control.dataset.tjs84='1';
+  control.addEventListener('change',()=>validate(control.files?.[0]));
+ }
+ const originalFinish=finishOnboarding;
+ finishOnboarding=async function(){
+  if(!session?.user?.id)return status('Inicia sesión para subir tu fotografía.');
+  const {data:existing,error:lookupError}=await sb.from('profile_photos').select('id').eq('user_id',session.user.id).limit(1);
+  if(lookupError)return status(lookupError.message);
+  if(!existing?.length&&!validatedFile){status('Primero sube una foto en la que aparezca claramente tu rostro.');return;}
+  if(!existing?.length&&validatedFile&&!hasUploaded){
+   status('Subiendo foto para moderación…');
+   try{
+    const blob=await compressImage(validatedFile),path=session.user.id+'/'+crypto.randomUUID()+'.webp';
+    const uploaded=await sb.storage.from('profile-photos').upload(path,blob,{contentType:'image/webp',upsert:false});
+    if(uploaded.error)throw uploaded.error;
+    const inserted=await sb.from('profile_photos').insert({user_id:session.user.id,storage_path:path,position:0,is_primary:true,moderation_status:'pending'});
+    if(inserted.error)throw inserted.error;
+    hasUploaded=true;status('✓ Foto recibida y pendiente de revisión.');
+   }catch(e){status('No se pudo guardar la foto: '+e.message);return;}
+  }
+  return originalFinish.apply(this,arguments);
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();
