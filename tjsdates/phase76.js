@@ -392,3 +392,47 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
+
+
+/* Phase 83: 100 clearly identified demo-only profiles; never real accounts. */
+(function(){
+ const female=['Samantha','Ashley','Emily','Sofia','Valeria','Camila','Olivia','Isabella','Mia','Chloe','Natalia','Andrea','Victoria','Daniela','Emma','Avery','Abigail','Madison','Natalie','Paola','Hannah','Luna','Alexa','Renata','Gabriela','Brooklyn','Sarah','Jasmine','Elena','Allison','Nicole','Ariana','Mariana','Katherine','Lucia','Brianna','Carolina','Grace','Melissa','Diana'];
+ const male=['Daniel','Ethan','Mateo','Sebastian','Noah','Alejandro','Lucas','Diego','Adrian','Oliver','Benjamin','David','Leo','Andres','Javier','Liam','Carlos','Ryan','Emilio','Alex'];
+ const jobs=['Diseño gráfico','Enfermería','Marketing','Arquitectura','Fotografía','Ingeniería','Educación','Emprendimiento','Administración','Gastronomía','Tecnología','Bienes raíces','Comercio','Fitness','Arte'];
+ const hobbies=['senderismo','cafés','música en vivo','viajes','playa','cine','gimnasio','cocina','fotografía','baile','lectura','mascotas','surf','yoga','conciertos','museos','fútbol','naturaleza','arte','videojuegos'];
+ const goals=['Relación seria','Conocer personas','Salir a citas','Amistad','Relación a largo plazo'];
+ const zonesSD=['La Jolla','North Park','Chula Vista','Pacific Beach','Downtown','Mission Valley','Hillcrest'];
+ const zonesTJ=['Zona Río','Playas de Tijuana','Hipódromo','Otay','Chapultepec','Centro','La Mesa'];
+ const kinds=['woman','man'];
+ const demo=Array.from({length:100},(_,i)=>{
+  const woman=i<80,city=(i<45||(i>=80&&i<90))?'San Diego':'Tijuana';
+  const names=woman?female:male;const name=names[i%names.length];const age=22+(i*7%19);
+  const interest=[hobbies[i%hobbies.length],hobbies[(i+6)%hobbies.length],hobbies[(i+11)%hobbies.length]];
+  return {id:'demo-'+String(i+1).padStart(3,'0'),display_name:name,age,city,zone:(city==='San Diego'?zonesSD:zonesTJ)[i%7],gender:woman?'woman':'man',height_cm:woman?154+(i*3%24):166+(i*3%25),occupation:jobs[i%jobs.length],relationship_goal:goals[i%goals.length],interests:interest,common_interests:interest.length,approximate_distance_km:5+(i*3%46),is_verified:false,is_demo:true,photo:'',bio:'Me gusta '+interest.join(', ')+'. Disfruto conocer lugares nuevos y conectar con personas auténticas.',languages:city==='San Diego'?['English','Español']:['Español','English'],exercise:i%3?'A veces':'Frecuentemente',pets:i%2?'Me gustan los perros':'Me gustan los gatos',wants_children:i%3?'Aún no lo sé':'Quizá en el futuro'};
+ });
+ window.TJSDATES_DEMO_PROFILES=demo;
+ let demoMode=false;
+ const baseLoad=loadDiscovery,baseRender=renderDeck;
+ loadDiscovery=async function(){
+  await baseLoad.apply(this,arguments);
+  if(!session)return;
+  if(!candidates.length){demoMode=true;candidates=demo.slice();candidateIndex=0;renderDeck();}
+  else demoMode=false;
+ };
+ renderDeck=function(){
+  const result=baseRender.apply(this,arguments);
+  const person=candidates[candidateIndex],card=document.getElementById('currentCard');
+  if(person?.is_demo&&card){
+   const label=document.createElement('span');label.className='tjs-small-demo';label.textContent='Demo';card.appendChild(label);
+   const img=card.querySelector('.heroimg');if(img){img.classList.add('tjs-demo-avatar');img.textContent=person.display_name[0];}
+   const info=card.querySelector('.info');if(info){const line=document.createElement('p');line.textContent=person.occupation+' · '+person.height_cm+' cm · '+person.interests.join(' · ');info.appendChild(line);}
+  }
+  return result;
+ };
+ function next(){if(!demoMode||!candidates[candidateIndex]?.is_demo)return false;candidateIndex++;renderDeck();return true;}
+ const pass=passCurrent,like=likeCurrent,superlike=superLikeCurrent,undo=undoLast;
+ passCurrent=function(){if(next())return;return pass.apply(this,arguments)};
+ likeCurrent=function(){if(next()){toast('Interacción de demostración: no se envió ningún Like.');return;}return like.apply(this,arguments)};
+ superLikeCurrent=function(){if(next()){toast('Interacción de demostración: no se gastaron Super Likes.');return;}return superlike.apply(this,arguments)};
+ undoLast=function(){if(demoMode){candidateIndex=Math.max(0,candidateIndex-1);renderDeck();return;}return undo.apply(this,arguments)};
+})();
