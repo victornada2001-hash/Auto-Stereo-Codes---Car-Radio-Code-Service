@@ -358,3 +358,37 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 })();
+
+
+/* Touch long-press reorder for mobile photo grids. */
+(function(){
+ function ready(){
+ const grid=document.getElementById('photoGrid');if(!grid||grid.dataset.tjsTouch)return;grid.dataset.tjsTouch='1';
+ let timer=null,active=null,dragging=false,px=0,py=0;
+ grid.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button')||e.pointerType==='mouse')return;
+  active=e.target.closest('.photo');if(!active)return;
+  px=e.clientX;py=e.clientY;dragging=false;
+  timer=setTimeout(()=>{if(active){dragging=true;active.style.outline='3px solid #fb6aa8';navigator.vibrate?.(25);}},430);
+ });
+ grid.addEventListener('pointermove',e=>{
+  if(!active)return;
+  if(!dragging&&Math.hypot(e.clientX-px,e.clientY-py)>12){clearTimeout(timer);active=null;}
+  if(dragging){e.preventDefault();}
+ },{passive:false});
+ async function finish(e){
+  clearTimeout(timer);if(!active)return;
+  const start=active;active=null;start.style.outline='';
+  if(!dragging)return;dragging=false;
+  const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.photo');
+  if(!target||target===start||!grid.contains(target))return;
+  const order=[...grid.querySelectorAll('.photo')],from=order.indexOf(start),to=order.indexOf(target);
+  order.splice(from,1);order.splice(to,0,start);
+  const {error}=await sb.rpc('reorder_my_profile_photos',{ids:order.map(c=>c.dataset.photoId)});
+  if(error)toast(error.message);else toast('Orden de fotos actualizado');
+  await loadPhotos();
+ }
+ grid.addEventListener('pointerup',finish);grid.addEventListener('pointercancel',()=>{clearTimeout(timer);if(active)active.style.outline='';active=null;dragging=false;});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();
