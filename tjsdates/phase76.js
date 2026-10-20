@@ -487,3 +487,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
+
+/* Phase 86: deduplicate Participants controls inside each plans card. */
+(function(){
+ function clean(){
+  const section=document.getElementById('page-plans');
+  if(!section)return;
+  const buttons=[...section.querySelectorAll('button')].filter(b=>/participantes|participants/i.test(b.textContent.trim()));
+  const clusters=new Map();
+  buttons.forEach(b=>{
+   let card=b.closest('.plancard,.plan-card,.event-card,.card,article');
+   if(!card)card=b.parentElement?.parentElement;
+   if(!card)return;
+   if(!clusters.has(card))clusters.set(card,[]);
+   clusters.get(card).push(b);
+  });
+  clusters.forEach(group=>group.slice(1).forEach(b=>b.remove()));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean);else clean();
+ const observer=new MutationObserver(()=>{if(document.getElementById('page-plans'))clean();});
+ const start=()=>{const section=document.getElementById('page-plans');if(section)observer.observe(section,{childList:true,subtree:true});};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
