@@ -295,3 +295,66 @@ function movePhotosIntoProfile(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',movePhotosIntoProfile);else movePhotosIntoProfile();
 })();
+
+
+/* Phase 82: photo management with accessible per-photo menu. */
+(function(){
+ const find=id=>document.getElementById(id);
+ let replaceId=null;
+ function setup(){
+  const grid=find('photoGrid');if(!grid||grid.dataset.tjs82)return;grid.dataset.tjs82='1';
+  const picker=document.createElement('input');picker.type='file';picker.accept='image/jpeg,image/png,image/webp';picker.hidden=true;picker.id='tjsReplacePicker';
+  picker.onchange=async()=>{
+   const file=picker.files?.[0];picker.value='';if(!file||!replaceId||!session)return;
+   const id=replaceId;replaceId=null;
+   if(file.size>10*1024*1024)return toast('Máximo 10 MB');
+   try{
+    const blob=await compressImage(file),path=session.user.id+'/'+crypto.randomUUID()+'.webp';
+    const upload=await sb.storage.from('profile-photos').upload(path,blob,{contentType:'image/webp'});
+    if(upload.error)throw upload.error;
+    const {data:old,error:readError}=await sb.from('profile_photos').select('storage_path').eq('id',id).eq('user_id',session.user.id).single();
+    if(readError)throw readError;
+    const {error}=await sb.from('profile_photos').update({storage_path:path,moderation_status:'pending'}).eq('id',id).eq('user_id',session.user.id);
+    if(error)throw error;
+    if(old?.storage_path)await sb.storage.from('profile-photos').remove([old.storage_path]);
+    toast('Foto reemplazada. Pendiente de moderación.');await loadPhotos();
+   }catch(error){toast(error.message||'No se pudo reemplazar la foto');}
+  };
+  grid.appendChild(picker);
+  const originalLoad=loadPhotos;
+  loadPhotos=async function(){
+   await originalLoad();
+   const photos=[...grid.querySelectorAll('.photo')];
+   const {data}=await sb.from('profile_photos').select('id,position').eq('user_id',session.user.id).order('position');
+   photos.forEach((cell,index)=>{
+    cell.dataset.photoId=data?.[index]?.id||'';
+    cell.draggable=true;
+    cell.querySelector('.tools')?.remove();
+    const button=document.createElement('button');button.className='tjs-photo-dots';button.type='button';button.textContent='⋯';button.setAttribute('aria-label','Opciones de foto');
+    button.onclick=e=>{
+     e.stopPropagation();document.querySelectorAll('.tjs-photo-options').forEach(x=>x.remove());
+     const menu=document.createElement('div');menu.className='tjs-photo-options';
+     const replace=document.createElement('button');replace.textContent='Reemplazar foto';replace.onclick=()=>{replaceId=cell.dataset.photoId;picker.click();menu.remove();};
+     const del=document.createElement('button');del.textContent='Eliminar foto';del.onclick=async()=>{menu.remove();if(!confirm('¿Eliminar esta foto?'))return;const {data:old}=await sb.from('profile_photos').select('storage_path').eq('id',cell.dataset.photoId).single();await deletePhoto(cell.dataset.photoId,old?.storage_path||'');};
+     menu.append(replace,del);cell.appendChild(menu);
+    };
+    cell.appendChild(button);
+   });
+  };
+  let source=null;
+  grid.addEventListener('dragstart',e=>{source=e.target.closest('.photo');if(e.dataTransfer)e.dataTransfer.effectAllowed='move';});
+  grid.addEventListener('dragover',e=>{if(e.target.closest('.photo'))e.preventDefault();});
+  grid.addEventListener('drop',async e=>{
+   e.preventDefault();const target=e.target.closest('.photo');if(!target||!source||target===source)return;
+   const ordered=[...grid.querySelectorAll('.photo')],from=ordered.indexOf(source),to=ordered.indexOf(target);
+   ordered.splice(from,1);ordered.splice(to,0,source);
+   const ids=ordered.map(x=>x.dataset.photoId).filter(Boolean);
+   const {error}=await sb.rpc('reorder_my_profile_photos',{ids});
+   if(error)toast('No se pudo reordenar: '+error.message);else toast('Orden actualizado');
+   await loadPhotos();source=null;
+  });
+  grid.addEventListener('dragend',()=>{source=null;});
+  loadPhotos();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
