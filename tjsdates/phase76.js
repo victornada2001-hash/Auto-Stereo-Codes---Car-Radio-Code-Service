@@ -509,3 +509,89 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const start=()=>{const section=document.getElementById('page-plans');if(section)observer.observe(section,{childList:true,subtree:true});};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
+
+
+/* Phase 87: private official ID verification and moderator review. */
+(function(){
+const $id=id=>document.getElementById(id);
+let sending=false;
+function hideLegacy(){
+ const page=$id('page-profile');if(!page)return;
+ page.querySelectorAll('.card').forEach(card=>{
+  const titles=[...card.querySelectorAll('h2,h3')].map(x=>x.textContent.trim().toLowerCase());
+  if(titles.some(t=>t.includes('verificación por foto')||t.includes('verificación de perfil')||t.includes('photo verification')||t.includes('profile verification')))card.style.display='none';
+ });
+}
+function mountProfile(){
+ const page=$id('page-profile');if(!page)return;
+ hideLegacy();if($id('tjsIdentityCard'))return;
+ const box=document.createElement('div');box.className='card';box.id='tjsIdentityCard';
+ box.innerHTML='<div class="sectionhead"><div><div class="pill">Seguridad</div><h2>Verificación de perfil</h2></div></div><p class="note">Sube una identificación oficial legible. Un administrador la revisará manualmente. No se mostrará en tu perfil público.</p><div class="field"><label for="tjsIdentityType">Tipo de identificación</label><select id="tjsIdentityType"><option value="ine">INE / identificación mexicana</option><option value="passport">Pasaporte</option><option value="driver_license">Licencia de conducir</option><option value="state_id">Identificación estatal de EE. UU.</option><option value="other_official">Otra identificación oficial</option></select></div><div class="field"><label for="tjsIdentityFile">Documento (JPG, PNG, WebP o PDF; máximo 10 MB)</label><input id="tjsIdentityFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div><label class="note"><input type="checkbox" id="tjsIdentityConsent"> Autorizo el uso de este documento exclusivamente para revisar mi identidad y acepto el aviso de privacidad.</label><div class="row"><button type="button" class="btn primary" id="tjsIdentitySend">Solicitar verificación</button><button type="button" class="btn ghost" id="tjsIdentityRefresh">Actualizar estado</button></div><p id="tjsIdentityStatus" class="note" role="status"></p>';
+ page.appendChild(box);
+ $id('tjsIdentitySend').onclick=submit;$id('tjsIdentityRefresh').onclick=refresh;
+ refresh();
+}
+async function refresh(){
+ if(!session)return;
+ const {data,error}=await sb.from('identity_submissions').select('status,created_at').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(1);
+ const status=$id('tjsIdentityStatus');if(!status)return;
+ if(error){status.textContent='No se pudo consultar el estado: '+error.message;return;}
+ const latest=data?.[0];
+ status.textContent=latest?({pending:'Solicitud recibida, pendiente de revisión manual.',approved:'Identidad aprobada. Perfil verificado.',rejected:'Solicitud rechazada. Puedes enviar otra identificación.'}[latest.status]||latest.status):'Aún no has enviado una solicitud.';
+}
+async function submit(){
+ if(sending||!session?.user?.id)return;
+ const file=$id('tjsIdentityFile')?.files?.[0],status=$id('tjsIdentityStatus');
+ if(!file)return status.textContent='Selecciona una identificación oficial.';
+ if(!$id('tjsIdentityConsent').checked)return status.textContent='Necesitas autorizar la revisión del documento.';
+ if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size>10485760)return status.textContent='Formato no admitido o archivo mayor a 10 MB.';
+ sending=true;$id('tjsIdentitySend').disabled=true;status.textContent='Cargando documento de forma privada…';
+ try{
+  const ext=file.type==='application/pdf'?'pdf':file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+  const path=session.user.id+'/'+crypto.randomUUID()+'.'+ext;
+  const uploaded=await sb.storage.from('identity-documents').upload(path,file,{upsert:false,contentType:file.type});
+  if(uploaded.error)throw uploaded.error;
+  const {error}=await sb.rpc('submit_identity_verification',{doc_path:path,doc_type:$id('tjsIdentityType').value});
+  if(error)throw error;
+  $id('tjsIdentityFile').value='';status.textContent='Solicitud enviada. Un administrador revisará la identificación.';await refresh();
+ }catch(e){status.textContent='No se pudo enviar: '+e.message;}
+ finally{sending=false;$id('tjsIdentitySend').disabled=false;}
+}
+async function mountAdmin(){
+ const section=$id('page-admin');if(!section||$id('tjsIdentityQueue'))return;
+ const card=document.createElement('div');card.className='card';card.id='tjsIdentityQueue';
+ card.innerHTML='<div class="sectionhead"><h2>Solicitudes de identidad oficial</h2><button class="btn ghost" id="tjsIdentityQueueReload">Actualizar</button></div><div id="tjsIdentityQueueRows">Cargando…</div>';
+ section.appendChild(card);$id('tjsIdentityQueueReload').onclick=loadQueue;loadQueue();
+}
+async function loadQueue(){
+ const root=$id('tjsIdentityQueueRows');if(!root)return;
+ const {data,error}=await sb.from('identity_submissions').select('id,user_id,storage_path,document_type,created_at').eq('status','pending').order('created_at').limit(100);
+ if(error){root.textContent='No se pudo consultar la cola: '+error.message;return;}
+ root.innerHTML='';
+ if(!data?.length){root.textContent='Sin solicitudes pendientes.';return;}
+ for(const doc of data){
+  const row=document.createElement('div');row.className='tjs-identity-review';
+  const title=document.createElement('p');title.textContent='Usuario: '+doc.user_id+' · '+doc.document_type+' · '+new Date(doc.created_at).toLocaleDateString();row.appendChild(title);
+  const preview=document.createElement('button');preview.className='btn ghost';preview.textContent='Ver identificación de forma privada';
+  preview.onclick=async()=>{const {data:link,error:linkError}=await sb.storage.from('identity-documents').createSignedUrl(doc.storage_path,120);if(linkError)return toast(linkError.message);window.open(link.signedUrl,'_blank','noopener,noreferrer');};
+  row.appendChild(preview);
+  for(const decision of ['approved','rejected']){
+   const b=document.createElement('button');b.className='btn '+(decision==='approved'?'primary':'ghost');b.textContent=decision==='approved'?'Aprobar':'Rechazar';
+   b.onclick=async()=>{
+    if(!confirm('¿Confirmar '+(decision==='approved'?'aprobación':'rechazo')+' de esta identidad?'))return;
+    const {data:verification,error:readError}=await sb.rpc('admin_verification_queue',{lim:200});
+    if(readError)return toast(readError.message);
+    const item=(verification||[]).find(v=>v.user_id===doc.user_id&&v.verification_type==='legal_identity');
+    if(!item)return toast('No se encontró la solicitud de verificación.');
+    const {error:saveError}=await sb.rpc('admin_moderate_verification',{verification_uuid:item.id,decision,note:'Revisión manual de identificación oficial'});
+    if(saveError)return toast(saveError.message);
+    toast('Solicitud '+(decision==='approved'?'aprobada':'rechazada'));loadQueue();
+   };row.appendChild(b);
+  }
+  root.appendChild(row);
+ }
+}
+function start(){mountProfile();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+const previousGo=go;go=function(page){const result=previousGo.apply(this,arguments);if(page==='profile')mountProfile();if(page==='admin')mountAdmin();return result;};
+})();
