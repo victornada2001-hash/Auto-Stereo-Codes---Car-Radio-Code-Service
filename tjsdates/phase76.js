@@ -215,3 +215,83 @@ rates();
  getPricing();
  window.addEventListener('pageshow',mount);
 })();
+
+
+/* Phase 81: immersive discovery, expanded profile and integrated photo editing. */
+(function(){
+const byId=id=>document.getElementById(id);
+let galleryIndex=0,activeProfileId=null;
+function profileSheet(candidate){
+ const old=byId('tjsProfileSheet');old?.remove();
+ const backdrop=document.createElement('div');backdrop.id='tjsProfileSheet';backdrop.className='tjs-profile-sheet';
+ const panel=document.createElement('div');panel.className='tjs-profile-details';
+ const photo=candidate.photo?'<img src="'+candidate.photo+'" alt="Foto del perfil">':'<div class="tjs-photo-empty">♥</div>';
+ const item=(title,value)=>'<div class="tjs-detail-item"><strong>'+title+'</strong><p>'+esc(value||'Sin especificar')+'</p></div>';
+ panel.innerHTML='<button class="tjs-sheet-close" type="button">⌄ Cerrar</button><div class="tjs-sheet-hero">'+photo+'</div><h2>'+esc(candidate.display_name||'Perfil')+(candidate.age?' · '+candidate.age:'')+(candidate.is_verified?' <span class="tjs-verified">✿ ✓</span>':'')+'</h2>'+
+ item('Qué busca',candidate.relationship_goal)+item('Sobre mí',candidate.bio)+item('Ciudad',candidate.city)+item('Distancia aproximada',candidate.approximate_distance_km?'A ~'+candidate.approximate_distance_km+' km':'No disponible')+
+ item('Intereses',candidate.common_interests?candidate.common_interests+' intereses en común':'Sin especificar')+
+ '<div class="tjs-detail-actions"><button type="button" data-act="share">Compartir perfil</button><button type="button" data-act="block">Bloquear perfil</button><button type="button" data-act="report">Denunciar perfil</button></div>';
+ panel.querySelector('.tjs-sheet-close').onclick=()=>backdrop.remove();
+ panel.querySelector('[data-act="share"]').onclick=()=>{const link=location.origin; if(navigator.share)navigator.share({title:'TJSDATES',url:link}).catch(()=>{});else navigator.clipboard?.writeText(link).then(()=>toast('Enlace copiado'));};
+ panel.querySelector('[data-act="block"]').onclick=async()=>{if(!confirm('¿Bloquear este perfil?'))return;const {error}=await sb.rpc('block_user',{target_user:candidate.id});if(error)return toast(error.message);backdrop.remove();loadDiscovery();};
+ panel.querySelector('[data-act="report"]').onclick=()=>{showModal('<h2>Denunciar perfil</h2><p>Confirma que deseas enviar un reporte a moderación.</p><button class="btn danger" id="tjsSendReport">Enviar reporte</button>');byId('tjsSendReport').onclick=async()=>{const {error}=await sb.rpc('create_report',{target_user:candidate.id,report_reason:'fake_profile',report_comment:'Reporte desde perfil ampliado'});if(error)return toast(error.message);closeModal();toast('Reporte enviado');};};
+ backdrop.onclick=e=>{if(e.target===backdrop)backdrop.remove();};
+ backdrop.appendChild(panel);document.body.appendChild(backdrop);
+}
+function enhanceDeck(){
+ const candidate=typeof candidates!=='undefined'?candidates[candidateIndex]:null;
+ const card=byId('currentCard');if(!card||!candidate||card.dataset.tjs81)return;
+ card.dataset.tjs81='1';
+ const info=card.querySelector('.info');if(!info)return;
+ const title=info.querySelector('h3');if(title)title.innerHTML=esc(candidate.display_name||'Perfil')+(candidate.age?' '+candidate.age:'')+(candidate.is_verified?' <span class="tjs-verified" aria-label="Perfil verificado">✿ ✓</span>':'');
+ const currentImg=card.querySelector('.heroimg');if(currentImg){
+  const left=document.createElement('button'),right=document.createElement('button');left.className='tjs-gallery-side left';right.className='tjs-gallery-side right';
+  left.type=right.type='button';left.setAttribute('aria-label','Foto anterior');right.setAttribute('aria-label','Foto siguiente');
+  left.onclick=e=>{e.stopPropagation();e.preventDefault();rotate(-1)};right.onclick=e=>{e.stopPropagation();e.preventDefault();rotate(1)};
+  currentImg.append(left,right);
+ }
+ let photos=[candidate.photo].filter(Boolean);let current=0;const uid=candidate.id;
+ async function findPhotos(){
+  const {data,error}=await sb.from('profile_photos').select('storage_path,position').eq('user_id',uid).eq('moderation_status','approved').order('position').limit(9);
+  if(error||!data?.length)return;
+  const urls=await Promise.all(data.map(p=>signed(p.storage_path)));photos=urls.filter(Boolean);updatePhoto();
+ }
+ function updatePhoto(){
+  const img=currentImg?.querySelector('img');if(img&&photos[current])img.src=photos[current];
+  indicator.textContent=photos.length>1?photos.map((_,i)=>i===current?'●':'·').join(' '):'';
+ }
+ function rotate(n){if(photos.length<2)return;current=(current+n+photos.length)%photos.length;updatePhoto();}
+ const indicator=document.createElement('div');indicator.className='tjs-gallery-dots';card.appendChild(indicator);
+ const expand=document.createElement('button');expand.className='tjs-expand';expand.type='button';expand.textContent='↑';expand.setAttribute('aria-label','Ver perfil completo');
+ expand.onclick=e=>{e.stopPropagation();profileSheet(candidate)};card.appendChild(expand);
+ findPhotos();
+ const actions=document.querySelector('#page-discover .actions');
+ if(actions&&!actions.querySelector('.tjs-direct-message')){
+  const dm=document.createElement('button');dm.className='round tjs-direct-message';dm.type='button';dm.textContent='➤';dm.setAttribute('aria-label','Mensaje directo');
+  dm.onclick=()=>showModal('<h2>Mensaje directo</h2><p>US$5 por mensaje directo. Disponible próximamente al confirmar el pago seguro con Stripe.</p>');
+  actions.appendChild(dm);
+ }
+}
+const original=typeof renderDeck==='function'?renderDeck:null;
+if(original){renderDeck=function(){const out=original.apply(this,arguments);setTimeout(enhanceDeck,0);return out;};}
+function movePhotosIntoProfile(){
+ const profile=byId('page-profile'),photos=byId('page-photos');if(!profile||!photos||profile.dataset.tjsPhotos)return;
+ profile.dataset.tjsPhotos='1';
+ const section=document.createElement('section');section.className='tjs-profile-photos';
+ section.innerHTML='<div class="sectionhead"><h2>Mis fotos</h2><button class="btn ghost" id="tjsPreviewProfile" type="button">Vista previa</button></div>';
+ const photocard=photos.querySelector('.card');if(photocard)section.appendChild(photocard);
+ profile.insertBefore(section,profile.querySelector('.card'));
+ byId('tjsPreviewProfile').onclick=async()=>{
+  await loadProfileForm();const imgs=[...byId('photoGrid').querySelectorAll('img')].map(x=>x.src);
+  profileSheet({...profile,id:session.user.id,display_name:byId('pName')?.value,city:byId('pCity')?.value,bio:byId('pBio')?.value,photo:imgs[0]||'',height_cm:byId('pHeight')?.value,occupation:byId('pOccupation')?.value});
+ };
+ const photoNav=document.querySelector('#app aside [data-page="photos"]');if(photoNav)photoNav.style.display='none';
+ const baseGo=go;go=function(page){if(page==='photos')page='profile';const r=baseGo(page);if(page==='profile')loadPhotos();return r;};
+ let dragged=null;const grid=byId('photoGrid');
+ if(grid){
+  grid.addEventListener('pointerdown',e=>{const cell=e.target.closest('.photo');if(!cell)return;dragged=cell;});
+  grid.addEventListener('pointerup',async e=>{const target=e.target.closest('.photo');if(!dragged||!target||target===dragged){dragged=null;return;}const all=[...grid.children];const from=all.indexOf(dragged),to=all.indexOf(target);dragged=null;if(from<0||to<0)return;await movePhoto((await sb.from('profile_photos').select('id').eq('user_id',session.user.id).order('position')).data?.[from]?.id,to>from?1:-1);});
+ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',movePhotosIntoProfile);else movePhotosIntoProfile();
+})();
