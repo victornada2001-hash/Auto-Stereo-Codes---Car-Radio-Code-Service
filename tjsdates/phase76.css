@@ -206,3 +206,14 @@ body:before{
 }
 @keyframes tjs-heartpop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){#page-discover .actions .round.tjs-tap{animation:none!important}}
+
+
+/* Phase 80: clear add-on price cards on Premium page. */
+#tjsAddonList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px}
+#tjsAddonList .tjs-addon{background:linear-gradient(150deg,#2b1737,#1a1028);border:1px solid #6b4166;border-radius:18px;padding:17px;display:flex;flex-direction:column;gap:10px;min-width:0}
+#tjsAddonList .tjs-addon h4{font-size:19px;margin:0;color:#fff}
+#tjsAddonList .tjs-addon-price{font-size:29px;color:#ff8bbb;font-weight:900;overflow-wrap:anywhere}
+#tjsAddonList .tjs-addon p{font-size:13px;color:#d3c1d9;margin:0;line-height:1.5}
+#tjsAddonList .tjs-addon button{margin-top:auto;opacity:.72;cursor:not-allowed}
+#tjsAddonNote{margin-top:14px;font-size:12px;color:#cbb7d1}
+@media(max-width:750px){#tjsAddonList{grid-template-columns:1fr}}
