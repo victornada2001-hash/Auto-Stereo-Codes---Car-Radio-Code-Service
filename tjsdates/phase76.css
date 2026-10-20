@@ -178,3 +178,31 @@ body:before{
 .p76-love-banner{display:flex;flex-wrap:wrap;gap:7px!important}
 .p76-price-nav{display:none!important}
 @media(max-width:680px){#plansGrid.plans{grid-template-columns:1fr!important}#landing .hero .row{gap:13px!important}}
+
+
+/* Phase 79: mobile discovery uses a single compact menu, never an overlapping toolbar. */
+@media(max-width:860px){
+  #app .bottom{position:fixed!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;left:auto!important;right:16px!important;width:auto!important;display:flex!important;grid-template-columns:none!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;z-index:45!important;overflow:visible!important;backdrop-filter:none!important}
+  #app .bottom>button{display:none!important}
+  #app .bottom>.tjs-mobile-more{display:flex!important;align-items:center;justify-content:center;gap:7px;min-width:92px;padding:12px 17px;background:#28172f!important;color:#fff!important;border:1px solid #ba648e!important;border-radius:28px!important;box-shadow:0 5px 24px #0008;font-size:14px!important}
+  #app .bottom>.tjs-mobile-more[aria-expanded=true]{background:#713260!important}
+  #app .content{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
+  #page-discover .discoverWrap{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
+  #page-discover .deck{height:clamp(330px,57dvh,620px)!important;min-height:300px!important}
+  #page-discover .actions{position:relative!important;display:flex!important;justify-content:center!important;align-items:center!important;gap:clamp(10px,3vw,20px)!important;margin:18px auto 0!important;padding:4px 4px 14px!important;bottom:auto!important;transform:none!important;z-index:5!important}
+  #page-discover .actions .round{position:relative!important;flex:0 0 auto;width:clamp(54px,14vw,68px)!important;height:clamp(54px,14vw,68px)!important;font-size:34px!important;font-weight:700!important;background:#1e1228!important;border:2px solid currentColor!important;box-shadow:0 8px 24px #0005!important;transition:transform .22s ease,box-shadow .22s ease!important}
+  #page-discover .actions .round:active{transform:scale(.84)!important}
+  #page-discover .actions .round:hover{transform:translateY(-4px);box-shadow:0 10px 25px #0009!important}
+  #page-discover .actions .round.pass{color:#ff4e69!important}
+  #page-discover .actions .round.star{color:#49b8ff!important}
+  #page-discover .actions .round.like{color:#ff4669!important}
+  #page-discover .actions .round:first-child{color:white!important}
+  #page-discover .actions .round.tjs-tap{animation:tjs-heartpop .35s ease}
+  .tjs-mobile-menu-backdrop{position:fixed;inset:0;background:#080410ab;z-index:48;backdrop-filter:blur(5px)}
+  .tjs-mobile-menu{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-height:min(68dvh,600px);overflow:auto;z-index:49;background:#21142f;border:1px solid #714363;border-radius:22px;box-shadow:0 18px 70px #000b;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .tjs-mobile-menu button{min-height:48px;border:1px solid #553755;border-radius:13px;background:#311d3e;color:white;font-weight:700;text-align:left;padding:10px;cursor:pointer}
+  .tjs-mobile-menu button:active{transform:scale(.97)}
+  .tjs-mobile-menu .tjs-menu-title{grid-column:1/-1;font-weight:800;font-size:18px;padding:5px 0}
+}
+@keyframes tjs-heartpop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#page-discover .actions .round.tjs-tap{animation:none!important}}
