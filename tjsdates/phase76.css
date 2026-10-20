@@ -217,3 +217,28 @@ body:before{
 #tjsAddonList .tjs-addon button{margin-top:auto;opacity:.72;cursor:not-allowed}
 #tjsAddonNote{margin-top:14px;font-size:12px;color:#cbb7d1}
 @media(max-width:750px){#tjsAddonList{grid-template-columns:1fr}}
+
+/* Phase 81 profile cards and details */
+#page-discover .profilecard{border-radius:28px;background:#17111e}
+.tjs-verified{display:inline-grid;place-items:center;font-size:13px;color:white;background:#786bff;border-radius:50%;width:24px;height:24px}
+.tjs-gallery-side{position:absolute;top:8%;height:67%;width:38%;border:0;background:transparent;z-index:2;cursor:pointer}
+.tjs-gallery-side.left{left:0}.tjs-gallery-side.right{right:0}
+.tjs-gallery-dots{position:absolute;top:12px;left:0;right:0;z-index:5;text-align:center;letter-spacing:7px;color:white}
+.tjs-expand{position:absolute;right:14px;bottom:110px;z-index:6;width:42px;height:42px;border:0;border-radius:50%;background:white;color:#171121;font-size:27px}
+.tjs-profile-sheet{position:fixed;inset:0;z-index:75;background:#000b;display:flex;justify-content:center;align-items:end}
+.tjs-profile-details{background:#1b1125;color:white;border-radius:25px 25px 0 0;width:min(100%,650px);height:90dvh;overflow:auto;padding:18px 20px 40px}
+.tjs-sheet-hero{height:200px;overflow:hidden;border-radius:18px;background:#31223c}
+.tjs-sheet-hero img{width:100%;height:100%;object-fit:cover}
+.tjs-sheet-close{background:#362442;color:white;border:0;border-radius:16px;padding:9px 18px;margin-bottom:12px}
+.tjs-detail-item{padding:14px 0;border-bottom:1px solid #493454}
+.tjs-detail-item p{line-height:1.5;color:#d9c7e2}
+.tjs-detail-actions{display:grid;gap:10px;margin-top:18px}
+.tjs-detail-actions button{padding:14px;background:#28182f;color:white;border:1px solid #604665;border-radius:12px}
+@media(max-width:860px){
+#page-discover .deck{height:clamp(440px,65dvh,740px)!important}
+#page-discover .actions .round{background:#100e14!important;border:1px solid #6c6576!important}
+#page-discover .actions .round.pass{color:#fff!important}
+#page-discover .actions .round.star{color:#5b9dfc!important}
+#page-discover .actions .round.like{color:#f43849!important}
+#page-discover .actions .tjs-direct-message{color:#8dbbff!important}
+}
