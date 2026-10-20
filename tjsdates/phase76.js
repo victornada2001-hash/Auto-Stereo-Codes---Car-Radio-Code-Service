@@ -172,3 +172,46 @@ rates();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
  window.addEventListener('pageshow',init);
 })();
+
+
+/* Phase 80: add-on catalog, display-only until verified Stripe checkout exists. */
+(function(){
+ let country='MX',rate=null;
+ const addons=[{title:'1 Boost',usd:5,detail:'30 minutos de visibilidad adicional'},{title:'2 Boosts',usd:7,detail:'60 minutos en total (2 × 30 minutos)'},{title:'1 Like destacado',usd:1,detail:'Un Like destacado por compra'}];
+ function mount(){
+  const page=document.getElementById('page-premium');if(!page)return;
+  const card=[...page.querySelectorAll('.card')].find(el=>el.querySelector('h3')?.textContent.trim()==='Compras adicionales');
+  if(!card)return;
+  let grid=document.getElementById('tjsAddonList');
+  if(!grid){
+   card.querySelector('p.note')?.remove();
+   grid=document.createElement('div');grid.id='tjsAddonList';card.appendChild(grid);
+   const note=document.createElement('p');note.id='tjsAddonNote';note.textContent='Los pagos estarán disponibles al conectar y verificar Stripe. No se cobran ni se activan beneficios todavía.';card.appendChild(note);
+  }
+  const fmt=usd=>country==='US'?'US$'+usd.toFixed(2):rate?'$'+(usd*rate).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+' MXN':'US$'+usd.toFixed(2);
+  grid.innerHTML='';
+  addons.forEach(item=>{
+   const el=document.createElement('article');el.className='tjs-addon';
+   const title=document.createElement('h4');title.textContent=item.title;
+   const price=document.createElement('div');price.className='tjs-addon-price';price.textContent=fmt(item.usd);
+   const detail=document.createElement('p');detail.textContent=item.detail;
+   const button=document.createElement('button');button.className='btn ghost';button.type='button';button.disabled=true;button.textContent='Compra próximamente';
+   el.append(title,price,detail,button);grid.appendChild(el);
+  });
+  const note=document.getElementById('tjsAddonNote');if(note)note.title=rate?'1 USD = '+rate.toFixed(4)+' MXN · valor orientativo':'El precio base se muestra en USD cuando no hay cotización disponible';
+ }
+ async function getPricing(){
+  try{
+   const response=await fetch('https://ipwho.is/',{cache:'no-store'});const loc=await response.json();
+   if(loc.success&&loc.country_code)country=loc.country_code.toUpperCase();
+  }catch(e){console.warn('Add-on country lookup unavailable',e);}
+  try{
+   const response=await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=MXN',{cache:'no-store'});
+   const data=await response.json();if(Number(data.rates?.MXN)>0)rate=Number(data.rates.MXN);
+  }catch(e){console.warn('Add-on FX unavailable',e);}
+  mount();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+ getPricing();
+ window.addEventListener('pageshow',mount);
+})();
