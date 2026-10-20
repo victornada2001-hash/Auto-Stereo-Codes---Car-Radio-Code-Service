@@ -242,3 +242,13 @@ body:before{
 #page-discover .actions .round.like{color:#f43849!important}
 #page-discover .actions .tjs-direct-message{color:#8dbbff!important}
 }
+
+/* Phase 82: tidy photo grid controls */
+#photoGrid .photo{position:relative;touch-action:pan-y}
+#photoGrid .photo .tools{display:none!important}
+#photoGrid .tjs-photo-dots{position:absolute;top:9px;right:9px;z-index:8;background:#1d1524df;color:#fff;font-size:26px;line-height:1;border:1px solid #ffffff55;border-radius:50%;height:35px;width:35px;cursor:pointer}
+#photoGrid .tjs-photo-options{position:absolute;top:47px;right:8px;z-index:10;background:#24182f;border:1px solid #70516f;border-radius:12px;box-shadow:0 10px 30px #000a;min-width:165px;overflow:hidden}
+#photoGrid .tjs-photo-options button{display:block;width:100%;padding:13px;text-align:left;background:transparent;color:white;border:0}
+#photoGrid .tjs-photo-options button+button{border-top:1px solid #51435a;color:#ff9daa}
+#photoGrid .photo[draggable=true]{cursor:grab}
+#photoGrid .photo[draggable=true]:active{cursor:grabbing}
