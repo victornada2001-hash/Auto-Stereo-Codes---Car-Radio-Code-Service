@@ -252,3 +252,7 @@ body:before{
 #photoGrid .tjs-photo-options button+button{border-top:1px solid #51435a;color:#ff9daa}
 #photoGrid .photo[draggable=true]{cursor:grab}
 #photoGrid .photo[draggable=true]:active{cursor:grabbing}
+
+/* Phase 83: subtle demo label and illustration-based fallback, not an impersonated user photo. */
+.tjs-small-demo{position:absolute;z-index:10;top:16px;right:16px;font-size:11px;letter-spacing:.04em;background:#160e1ccf;color:#e5d6ed;border:1px solid #ab92b87d;padding:4px 9px;border-radius:14px}
+#page-discover .heroimg.tjs-demo-avatar{height:100%;display:grid;place-items:center;font-size:clamp(110px,32vw,230px);font-weight:900;color:#ead3ed;background:radial-gradient(circle at 40% 30%,#a56da0,#4b3263 54%,#1c172b 85%);text-transform:uppercase}
