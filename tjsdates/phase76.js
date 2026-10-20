@@ -129,17 +129,11 @@ rates();
     const signup=landing.querySelector('.hero button[onclick*="signup"]');
     const login=landing.querySelector('.hero button[onclick*="login"]');
     const english=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';
-    if(signup){signup.textContent=english?'Create account':'Crear cuenta';signup.setAttribute('aria-label',signup.textContent);}
-    if(login){login.textContent=english?'I have an account':'Ya tengo cuenta';login.setAttribute('aria-label',login.textContent);}
+    if(signup){const label=english?'Create account':'Crear cuenta';if(signup.textContent!==label)signup.textContent=label;if(signup.getAttribute('aria-label')!==label)signup.setAttribute('aria-label',label);}
+    if(login){const label=english?'I have an account':'Ya tengo cuenta';if(login.textContent!==label)login.textContent=label;if(login.getAttribute('aria-label')!==label)login.setAttribute('aria-label',label);}
   }
   fixLandingActions();
   window.addEventListener('pageshow',fixLandingActions);
   window.addEventListener('tjsdates:language-changed',()=>setTimeout(fixLandingActions,0));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fixLandingActions);
-  const landing=document.getElementById('landing');
-  if(landing){
-    let pending=false;
-    new MutationObserver(()=>{if(pending)return;pending=true;queueMicrotask(()=>{pending=false;fixLandingActions();});})
-      .observe(landing,{childList:true,subtree:true,characterData:true});
-  }
 })();
