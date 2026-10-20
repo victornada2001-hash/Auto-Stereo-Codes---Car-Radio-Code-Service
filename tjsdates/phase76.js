@@ -320,7 +320,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     toast('Foto reemplazada. Pendiente de moderación.');await loadPhotos();
    }catch(error){toast(error.message||'No se pudo reemplazar la foto');}
   };
-  grid.appendChild(picker);
+  document.body.appendChild(picker);
   const originalLoad=loadPhotos;
   loadPhotos=async function(){
    await originalLoad();
