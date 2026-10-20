@@ -137,3 +137,38 @@ rates();
   window.addEventListener('tjsdates:language-changed',()=>setTimeout(fixLandingActions,0));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fixLandingActions);
 })();
+
+
+/* Phase 79 mobile discovery navigation and simplified reaction buttons. */
+(function(){
+ const opts=[['↶','Regresar'],['✕','No me gusta'],['★','Super Like'],['♥','Me gusta']];
+ function init(){
+  document.querySelectorAll('#page-discover .actions button.round').forEach((b,i)=>{
+   if(!opts[i])return;
+   if(b.textContent!==opts[i][0])b.textContent=opts[i][0];
+   b.setAttribute('aria-label',opts[i][1]);
+   if(!b.dataset.fx){b.dataset.fx='1';b.addEventListener('click',()=>{b.classList.remove('tjs-tap');void b.offsetWidth;b.classList.add('tjs-tap')});}
+  });
+  const nav=document.querySelector('#app .bottom');
+  if(!nav||nav.querySelector('.tjs-mobile-more'))return;
+  const more=document.createElement('button');more.className='tjs-mobile-more';more.textContent='☰ Más';
+  more.setAttribute('aria-expanded','false');nav.appendChild(more);
+  function close(){document.querySelector('.tjs-mobile-menu')?.remove();document.querySelector('.tjs-mobile-menu-backdrop')?.remove();more.setAttribute('aria-expanded','false');}
+  more.addEventListener('click',()=>{
+   if(document.querySelector('.tjs-mobile-menu'))return close();
+   const shade=document.createElement('div');shade.className='tjs-mobile-menu-backdrop';shade.onclick=close;document.body.appendChild(shade);
+   const menu=document.createElement('div');menu.className='tjs-mobile-menu';menu.setAttribute('role','dialog');
+   const title=document.createElement('div');title.className='tjs-menu-title';title.textContent='TJSDATES';menu.appendChild(title);
+   const used=new Set();
+   document.querySelectorAll('#app aside [data-page]').forEach(link=>{
+    const page=link.dataset.page;if(!page||used.has(page))return;used.add(page);
+    const item=document.createElement('button');item.textContent=link.textContent.trim();item.onclick=()=>{close();link.click();};menu.appendChild(item);
+   });
+   document.body.appendChild(menu);more.setAttribute('aria-expanded','true');
+  });
+  window.addEventListener('resize',()=>{if(innerWidth>860)close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+ window.addEventListener('pageshow',init);
+})();
