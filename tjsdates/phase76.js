@@ -412,6 +412,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  });
  window.TJSDATES_DEMO_PROFILES=demo;
  let demoMode=false;
+ window.tjsOpenDemoProfiles=function(){
+  if(!session)return;
+  demoMode=true;candidates=demo.slice();candidateIndex=0;renderDeck();
+  const status=document.getElementById('discoverStatus');if(status)status.textContent='Explorando 100 perfiles de demostración. No son usuarios reales.';
+ };
  const baseLoad=loadDiscovery,baseRender=renderDeck;
  loadDiscovery=async function(){
   await baseLoad.apply(this,arguments);
@@ -594,4 +599,18 @@ async function loadQueue(){
 function start(){mountProfile();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 const previousGo=go;go=function(page){const result=previousGo.apply(this,arguments);if(page==='profile')mountProfile();if(page==='admin')mountAdmin();return result;};
+})();
+
+
+/* Phase 88: show demo library explicitly and independently of live profiles. */
+(function(){
+ function addControl(){
+  const section=document.getElementById('page-discover');if(!section||document.getElementById('tjsDemoBrowse'))return;
+  const header=section.querySelector('.sectionhead');if(!header)return;
+  const button=document.createElement('button');button.id='tjsDemoBrowse';button.type='button';button.className='btn ghost';button.textContent='Ver 100 demos';
+  button.onclick=()=>window.tjsOpenDemoProfiles?.();
+  header.appendChild(button);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addControl);else addControl();
+ window.addEventListener('pageshow',addControl);
 })();
