@@ -403,12 +403,32 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const goals=['Relación seria','Conocer personas','Salir a citas','Amistad','Relación a largo plazo'];
  const zonesSD=['La Jolla','North Park','Chula Vista','Pacific Beach','Downtown','Mission Valley','Hillcrest'];
  const zonesTJ=['Zona Río','Playas de Tijuana','Hipódromo','Otay','Chapultepec','Centro','La Mesa'];
+ /* Synthetic illustrated portraits for demo-only profiles. */
+ function demoPortrait(i,woman){
+  const backgrounds=['#b8d8e5','#ddbfc4','#e7d4a6','#b7cbb9','#d5c7e9','#b6cce0','#d7bba9','#c5d6cd'];
+  const skin=['#efd2b9','#e5b78f','#b97857','#f1c7a5','#91634d','#d5a078','#f0c9b3','#b58060'];
+  const hair=['#211b23','#523328','#1b1519','#9c6138','#3a261e','#b27b40','#5d3228','#343037'];
+  const clothes=['#222539','#6d4668','#44717a','#965b56','#404c72','#88704f','#5c3557'];
+  const face=skin[(i*7+Math.floor(i/5))%skin.length];
+  const mane=hair[(i*3+Math.floor(i/6))%hair.length];
+  const bg=backgrounds[i%backgrounds.length],shirt=clothes[i%clothes.length];
+  const eyes=i%4===0?'#658ca3':i%5===0?'#779875':'#4c3630';
+  const long=woman&&i%6!==0;
+  const hairBack=long?'<path d="M106 197 Q90 75 242 68 Q401 76 378 285 L342 336 L140 341 Z" fill="'+mane+'"/>':'';
+  const shape=long?'<path d="M122 156 Q119 83 238 79 Q347 80 355 169 Q318 153 287 118 Q228 174 133 162 Z" fill="'+mane+'"/>':'<path d="M126 147 Q116 74 238 76 Q356 73 348 148 Q295 135 279 113 Q206 153 126 147 Z" fill="'+mane+'"/>';
+  const fringe=i%3===0?'<path d="M139 130 Q197 82 280 103 Q235 146 151 157 Z" fill="'+mane+'"/>':'';
+  const beard=!woman&&i%4===0?'<path d="M180 237 Q237 280 296 236 Q285 290 237 293 Q195 289 180 237" fill="'+mane+'" opacity=".45"/>':'';
+  const glasses=i%9===0?'<g fill="none" stroke="#282b34" stroke-width="5"><rect x="159" y="183" width="59" height="36" rx="13"/><rect x="254" y="183" width="59" height="36" rx="13"/><path d="M218 197 Q237 188 254 197"/></g>':'';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+bg+'"/><stop offset="1" stop-color="#343047"/></linearGradient></defs><rect width="480" height="640" fill="url(#b)"/><circle cx="408" cy="93" r="83" fill="#ffffff" opacity=".12"/><path d="M-45 640 Q0 413 172 393 Q235 376 307 394 Q477 424 528 640Z" fill="'+shirt+'"/><path d="M202 334 L277 334 L282 413 Q240 461 196 414Z" fill="'+face+'"/>'+hairBack+'<ellipse cx="238" cy="207" rx="'+(i%3===0?108:101)+'" ry="133" fill="'+face+'"/>'+shape+fringe+'<path d="M165 186 Q188 175 211 185 M265 185 Q289 175 311 187" fill="none" stroke="'+mane+'" stroke-width="6" stroke-linecap="round"/><ellipse cx="188" cy="205" rx="12" ry="8" fill="#f5eee9"/><ellipse cx="285" cy="205" rx="12" ry="8" fill="#f5eee9"/><circle cx="190" cy="205" r="6" fill="'+eyes+'"/><circle cx="286" cy="205" r="6" fill="'+eyes+'"/><path d="M239 207 Q231 244 241 245" stroke="#98674d" opacity=".48" stroke-width="4" fill="none"/><path d="M207 276 Q239 '+(i%2===0?289:278)+' 272 275" stroke="#99515b" stroke-width="5" stroke-linecap="round" fill="none"/>'+beard+glasses+'<path d="M193 407 Q240 449 281 407" stroke="#f9dfcd" stroke-opacity=".48" stroke-width="8" fill="none"/></svg>';
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+ }
+
  const kinds=['woman','man'];
  const demo=Array.from({length:100},(_,i)=>{
   const woman=i<80,city=(i<45||(i>=80&&i<90))?'San Diego':'Tijuana';
   const names=woman?female:male;const name=names[i%names.length];const age=22+(i*7%19);
   const interest=[hobbies[i%hobbies.length],hobbies[(i+6)%hobbies.length],hobbies[(i+11)%hobbies.length]];
-  return {id:'demo-'+String(i+1).padStart(3,'0'),display_name:name,age,city,zone:(city==='San Diego'?zonesSD:zonesTJ)[i%7],gender:woman?'woman':'man',height_cm:woman?154+(i*3%24):166+(i*3%25),occupation:jobs[i%jobs.length],relationship_goal:goals[i%goals.length],interests:interest,common_interests:interest.length,approximate_distance_km:5+(i*3%46),is_verified:false,is_demo:true,photo:'',bio:'Me gusta '+interest.join(', ')+'. Disfruto conocer lugares nuevos y conectar con personas auténticas.',languages:city==='San Diego'?['English','Español']:['Español','English'],exercise:i%3?'A veces':'Frecuentemente',pets:i%2?'Me gustan los perros':'Me gustan los gatos',wants_children:i%3?'Aún no lo sé':'Quizá en el futuro'};
+  return {id:'demo-'+String(i+1).padStart(3,'0'),display_name:name,age,city,zone:(city==='San Diego'?zonesSD:zonesTJ)[i%7],gender:woman?'woman':'man',height_cm:woman?154+(i*3%24):166+(i*3%25),occupation:jobs[i%jobs.length],relationship_goal:goals[i%goals.length],interests:interest,common_interests:interest.length,approximate_distance_km:5+(i*3%46),is_verified:false,is_demo:true,photo:demoPortrait(i,woman),bio:'Me gusta '+interest.join(', ')+'. Disfruto conocer lugares nuevos y conectar con personas auténticas.',languages:city==='San Diego'?['English','Español']:['Español','English'],exercise:i%3?'A veces':'Frecuentemente',pets:i%2?'Me gustan los perros':'Me gustan los gatos',wants_children:i%3?'Aún no lo sé':'Quizá en el futuro'};
  });
  window.TJSDATES_DEMO_PROFILES=demo;
  let demoMode=false;
@@ -429,7 +449,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const person=candidates[candidateIndex],card=document.getElementById('currentCard');
   if(person?.is_demo&&card){
    const label=document.createElement('span');label.className='tjs-small-demo';label.textContent='Demo';card.appendChild(label);
-   const img=card.querySelector('.heroimg');if(img){img.classList.add('tjs-demo-avatar');img.textContent=person.display_name[0];}
+   const img=card.querySelector('.heroimg');if(img){img.classList.remove('tjs-demo-avatar');const picture=img.querySelector('img');if(picture)picture.src=person.photo;else{const image=document.createElement('img');image.src=person.photo;image.alt='Retrato ilustrado de demostración';img.prepend(image);}}
    const info=card.querySelector('.info');if(info){const line=document.createElement('p');line.textContent=person.occupation+' · '+person.height_cm+' cm · '+person.interests.join(' · ');info.appendChild(line);}
   }
   return result;
