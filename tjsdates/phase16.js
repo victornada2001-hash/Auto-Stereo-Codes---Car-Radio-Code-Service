@@ -40,7 +40,7 @@ function injectProfileDetailsUI(){
   </div>
   <h3 style="margin-top:18px">Tus intereses</h3><p class="note">Elige entre 3 y 10. Se usan para mostrar compatibilidad, sin revelar información sensible.</p><div id="profileInterestPicker" class="interestpicker"></div>
   <div class="profilequality" style="margin-top:18px"><b>Calidad del perfil: <span id="profileQualityText">0%</span></b><div class="qualitybar"><span id="profileQualityBar"></span></div></div>
-  <button class="btn primary" style="margin-top:14px" onclick="saveExtendedProfile()">Guardar detalles</button><div id="profileDetailsStatus" class="status"></div>`;
+  <div id="profileDetailsStatus" class="status"></div>`;
   sec.appendChild(card);
 }
 

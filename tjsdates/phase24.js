@@ -24,7 +24,7 @@ function injectNotificationPreferencesUI(){
       <label class="privacytoggle"><input id="npSafety" type="checkbox"><span><b>Alertas de seguridad</b><div class="note">Recomendado para mantener tu cuenta segura.</div></span></label>
       <label class="privacytoggle"><input id="npMarketing" type="checkbox"><span><b>Novedades de TJSDATES</b><div class="note">Promociones y novedades opcionales.</div></span></label>
     </div>
-    <button id="saveNotificationPrefsBtn" class="btn primary" style="margin-top:14px" type="button" onclick="saveNotificationPreferences()">Guardar preferencias</button><div id="notificationPrefsStatus" class="status"></div>`;
+    <div id="notificationPrefsStatus" class="status"></div>`;
 }
 
 async function loadNotificationPreferences(){

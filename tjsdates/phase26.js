@@ -49,7 +49,7 @@ function showPasswordRecoveryModal(){
     <p class="note">La nueva contraseña debe ser diferente y difícil de adivinar.</p>
     <div class="field"><label>Nueva contraseña</label><input id="newRecoveryPassword" type="password" autocomplete="new-password" minlength="10" placeholder="Mínimo 10 caracteres"></div>
     <div class="field"><label>Confirmar contraseña</label><input id="confirmRecoveryPassword" type="password" autocomplete="new-password" minlength="10"></div>
-    <button id="saveRecoveryPasswordBtn" class="btn primary" type="button" onclick="saveRecoveredPassword()">Guardar contraseña</button>
+    <button id="saveRecoveryPasswordBtn" class="btn primary" type="button" onclick="saveRecoveredPassword()">Cambiar contraseña</button>
     <div id="recoveryPasswordStatus" class="status"></div>`;
   modal.classList.remove('hidden');
   setTimeout(()=>$('newRecoveryPassword')?.focus(),60);

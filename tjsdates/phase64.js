@@ -29,7 +29,7 @@ function p64ShowReset(){
   #p64Reset input,#p64Reset button{width:100%;box-sizing:border-box;font:inherit;border-radius:12px;padding:12px;margin-top:10px}
   #p64Reset input{background:#22222c;color:#fff;border:1px solid #3a3a48}#p64Reset button{border:0;background:#ff4d7d;color:#fff;font-weight:800;cursor:pointer}
   #p64Reset .status{margin-top:10px;color:#c8c8d4}
-  </style><div class="box"><h2>Nueva contraseña</h2><p>Usa al menos 10 caracteres, una mayúscula, una minúscula y un número.</p><input id="p64Pass1" type="password" autocomplete="new-password" minlength="10" placeholder="Nueva contraseña"><input id="p64Pass2" type="password" autocomplete="new-password" minlength="10" placeholder="Confirmar contraseña"><button onclick="p64SavePassword()">Guardar nueva contraseña</button><div id="p64Status" class="status" aria-live="polite"></div></div>`;
+  </style><div class="box"><h2>Nueva contraseña</h2><p>Usa al menos 10 caracteres, una mayúscula, una minúscula y un número.</p><input id="p64Pass1" type="password" autocomplete="new-password" minlength="10" placeholder="Nueva contraseña"><input id="p64Pass2" type="password" autocomplete="new-password" minlength="10" placeholder="Confirmar contraseña"><button onclick="p64SavePassword()">Cambiar contraseña</button><div id="p64Status" class="status" aria-live="polite"></div></div>`;
   document.body.appendChild(root);
 }
 async function p64SavePassword(){

@@ -10,7 +10,7 @@ function injectPhaseSixUI(){
       <label><input id="npLikes" type="checkbox"> Nuevos Likes</label>
       <label><input id="npSafety" type="checkbox"> Alertas de seguridad</label>
       <label><input id="npMarketing" type="checkbox"> Novedades de TJSDATES</label>
-    </div><div class="row"><button class="btn primary" onclick="saveNotificationPreferences()">Guardar preferencias</button><button class="btn ghost" onclick="requestBrowserNotifications()">Activar avisos del navegador</button></div><div id="notifPrefStatus" class="status"></div>`;
+    </div><div class="row"><button class="btn ghost" onclick="requestBrowserNotifications()">Activar avisos del navegador</button></div><div id="notifPrefStatus" class="status"></div>`;
     notif.appendChild(card);
   }
   const profileSection=$('page-profile');

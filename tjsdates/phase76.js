@@ -666,17 +666,18 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
 (function(){
   if(!document.querySelector('script[data-t92]')){
     const first=document.createElement('script');
-    first.src='/design-v92.js?release=94';
+    first.src='/design-v92.js?release=95';
     first.dataset.t92='1';
     first.onload=()=>{
       if(document.querySelector('script[data-t93]'))return;
       const final=document.createElement('script');
-      final.src='/design-v93.js?release=94';
+      final.src='/design-v93.js?release=95';
       final.dataset.t93='1';
       final.onload=()=>{
         const clean=document.createElement('script');
-        clean.src='/design-v94.js?release=94';
+        clean.src='/design-v94.js?release=95';
         clean.dataset.t94='1';
+        clean.onload=()=>{const s=document.createElement('script');s.src='/autosave-v95.js?release=95';s.dataset.t95='1';document.body.appendChild(s)};
         clean.onerror=()=>{document.getElementById('app')?.classList.add('t94-ready');console.error('TJSDATES clean-photo update failed to load')};
         document.body.appendChild(clean);
       };
