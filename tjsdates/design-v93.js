@@ -116,6 +116,21 @@
   ];
   const femaleIndices=Array.from({length:60},(_,i)=>[0,i]).concat(Array.from({length:20},(_,i)=>[1,i]));
   const maleIndices=Array.from({length:20},(_,i)=>[2,i]);
+  // Preview circle portraits are clearly labelled as synthetic examples, not verified members.
+  const miniHost=$q('.t93-verified-empty',rail);
+  if(miniHost){
+    miniHost.textContent='Muestras con IA · no son perfiles verificados';
+    const mini=document.createElement('div');mini.className='t93-mini-portraits';
+    [1,3,7,9].forEach(col=>{
+      const b=document.createElement('span');b.className='t93-mini-portrait';
+      b.style.backgroundImage='url("'+encodeURI(sources[0].url)+'")';
+      b.style.backgroundSize=(sources[0].cols*100)+'% '+(sources[0].rows*100)+'%';
+      b.style.backgroundPosition=(100*col/(sources[0].cols-1))+'% 0%';
+      b.title='Retrato sintético de demostración';mini.appendChild(b);
+    });
+    const add=document.createElement('button');add.type='button';add.className='t93-mini-add';add.title='Ver 100 perfiles de demostración';add.innerHTML=ico('plus');add.onclick=()=>window.tjsOpenDemoProfiles?.();mini.appendChild(add);
+    miniHost.before(mini);
+  }
   const demos=window.TJSDATES_DEMO_PROFILES;
   if(Array.isArray(demos))demos.forEach((d,i)=>{
     const [group,cell]=(i<80?femaleIndices[i]:maleIndices[i-80]);
