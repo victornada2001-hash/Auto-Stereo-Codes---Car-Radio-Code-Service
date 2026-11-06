@@ -79,20 +79,25 @@ async function setupServiceWorkerUpdateFlow(){
   try{
     const reg=await navigator.serviceWorker.getRegistration();
     if(!reg)return;
-    const show=worker=>{
-      if(!worker)return;
-      const banner=ensureUpdateBanner();banner.classList.remove('hidden');
-      const btn=$('applyAppUpdateBtn');if(btn)btn.onclick=()=>{worker.postMessage({type:'SKIP_WAITING'});btn.disabled=true;btn.textContent='Actualizando…'};
-    };
-    if(reg.waiting)show(reg.waiting);
+    // Silent automatic update. The user does not need to press "Actualizar".
+    const activate=worker=>{if(worker&&worker.state!=='redundant')worker.postMessage({type:'SKIP_WAITING'})};
+    if(reg.waiting)activate(reg.waiting);
     reg.addEventListener('updatefound',()=>{
-      const worker=reg.installing;if(!worker)return;
-      worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)show(worker)});
+      const installing=reg.installing;if(!installing)return;
+      installing.addEventListener('statechange',()=>{
+        if(installing.state==='installed')activate(installing);
+      });
     });
     let reloading=false;
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload()});
-    reg.update().catch(()=>{});
-  }catch(e){console.warn('TJSDATES SW update check failed',e)}
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(reloading)return;
+      reloading=true;
+      if(document.visibilityState==='visible')window.location.reload();
+    });
+    await reg.update();
+    if(reg.waiting)activate(reg.waiting);
+    document.getElementById('updateBanner')?.remove();
+  }catch(e){console.warn('TJSDATES automatic update check failed',e)}
 }
 
 window.addEventListener('unhandledrejection',event=>{
