@@ -40,7 +40,7 @@ body{background:radial-gradient(ellipse at 54% 8%,#261331 0%,transparent 54%),#0
 #app.t92-app .deck:before,#app.t92-app .deck:after{content:"";position:absolute;top:9px;bottom:9px;border-radius:27px;background:linear-gradient(120deg,#38283b,#25202f);border:1px solid #54405e;z-index:-2}
 #app.t92-app .deck:before{left:-24px;right:20px;transform:rotate(-3.2deg);opacity:.7}
 #app.t92-app .deck:after{left:20px;right:-20px;transform:rotate(3.2deg);opacity:.75;z-index:-1}
-#app.t92-app .profilecard{border:2px solid #8d7c96;border-radius:27px;box-shadow:0 24px 56px #0009;touch-action:pan-y;will-change:transform,opacity;transition:transform .32s cubic-bezier(.23,.84,.21,1),opacity .32s ease}
+#app.t92-app .profilecard{border:2px solid #8d7c96;border-radius:27px;box-shadow:0 24px 56px #0009;touch-action:none;will-change:transform,opacity;transition:transform .32s cubic-bezier(.23,.84,.21,1),opacity .32s ease}
 #app.t92-app .profilecard .heroimg{background:linear-gradient(150deg,#3a2a46,#171220)}
 #app.t92-app .profilecard .shade{background:linear-gradient(0deg,rgba(6,5,9,.96) 0%,rgba(8,5,14,.45) 48%,transparent 83%);inset:38% 0 0}
 #app.t92-app .profilecard .info{left:25px;right:24px;bottom:24px;text-shadow:0 1px 8px #0009}
