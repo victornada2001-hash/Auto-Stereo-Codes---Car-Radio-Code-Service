@@ -449,7 +449,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const person=candidates[candidateIndex],card=document.getElementById('currentCard');
   if(person?.is_demo&&card){
    const label=document.createElement('span');label.className='tjs-small-demo';label.textContent='Demo';card.appendChild(label);
-   const img=card.querySelector('.heroimg');if(img){img.classList.remove('tjs-demo-avatar');const picture=img.querySelector('img');if(picture)picture.src=person.photo;else{const image=document.createElement('img');image.src=person.photo;image.alt='Retrato ilustrado de demostración';img.prepend(image);}}
+   const img=card.querySelector('.heroimg');if(img){img.classList.remove('tjs-demo-avatar');const picture=img.querySelector('img');if(picture)picture.src=person.photo;else{const image=document.createElement('img');image.src=person.photo;image.alt='Retrato ficticio de demostración';img.prepend(image);}}
    const info=card.querySelector('.info');if(info){const line=document.createElement('p');line.textContent=person.occupation+' · '+person.height_cm+' cm · '+person.interests.join(' · ');info.appendChild(line);}
   }
   return result;
