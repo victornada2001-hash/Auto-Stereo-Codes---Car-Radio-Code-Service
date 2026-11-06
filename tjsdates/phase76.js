@@ -634,3 +634,30 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addControl);else addControl();
  window.addEventListener('pageshow',addControl);
 })();
+
+/* Release 91: restore demo discovery when the real candidate deck is empty.
+   Demo profiles are clearly marked, and demo actions never write likes/matches. */
+(function(){
+  const previousLoad=loadDiscovery;
+  let requestSequence=0;
+  loadDiscovery=async function(){
+    const seq=++requestSequence;
+    const result=await previousLoad.apply(this,arguments);
+    if(seq!==requestSequence||!session)return result;
+    if(!candidates.length&&typeof window.tjsOpenDemoProfiles==='function'){
+      window.tjsOpenDemoProfiles();
+      const status=document.getElementById('discoverStatus');
+      if(status)status.textContent='Vista de demostración · 100 perfiles ficticios. No hay perfiles reales disponibles con estos filtros.';
+    }
+    return result;
+  };
+  const previousRender=renderDeck;
+  renderDeck=function(){
+    const current=candidates[candidateIndex];
+    if(!current&&candidates.length===0&&session&&window.TJSDATES_DEMO_PROFILES?.length){
+      window.tjsOpenDemoProfiles?.();
+      return;
+    }
+    return previousRender.apply(this,arguments);
+  };
+})();
