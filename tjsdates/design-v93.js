@@ -162,5 +162,6 @@
   // Avoid a flash of the previous layout: the main application remains hidden until this script completes.
   updateIdentity();
   setTimeout(()=>{if(session&&window.TJSDATES_DEMO_PROFILES?.length){if(!candidates.length)window.tjsOpenDemoProfiles?.();else if(candidates[candidateIndex]?.is_demo)renderDeck();}updateActivity()},250);
-  window.addEventListener('pageshow',()=>{updateIdentity();updateActivity()});
+  window.addEventListener('pageshow',()=>{updateIdentity();updateActivity();if(typeof releaseStartupGate==='function')releaseStartupGate()});
+  if(typeof releaseStartupGate==='function')releaseStartupGate();
 })();
