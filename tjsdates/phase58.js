@@ -4,7 +4,7 @@ function p58Ensure(card){if(!card||card.querySelector('.p58feedback'))return;con
 function p58Paint(card,dx){p58Ensure(card);const mag=Math.min(1,Math.abs(dx)/110),like=card.querySelector('.p58like'),pass=card.querySelector('.p58pass');if(like){like.style.opacity=dx>0?String(mag):'0';like.style.transform=`rotate(-12deg) scale(${.9+.1*mag})`}if(pass){pass.style.opacity=dx<0?String(mag):'0';pass.style.transform=`rotate(12deg) scale(${.9+.1*mag})`}}
 function p58Reset(card){if(!card)return;card.style.transition='transform .18s ease';card.style.transform='';card.style.opacity='';p58Paint(card,0);setTimeout(()=>{if(card&&card.isConnected)card.style.transition=''},190)}
 const p58DecorateBase=typeof p57Decorate==='function'?p57Decorate:null;
-if(p58DecorateBase)p57Decorate=async function(){await p58DecorateBase();const card=$('currentCard');if(!card||card.dataset.p58==='1')return;card.dataset.p58='1';p58Ensure(card);
+if(p58DecorateBase)p57Decorate=async function(){await p58DecorateBase();if(document.getElementById('app')?.classList.contains('t93-ready'))return;const card=$('currentCard');if(!card||card.dataset.p58==='1')return;card.dataset.p58='1';p58Ensure(card);
   let sx=0,sy=0,dx=0,dy=0,drag=false,startedOnHero=false,pending=false;
   card.onpointerdown=e=>{if(pending||e.target.closest('button'))return;drag=true;startedOnHero=!!e.target.closest('.heroimg');sx=e.clientX;sy=e.clientY;dx=dy=0;card.style.transition='';card.setPointerCapture?.(e.pointerId)};
   card.onpointermove=e=>{if(!drag||pending)return;dx=e.clientX-sx;dy=e.clientY-sy;if(Math.abs(dx)>Math.abs(dy)){card.style.transform=`translateX(${dx}px) rotate(${dx/20}deg)`;p58Paint(card,dx)}};
