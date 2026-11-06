@@ -102,3 +102,9 @@
 
 #app.t92-app .profilecard.t93-demo-card .t92-online:before{display:none!important}
 #app.t92-app .profilecard.t93-demo-card .t92-online{background:#281e36;color:#f6d9f4}
+
+#app.t92-app .t93-mini-portraits{display:flex;align-items:center;gap:9px;margin:14px 0 7px}
+#app.t92-app .t93-mini-portrait{display:block;width:48px;height:48px;flex:none;border:2px solid #e6d8e7;border-radius:50%;background-repeat:no-repeat;background-color:#2c2039;box-shadow:0 3px 9px #0006}
+#app.t92-app .t93-mini-add{width:48px;height:48px;display:grid;place-items:center;background:#392946;border:1px solid #5a4674;border-radius:50%;color:white;cursor:pointer}
+#app.t92-app .t93-mini-add .t93-icon{width:24px;height:24px}
+#app.t92-app .t93-verified .t93-verified-empty{font-size:11px;margin:4px 0 9px;color:#c8b5cb}
