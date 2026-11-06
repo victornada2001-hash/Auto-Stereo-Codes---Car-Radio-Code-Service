@@ -111,6 +111,7 @@
     const d=candidates?.[candidateIndex],card=$q('#currentCard');if(!d||!card)return result;
     const wrap=$q('.heroimg',card);
     if(d.is_demo&&wrap){
+      card.classList.add('t93-demo-card');
       wrap.querySelectorAll('img,.t93-portrait').forEach(n=>n.remove());
       const sprite=d.syntheticSprite;
       if(sprite){
@@ -160,6 +161,6 @@
   }
   // Avoid a flash of the previous layout: the main application remains hidden until this script completes.
   updateIdentity();
-  setTimeout(()=>{if(session&&(!$q('#currentCard'))&&window.TJSDATES_DEMO_PROFILES?.length)window.tjsOpenDemoProfiles?.();updateActivity()},250);
+  setTimeout(()=>{if(session&&window.TJSDATES_DEMO_PROFILES?.length){if(!candidates.length)window.tjsOpenDemoProfiles?.();else if(candidates[candidateIndex]?.is_demo)renderDeck();}updateActivity()},250);
   window.addEventListener('pageshow',()=>{updateIdentity();updateActivity()});
 })();
