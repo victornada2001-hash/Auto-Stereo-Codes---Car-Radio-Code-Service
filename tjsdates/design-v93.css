@@ -99,3 +99,6 @@
 @media(max-width:1120px){#app.t92-app .appgrid{grid-template-columns:260px minmax(310px,1fr)}#app.t92-app .t92-right{display:none}#app.t92-app .t92-brand{min-width:230px}#app.t92-app .t92-topnav{gap:7px}#app.t92-app .t92-topnav button{font-size:12px}}
 @media(max-width:860px){#app.t92-app .appgrid{display:block}#app.t92-app .t92-topbar{height:68px}#app.t92-app .t92-brand{min-width:0}#app.t92-app .t92-self{display:none}#app.t92-app .t92-heading{margin:4px auto 20px}#app.t92-app .t92-heading h1{font-size:26px}#app.t92-app .t92-heading p{font-size:13px}#app.t92-app .deck{min-height:390px;height:min(65dvh,600px)}#app.t92-app #page-discover .actions{gap:clamp(6px,2vw,14px)!important;margin-top:19px!important}#app.t92-app #page-discover .actions>.round.t93-action{width:clamp(44px,14vw,67px)!important;height:clamp(44px,14vw,67px)!important}}
 @media(max-width:420px){#app.t92-app #page-discover .actions>.round.t93-action{width:clamp(42px,13vw,56px)!important;height:clamp(42px,13vw,56px)!important}#app.t92-app .t92-heading h1{font-size:23px}}
+
+#app.t92-app .profilecard.t93-demo-card .t92-online:before{display:none!important}
+#app.t92-app .profilecard.t93-demo-card .t92-online{background:#281e36;color:#f6d9f4}
