@@ -81,6 +81,31 @@
       actions.appendChild(b);
     });
   }
+  // Keep just the six intended controls even if a legacy enhancement injects extras.
+  if(actions&&typeof MutationObserver!=='undefined'){
+    const controls=new MutationObserver(()=>{
+      for(const child of Array.from(actions.children)){
+        if(!child.classList.contains('t93-action'))child.remove();
+      }
+    });
+    controls.observe(actions,{childList:true});
+  }
+  // Guard against accidental double actions (click and swipe in the same gesture).
+  let actionBusy=false;
+  for(const name of ['likeCurrent','passCurrent','superLikeCurrent']){
+    const handler=window[name];
+    if(typeof handler!=='function')continue;
+    window[name]=function(){
+      if(actionBusy)return;
+      actionBusy=true;
+      const args=arguments,ctx=this;
+      try{
+        const value=handler.apply(ctx,args);
+        Promise.resolve(value).finally(()=>setTimeout(()=>{actionBusy=false},400));
+        return value;
+      }catch(e){actionBusy=false;throw e;}
+    };
+  }
   // Synthetic face collage: independent AI-generated identity in each tile.
   // SFHQ-T2I, MIT license, source: github.com/SelfishGene/SFHQ-T2I-dataset.
   const base='https://raw.githubusercontent.com/SelfishGene/SFHQ-T2I-dataset/main/figures/';
@@ -136,6 +161,17 @@
       return out;
     }catch(err){console.error('Discovery failed',err);if(session&&window.TJSDATES_DEMO_PROFILES?.length)window.tjsOpenDemoProfiles?.()}
   };
+  async function loadOwnAvatar(){
+    if(!session?.user?.id||typeof signed!=='function')return;
+    try{
+      const {data,error}=await sb.from('profile_photos').select('storage_path').eq('user_id',session.user.id).eq('moderation_status','approved').order('is_primary',{ascending:false}).limit(1);
+      if(error||!data?.length)return;
+      const url=await signed(data[0].storage_path);if(!url)return;
+      for(const el of [$q('.t92-self-avatar',self),$q('.t92-avatar',top)]){
+        if(el){el.style.backgroundImage='url("'+url+'")';el.style.backgroundSize='cover';el.style.backgroundPosition='center';el.textContent='';}
+      }
+    }catch(e){console.warn('Avatar unavailable',e)}
+  }
   const updateIdentity=()=>{
     const name=profile?.display_name||'Mi perfil';
     $q('.t92-self-name',self).textContent=name;
@@ -161,7 +197,7 @@
   }
   // Avoid a flash of the previous layout: the main application remains hidden until this script completes.
   updateIdentity();
-  setTimeout(()=>{if(session&&window.TJSDATES_DEMO_PROFILES?.length){if(!candidates.length)window.tjsOpenDemoProfiles?.();else if(candidates[candidateIndex]?.is_demo)renderDeck();}updateActivity()},250);
+  setTimeout(()=>{if(session&&window.TJSDATES_DEMO_PROFILES?.length){if(!candidates.length)window.tjsOpenDemoProfiles?.();else if(candidates[candidateIndex]?.is_demo)renderDeck();}updateActivity();loadOwnAvatar()},250);
   window.addEventListener('pageshow',()=>{updateIdentity();updateActivity();if(typeof releaseStartupGate==='function')releaseStartupGate()});
   if(typeof releaseStartupGate==='function')releaseStartupGate();
 })();
