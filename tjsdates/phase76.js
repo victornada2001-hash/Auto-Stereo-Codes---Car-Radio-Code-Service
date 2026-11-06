@@ -661,3 +661,9 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
     return previousRender.apply(this,arguments);
   };
 })();
+
+/* Dashboard v92 loaded after previous enhancement phases. */
+(function(){
+ if(!document.querySelector('link[data-t92]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/design-v92.css?release=92';link.dataset.t92='1';document.head.appendChild(link);}
+ if(!document.querySelector('script[data-t92]')){const script=document.createElement('script');script.src='/design-v92.js?release=92';script.dataset.t92='1';document.body.appendChild(script);}
+})();
