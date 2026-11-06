@@ -1,7 +1,7 @@
 // Phase 59: polished Discovery action buttons without changing business logic.
 function p59Copy(){const en=typeof tjsUiLanguage!=='undefined'&&tjsUiLanguage==='en';return en?{rewind:'Rewind',pass:'Pass',super:'Highlighted Like',like:'Like',premium:'Premium'}:{rewind:'Rewind',pass:'Pasar',super:'Like destacado',like:'Me gusta',premium:'Premium'}}
 function p59DecorateActions(){
-  const a=document.querySelector('#page-discover .actions');if(!a)return;a.dataset.p59='1';
+  const a=document.querySelector('#page-discover .actions');if(!a||a.querySelector('.t93-action'))return;a.dataset.p59='1';
   const t=p59Copy(),buttons=[...a.querySelectorAll('button')];
   const cfg=[['rewind',t.rewind,'↩'],['pass',t.pass,'✕'],['super',t.super,'★'],['like',t.like,'♥']];
   buttons.slice(0,4).forEach((b,i)=>{
