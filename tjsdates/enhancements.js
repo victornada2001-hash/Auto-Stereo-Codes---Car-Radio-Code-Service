@@ -116,7 +116,7 @@ go=function(page){baseGo(page);if(page==='notifications')loadNotificationPrefere
 
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=$('installBtn');if(b)b.disabled=false});
 async function installPWA(){if(!deferredInstallPrompt)return toast('Usa el menú de tu navegador para agregar TJSDATES a la pantalla de inicio.');deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=$('installBtn');if(b)b.disabled=true}
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
 
 const phaseObserver=setInterval(()=>{if($('app')){injectPhaseSixUI();clearInterval(phaseObserver)}},100);
 setTimeout(()=>{injectPhaseSixUI();if(session){loadVerificationStatus();loadNotificationPreferences()}},700);
