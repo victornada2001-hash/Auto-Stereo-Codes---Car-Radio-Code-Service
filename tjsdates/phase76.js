@@ -662,8 +662,20 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
   };
 })();
 
-/* Dashboard v92 loaded after previous enhancement phases. */
+/* v93: load the final reference dashboard only after the legacy phases are ready. */
 (function(){
- if(!document.querySelector('link[data-t92]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/design-v92.css?release=92';link.dataset.t92='1';document.head.appendChild(link);}
- if(!document.querySelector('script[data-t92]')){const script=document.createElement('script');script.src='/design-v92.js?release=92';script.dataset.t92='1';document.body.appendChild(script);}
+  if(!document.querySelector('script[data-t92]')){
+    const first=document.createElement('script');
+    first.src='/design-v92.js?release=93';
+    first.dataset.t92='1';
+    first.onload=()=>{
+      if(document.querySelector('script[data-t93]'))return;
+      const final=document.createElement('script');
+      final.src='/design-v93.js?release=93';
+      final.dataset.t93='1';
+      document.body.appendChild(final);
+    };
+    first.onerror=()=>{document.getElementById('app')?.classList.add('t93-ready');console.error('Unable to load TJSDATES design assets')};
+    document.body.appendChild(first);
+  }
 })();
