@@ -143,7 +143,7 @@ rates();
 (function(){
  const opts=[['↶','Regresar'],['✕','No me gusta'],['★','Super Like'],['♥','Me gusta']];
  function init(){
-  document.querySelectorAll('#page-discover .actions button.round').forEach((b,i)=>{
+  document.querySelectorAll('#page-discover .actions button.round:not(.t93-action)').forEach((b,i)=>{
    if(!opts[i])return;
    if(b.textContent!==opts[i][0])b.textContent=opts[i][0];
    b.setAttribute('aria-label',opts[i][1]);
@@ -266,7 +266,7 @@ function enhanceDeck(){
  expand.onclick=e=>{e.stopPropagation();profileSheet(candidate)};card.appendChild(expand);
  findPhotos();
  const actions=document.querySelector('#page-discover .actions');
- if(actions&&!actions.querySelector('.tjs-direct-message')){
+ if(actions&&!actions.querySelector('.t93-action')&&!actions.querySelector('.tjs-direct-message')){
   const dm=document.createElement('button');dm.className='round tjs-direct-message';dm.type='button';dm.textContent='➤';dm.setAttribute('aria-label','Mensaje directo');
   dm.onclick=()=>showModal('<h2>Mensaje directo</h2><p>US$5 por mensaje directo. Disponible próximamente al confirmar el pago seguro con Stripe.</p>');
   actions.appendChild(dm);
