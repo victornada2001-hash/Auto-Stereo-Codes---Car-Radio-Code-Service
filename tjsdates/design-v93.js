@@ -112,7 +112,7 @@
   const sources=[
    {url:base+'textual_search_2_Hair Style x Sex_top_10_matches.jpg',rows:6,cols:10,count:60},
    {url:base+'textual_search_2_Makeup_top_9_matches.jpg',rows:5,cols:9,count:45},
-   {url:base+'textual_search_2_Facial Hair_top_10_matches.jpg',rows:5,cols:10,count:50}
+   {url:base+'textual_search_2_Facial Hair_top_10_matches.jpg',rows:6,cols:10,count:60}
   ];
   const femaleIndices=Array.from({length:60},(_,i)=>[0,i]).concat(Array.from({length:20},(_,i)=>[1,i]));
   const maleIndices=Array.from({length:20},(_,i)=>[2,i]);
