@@ -666,16 +666,24 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
 (function(){
   if(!document.querySelector('script[data-t92]')){
     const first=document.createElement('script');
-    first.src='/design-v92.js?release=93';
+    first.src='/design-v92.js?release=94';
     first.dataset.t92='1';
     first.onload=()=>{
       if(document.querySelector('script[data-t93]'))return;
       const final=document.createElement('script');
-      final.src='/design-v93.js?release=93';
+      final.src='/design-v93.js?release=94';
       final.dataset.t93='1';
+      final.onload=()=>{
+        const clean=document.createElement('script');
+        clean.src='/design-v94.js?release=94';
+        clean.dataset.t94='1';
+        clean.onerror=()=>{document.getElementById('app')?.classList.add('t94-ready');console.error('TJSDATES clean-photo update failed to load')};
+        document.body.appendChild(clean);
+      };
+      final.onerror=()=>{document.getElementById('app')?.classList.add('t93-ready','t94-ready')};
       document.body.appendChild(final);
     };
-    first.onerror=()=>{document.getElementById('app')?.classList.add('t93-ready');console.error('Unable to load TJSDATES design assets')};
+    first.onerror=()=>{document.getElementById('app')?.classList.add('t93-ready','t94-ready');console.error('Unable to load TJSDATES design assets')};
     document.body.appendChild(first);
   }
 })();
