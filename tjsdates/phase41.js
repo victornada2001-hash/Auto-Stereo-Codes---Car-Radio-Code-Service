@@ -58,6 +58,8 @@ function injectConnectivityBanner(){
 
 function releaseStartupGate(){
   if(!window.__TJSDATES_FULL_READY)return false;
+  const root=document.getElementById('app');
+  if(root&&!root.classList.contains('hidden')&&!root.classList.contains('t93-ready'))return false;
   const gate=$('startupGate');
   if(!gate){document.documentElement.dataset.tjsReady='1';return true;}
   gate.setAttribute('aria-hidden','true');
