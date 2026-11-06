@@ -23,6 +23,7 @@
    arrowBack:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-2"/>',
    x:'<path d="M5 5 19 19M19 5 5 19"/>',
    bolt:'<path d="m13 2-9 12h7l-1 8 10-12h-7l0-8Z"/>',
+   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
    mic:'<rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/>',
    plus:'<path d="M12 5v14M5 12h14"/>',
    calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',
@@ -47,6 +48,7 @@
   ];
   menu.innerHTML=menuItems.map(([p,i,label],idx)=>'<button type="button" class="t93-navbtn'+(idx===0?' selected':'')+'" data-t93-page="'+p+'">'+ico(i)+'<span>'+label+'</span></button>').join('')+
     '<div class="t93-region"><div>'+ico('pin')+' <b>Tijuana, MX</b><span>⌄</span></div><small>🇺🇸 Cambiando a San Diego, CA</small></div>';
+  menu.insertAdjacentHTML('beforeend','<button type="button" class="t93-navbtn t93-logout" aria-label="Cerrar sesión">'+ico('logout')+'<span>Cerrar sesión</span></button>');
   side.insertBefore(menu,side.querySelector('.spacer')||null);
   menu.querySelectorAll('[data-t93-page]').forEach(btn=>btn.onclick=()=>{
     const p=btn.dataset.t93Page;
@@ -55,6 +57,7 @@
     go(route);
   });
   menu.querySelector('.t93-region').onclick=()=>go('filters');
+  menu.querySelector('.t93-logout').onclick=()=>logout();
   const sideFooter=$q('.t92-sidefooter',side);sideFooter?.remove();
   const footer=document.createElement('div');footer.className='t93-sidebar-premium';footer.innerHTML='<div>'+ico('crown')+' <b>¡Haz más con Premium!</b></div><p>Likes, filtros y mayor visibilidad</p><button type="button">Actualizar a Premium</button>';footer.querySelector('button').onclick=()=>go('premium');side.appendChild(footer);
   const head=$q('.t92-heading');

@@ -108,3 +108,7 @@
 #app.t92-app .t93-mini-add{width:48px;height:48px;display:grid;place-items:center;background:#392946;border:1px solid #5a4674;border-radius:50%;color:white;cursor:pointer}
 #app.t92-app .t93-mini-add .t93-icon{width:24px;height:24px}
 #app.t92-app .t93-verified .t93-verified-empty{font-size:11px;margin:4px 0 9px;color:#c8b5cb}
+
+#app.t92-app .t93-sidemenu .t93-logout{margin-top:10px;border-top:1px solid #4b375b;border-radius:10px;color:#f2dce9}
+#app.t92-app .t93-sidemenu .t93-logout .t93-icon{color:#ff8aaf}
+#app.t92-app .t93-sidemenu .t93-logout:hover{background:#692b48;color:#fff}
