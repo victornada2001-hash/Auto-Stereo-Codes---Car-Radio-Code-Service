@@ -56,14 +56,14 @@
     actions.classList.add('t94-actions');
     for(const btn of Array.from(actions.querySelectorAll('button'))){
       if(!btn.classList.contains('t93-action')){btn.remove();continue}
-      btn.classList.remove('p59action','p59-rewind','p59-pass','p59-super','p59-like','p61-disabled');
+      btn.classList.remove('p59action','p59-rewind','p59-pass','p59-super' ,'p59-like');
       btn.querySelectorAll('.p59icon,.p59label').forEach(x=>x.remove());
       if(!btn.querySelector('svg.t93-icon'))console.warn('Missing SVG in reaction button:',btn.className);
     }
     // Ensure the buttons are in the correct order and no old action nodes remain.
     for(const c of [...actions.children])if(!c.classList.contains('t93-action'))c.remove();
     const preferred=['undo','pass','star','like','boost','voice'];
-    preferred.forEach(name=>{const b=actions.querySelector('.t93-'+name);if(b)actions.appendChild(b)});
+    preferred.forEach((name,i)=>{const b=actions.querySelector('.t93-'+name);if(b&&actions.children[i]!==b)actions.insertBefore(b,actions.children[i]||null)});
   }
   let cleaning=false;
   const actions=document.querySelector('#page-discover .actions');
