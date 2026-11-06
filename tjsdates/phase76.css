@@ -272,3 +272,11 @@ body:before{
 #tjsIdentityQueue{margin-top:20px}
 .tjs-identity-review{border:1px solid #543456;border-radius:14px;padding:13px;margin:12px 0;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .tjs-identity-review p{flex:1 1 100%;overflow-wrap:anywhere;font-size:13px}
+
+/* Release 90: only the three primary swipe reactions are visible. */
+#page-discover .actions > .round:first-child{display:none!important}
+#page-discover .actions > .tjs-direct-message{display:none!important}
+#page-discover .actions{gap:clamp(17px,5vw,30px)!important;justify-content:center!important}
+#page-discover .actions .round.pass{color:#ff405b!important}
+#page-discover .actions .round.star{color:#40a9ff!important}
+#page-discover .actions .round.like{color:#ff405b!important}
