@@ -1,0 +1,168 @@
+#app #page-discover.tjs-scroll-discovery #deck {
+  height: clamp(340px, calc(100dvh - 238px), 660px) !important;
+  min-height: 0;
+}
+
+#app #page-discover .tjs-scroll-profile {
+  touch-action: pan-y pinch-zoom;
+  background: #1c1526;
+}
+
+#app #page-discover .tjs-scroll-profile.tjs-profile-dragging { transition: none; }
+
+.tjs-profile-scroll {
+  position: relative;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #9b7498 #251b32;
+}
+
+.tjs-profile-scroll:focus-visible { outline: 2px solid #ff9bc5; outline-offset: -4px; }
+.tjs-profile-cover { position: relative; min-height: 100%; isolation: isolate; background: #271b33; }
+.tjs-profile-cover > img, .tjs-cover-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tjs-profile-cover > img { object-fit: cover; object-position: center 25%; z-index: 1; }
+.tjs-cover-fallback {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 52% 28%, #694465, #30203f 52%, #201529);
+  color: #d694b0;
+  font-size: clamp(64px, 16vw, 122px);
+}
+.tjs-profile-cover::after {
+  content: "";
+  position: absolute;
+  inset: 66% 0 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(transparent, #100a1adc);
+}
+.tjs-profile-cover img, .tjs-profile-photo img { user-select: none; -webkit-user-drag: none; }
+
+.tjs-profile-identity {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 15px 16px 22px;
+  background: linear-gradient(180deg, #160d20f5, #160d20cc 63%, #160d2000);
+  color: #fff8ff;
+  pointer-events: none;
+}
+#app .tjs-profile-identity h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  font-size: clamp(21px, 4vw, 31px);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+#app .tjs-profile-identity p { color: #f2e6f2; margin: 4px 0 0; font-size: 12px; line-height: 1.3; }
+.tjs-profile-verified {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #76c8ff;
+  color: #132442;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.tjs-profile-jump, .tjs-profile-options-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #ffffff52;
+  border-radius: 999px;
+  min-height: 40px;
+  background: #231627e8;
+  color: #fff6fb;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tjs-profile-jump:hover, .tjs-profile-options-button:hover { background: #503049; }
+.tjs-profile-jump {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+.tjs-profile-options-button { min-width: 40px; pointer-events: auto; }
+.tjs-profile-details.tjs-profile-options { height: auto; max-height: 90dvh; }
+
+.tjs-profile-details-inline { padding: 14px 12px 20px; background: #1c1526; }
+.tjs-profile-details-inline:focus { outline: none; }
+.tjs-profile-section {
+  margin-bottom: 12px;
+  padding: 14px 15px;
+  border: 1px solid #51405b;
+  border-radius: 16px;
+  background: #292034;
+  color: #f4eafa;
+  overflow-wrap: anywhere;
+}
+.tjs-profile-section h4 { margin: 0 0 8px; font-size: 16px; letter-spacing: -.01em; }
+#app .tjs-profile-section p { margin: 0; color: #efdeef; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+.tjs-profile-section dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.tjs-profile-section dl > div, .tjs-profile-section li {
+  background: #372a43;
+  border-radius: 9px;
+  padding: 7px 9px;
+  min-width: 0;
+}
+.tjs-profile-section dt { color: #e1c4e2; font-size: 11px; }
+.tjs-profile-section dd { margin: 2px 0 0; color: #fcf1fc; font-size: 13px; font-weight: 650; }
+.tjs-profile-section ul { display: flex; gap: 6px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.tjs-profile-section li { font-size: 12px; }
+#app .tjs-profile-section .tjs-profile-common { color: #ffc0db; margin-bottom: 6px; font-size: 12px; }
+.tjs-profile-photo {
+  margin: 0 0 12px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: min(540px, 64dvh);
+  border-radius: 17px;
+  overflow: hidden;
+  background: #130e1a;
+}
+.tjs-profile-photo img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.tjs-profile-empty { color: #e0cce5; font-size: 13px; padding: 0 6px; }
+.tjs-profile-empty:empty { margin: 0; }
+
+@media (max-width: 860px) {
+  #app.t92-app:has(#page-discover.tjs-scroll-discovery:not(.hidden)) .t92-heading { margin: 0 auto 12px; }
+  #app.t92-app:has(#page-discover.tjs-scroll-discovery:not(.hidden)) .t92-heading h1 { font-size: 21px; margin-bottom: 3px; }
+  #app.t92-app:has(#page-discover.tjs-scroll-discovery:not(.hidden)) .t92-heading p { display: none; }
+  #app #page-discover.tjs-scroll-discovery #deck {
+    height: clamp(270px, calc(100dvh - 248px - env(safe-area-inset-bottom, 0px)), 650px) !important;
+  }
+  #app #page-discover.tjs-scroll-discovery .discoverWrap { padding-bottom: 52px !important; }
+  #app #page-discover.tjs-scroll-discovery .actions { margin-top: 9px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app #page-discover .tjs-scroll-profile { transition: none !important; }
+}

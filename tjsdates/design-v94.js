@@ -90,6 +90,13 @@
   }
   const olderRender=renderDeck;
   renderDeck=function(){
+    const profile=candidates?.[candidateIndex];
+    if(profile&&typeof window.renderDiscoverProfile==='function'){
+      window.renderDiscoverProfile(profile,singlePortrait);
+      cleanupHint();cleanupActions();
+      if(typeof p61SyncRewind==='function')p61SyncRewind();
+      return;
+    }
     const result=olderRender.apply(this,arguments);
     const current=candidates?.[candidateIndex],card=document.getElementById('currentCard');
     cleanupHint();cleanupActions();
@@ -130,7 +137,7 @@
     });
   });
   // If the deck already rendered before this script arrived, repaint it with clean photos.
-  if(typeof session!=='undefined'&&session&&typeof candidates!=='undefined'&&candidates[candidateIndex]?.is_demo){
+  if(typeof session!=='undefined'&&session&&typeof candidates!=='undefined'&&candidates[candidateIndex]){
     renderDeck();
   }
   cleanupHint();

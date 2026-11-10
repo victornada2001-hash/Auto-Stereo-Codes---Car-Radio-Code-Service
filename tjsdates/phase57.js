@@ -19,9 +19,9 @@ function p57Paint(card,photos,index){
 }
 async function p57Decorate(){
   const c=typeof candidates!=='undefined'?candidates[candidateIndex]:null,card=$('currentCard');
-  if(!c||!card||card.dataset.p57==='1')return;card.dataset.p57='1';card.dataset.profileId=c.id;
-  const photos=await p57Photos(c.id,c.photo);if(photos.length<2)return;
-  const hero=card.querySelector('.heroimg');if(!hero)return;
+  const hero=card?.querySelector('.heroimg');
+  if(!c||!hero||card.dataset.p57==='1')return;card.dataset.p57='1';card.dataset.profileId=c.id;
+  const photos=await p57Photos(c.id,c.photo);if(!card.isConnected||photos.length<2)return;
   const top=document.createElement('div');top.className='p57bars';top.innerHTML=photos.map((_,i)=>`<span class="p57bar ${i===0?'on':''}"></span>`).join('');hero.appendChild(top);
   const count=document.createElement('span');count.className='p57count';count.textContent=`1/${photos.length}`;hero.appendChild(count);
   const left=document.createElement('button'),right=document.createElement('button');left.type=right.type='button';left.className='p57zone p57left';right.className='p57zone p57right';left.setAttribute('aria-label','Foto anterior');right.setAttribute('aria-label','Foto siguiente');hero.append(left,right);
