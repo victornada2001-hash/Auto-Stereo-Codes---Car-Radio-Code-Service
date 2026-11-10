@@ -25,7 +25,16 @@ async function loadPhotos(){if(!session)return;const {data,error}=await sb.from(
 async function setPrimary(id){await sb.from('profile_photos').update({is_primary:false}).eq('user_id',session.user.id);const {error}=await sb.from('profile_photos').update({is_primary:true}).eq('id',id);if(error)return toast(error.message);loadPhotos()}
 async function deletePhoto(id,path){await sb.storage.from('profile-photos').remove([path]);await sb.from('profile_photos').delete().eq('id',id);loadPhotos()}
 async function movePhoto(id,dir){const {data}=await sb.from('profile_photos').select('*').eq('user_id',session.user.id).order('position');const i=data.findIndex(x=>x.id===id),j=i+dir;if(i<0||j<0||j>=data.length)return;const a=data[i].position,b=data[j].position;await sb.from('profile_photos').update({position:b}).eq('id',data[i].id);await sb.from('profile_photos').update({position:a}).eq('id',data[j].id);loadPhotos()}
-async function requestLocation(){if(!navigator.geolocation)return toast('Tu navegador no permite geolocalización.');navigator.geolocation.getCurrentPosition(async p=>{const city=profile?.city||$('pCity')?.value||'Tijuana';const {error}=await sb.rpc('set_my_location',{lat:p.coords.latitude,lon:p.coords.longitude,p_city:city,p_zone:null});if(error)toast(error.message);else{toast('Ubicación guardada de forma privada.');loadDiscovery()}},e=>toast('No fue posible obtener tu ubicación: '+e.message),{enableHighAccuracy:false,timeout:12000,maximumAge:300000})}
+function requestLocation(){
+  const getPosition=window.TJSDATES_NATIVE?.getCurrentPosition||navigator.geolocation?.getCurrentPosition.bind(navigator.geolocation);
+  if(!getPosition)return toast('La geolocalización no está disponible.');
+  getPosition(async position=>{
+    const city=profile?.city||$('pCity')?.value||'Tijuana';
+    const {error}=await sb.rpc('set_my_location',{lat:position.coords.latitude,lon:position.coords.longitude,p_city:city,p_zone:null});
+    if(error)toast(error.message);
+    else{toast('Ubicación guardada de forma privada.');loadDiscovery()}
+  },error=>toast('No fue posible obtener tu ubicación: '+error.message),{enableHighAccuracy:false,timeout:12000,maximumAge:300000});
+}
 async function loadFilters(){if(!session)return;const {data}=await sb.from('preferences').select('*').eq('user_id',session.user.id).maybeSingle();const d=data||{min_age:18,max_age:45,max_distance_km:30,genders:[]};$('fMinAge').value=d.min_age||18;$('fMaxAge').value=d.max_age||45;$('fDistance').value=String(d.max_distance_km||30);document.querySelectorAll('#fGenders .chip').forEach(b=>b.classList.toggle('on',(d.genders||[]).includes(b.dataset.v)))}
 async function saveFilters(){const min=Number($('fMinAge').value),max=Number($('fMaxAge').value),g=[...document.querySelectorAll('#fGenders .chip.on')].map(x=>x.dataset.v);if(min<18||max<min)return setStatus('filterStatus','Revisa el rango de edad.');const {error}=await sb.from('preferences').upsert({user_id:session.user.id,min_age:min,max_age:max,max_distance_km:Number($('fDistance').value),genders:g});setStatus('filterStatus',error?error.message:'Filtros guardados.',!error);if(!error)loadDiscovery()}
 async function loadCandidatePhotos(ids){if(!ids.length)return{};const {data}=await sb.from('profile_photos').select('user_id,storage_path,is_primary,position,moderation_status').in('user_id',ids).eq('moderation_status','approved').order('position');const map={};for(const p of data||[]){if(!map[p.user_id]||p.is_primary)map[p.user_id]=await signed(p.storage_path)}return map}
