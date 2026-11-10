@@ -221,15 +221,17 @@ rates();
 (function(){
 const byId=id=>document.getElementById(id);
 let galleryIndex=0,activeProfileId=null;
-function profileSheet(candidate){
+function profileSheet(candidate,optionsOnly=false){
  const old=byId('tjsProfileSheet');old?.remove();
  const backdrop=document.createElement('div');backdrop.id='tjsProfileSheet';backdrop.className='tjs-profile-sheet';
- const panel=document.createElement('div');panel.className='tjs-profile-details';
+ const panel=document.createElement('div');panel.className=optionsOnly?'tjs-profile-details tjs-profile-options':'tjs-profile-details';
  const photo=candidate.photo?'<img src="'+candidate.photo+'" alt="Foto del perfil">':'<div class="tjs-photo-empty">♥</div>';
  const item=(title,value)=>'<div class="tjs-detail-item"><strong>'+title+'</strong><p>'+esc(value||'Sin especificar')+'</p></div>';
- panel.innerHTML='<button class="tjs-sheet-close" type="button">⌄ Cerrar</button><div class="tjs-sheet-hero">'+photo+'</div><h2>'+esc(candidate.display_name||'Perfil')+(candidate.age?' · '+candidate.age:'')+(candidate.is_verified?' <span class="tjs-verified">✿ ✓</span>':'')+'</h2>'+
- item('Qué busca',candidate.relationship_goal)+item('Sobre mí',candidate.bio)+item('Ciudad',candidate.city)+item('Distancia aproximada',candidate.approximate_distance_km?'A ~'+candidate.approximate_distance_km+' km':'No disponible')+
- item('Intereses',candidate.common_interests?candidate.common_interests+' intereses en común':'Sin especificar')+
+ panel.innerHTML='<button class="tjs-sheet-close" type="button">⌄ Cerrar</button>'+
+ (optionsOnly?'':'<div class="tjs-sheet-hero">'+photo+'</div>')+
+ '<h2>'+esc(candidate.display_name||'Perfil')+(candidate.age?' · '+candidate.age:'')+(candidate.is_verified?' <span class="tjs-verified">✿ ✓</span>':'')+'</h2>'+
+ (optionsOnly?'':item('Qué busca',candidate.relationship_goal)+item('Sobre mí',candidate.bio)+item('Ciudad',candidate.city)+item('Distancia aproximada',candidate.approximate_distance_km?'A ~'+candidate.approximate_distance_km+' km':'No disponible')+
+ item('Intereses',candidate.common_interests?candidate.common_interests+' intereses en común':'Sin especificar'))+
  '<div class="tjs-detail-actions"><button type="button" data-act="share">Compartir perfil</button><button type="button" data-act="block">Bloquear perfil</button><button type="button" data-act="report">Denunciar perfil</button></div>';
  panel.querySelector('.tjs-sheet-close').onclick=()=>backdrop.remove();
  panel.querySelector('[data-act="share"]').onclick=()=>{const link=location.origin; if(navigator.share)navigator.share({title:'TJSDATES',url:link}).catch(()=>{});else navigator.clipboard?.writeText(link).then(()=>toast('Enlace copiado'));};
@@ -238,6 +240,10 @@ function profileSheet(candidate){
  backdrop.onclick=e=>{if(e.target===backdrop)backdrop.remove();};
  backdrop.appendChild(panel);document.body.appendChild(backdrop);
 }
+window.openCurrentProfileDetails=function(){
+ const candidate=candidates[candidateIndex];
+ if(candidate&&!candidate.is_demo)profileSheet(candidate,true);
+};
 function enhanceDeck(){
  const candidate=typeof candidates!=='undefined'?candidates[candidateIndex]:null;
  const card=byId('currentCard');if(!card||!candidate||card.dataset.tjs81)return;
@@ -675,7 +681,7 @@ const previousGo=go;go=function(page){const result=previousGo.apply(this,argumen
       final.dataset.t93='1';
       final.onload=()=>{
         const clean=document.createElement('script');
-        clean.src='/design-v94.js?release=95';
+        clean.src='/design-v94.js?release=97';
         clean.dataset.t94='1';
         clean.onload=()=>{const s=document.createElement('script');s.src='/autosave-v95.js?release=95';s.dataset.t95='1';document.body.appendChild(s)};
         clean.onerror=()=>{document.getElementById('app')?.classList.add('t94-ready');console.error('TJSDATES clean-photo update failed to load')};
