@@ -2,11 +2,15 @@
 const P64_PROD_ORIGIN='https://tjsdates.vercel.app';
 function p64StrongPassword(v){return typeof v==='string'&&v.length>=10&&/[A-Z]/.test(v)&&/[a-z]/.test(v)&&/[0-9]/.test(v)}
 function p64AppOrigin(){
+  if(window.TJSDATES_NATIVE)return window.TJSDATES_NATIVE.publicOrigin;
   const h=location.hostname||'';
   if(h==='tjsdates.vercel.app')return P64_PROD_ORIGIN;
   return location.origin;
 }
-function p64RedirectUrl(recovery=false){return `${p64AppOrigin()}${location.pathname||'/'}${recovery?'?recovery=1':''}`}
+function p64RedirectUrl(recovery=false){
+  const path=window.TJSDATES_NATIVE?'/':location.pathname||'/';
+  return `${p64AppOrigin()}${path}${recovery?'?recovery=1':''}`;
+}
 function p64InjectForgot(){
   const card=document.querySelector('#auth .auth.card');
   if(!card||document.getElementById('p64Forgot'))return;

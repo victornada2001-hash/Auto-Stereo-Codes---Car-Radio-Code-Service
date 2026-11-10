@@ -56,7 +56,8 @@ async function resendConfirmation(email,btn){
   if(!email)return;
   btn.disabled=true;
   try{
-    const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;
+    const redirect=window.TJSDATES_NATIVE?window.TJSDATES_NATIVE.publicOrigin+'/':location.origin+location.pathname;
+    const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:redirect}});if(error)throw error;
     setStatus('authStatus','Correo de confirmación reenviado.',true);
   }catch(e){setStatus('authStatus',authFriendlyError(e));}
   finally{setTimeout(()=>btn.disabled=false,3000)}
